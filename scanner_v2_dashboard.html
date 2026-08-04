@@ -1,0 +1,164 @@
+<!DOCTYPE html><html lang='th'><head><meta charset='utf-8'>
+<meta name='viewport' content='width=device-width,initial-scale=1'>
+<title>Binance Perp Scanner v2 — Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Roboto,sans-serif;background:#0b0e14;color:#e6e6e6;padding:24px}
+.wrap{max-width:1200px;margin:0 auto}
+.head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+h1{font-size:24px;background:linear-gradient(90deg,#22c55e,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:#8b93a7;font-size:13px;margin-top:4px}
+.stats{display:flex;gap:10px}
+.chip{background:#151a24;border:1px solid #232a38;border-radius:10px;padding:8px 14px;font-size:13px}
+.chip b{font-size:18px;display:block}
+.chip.b b{color:#22c55e}
+table{width:100%;border-collapse:collapse;background:#111620;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.4);margin-bottom:28px}
+th{background:#0f141d;color:#8b93a7;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:12px 10px;text-align:left}
+td{padding:12px 10px;border-top:1px solid #1b2230;font-size:14px;vertical-align:middle}
+tr:hover td{background:#161d2b}
+.sym{font-weight:700;font-size:15px} .q{color:#5b6478;font-size:10px;margin-left:2px}
+.num{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
+.sl{color:#f87171} .tp{color:#34d399}
+.rr{display:block;font-size:9px;color:#5b6478;font-weight:400}
+.adx{color:#fbbf24;text-align:center}
+.foot{color:#5b6478;font-size:11px;margin-top:14px;text-align:center}
+.note{background:#151a24;border-left:3px solid #38bdf8;padding:12px 14px;border-radius:8px;font-size:13px;color:#cbd5e1;margin-bottom:24px;line-height:1.6}
+h2{font-size:18px;color:#e6e6e6;margin-bottom:12px}
+</style></head><body><div class='wrap'>
+<div class='head'>
+  <div><h1>🪙 Binance Perp Scanner v2</h1>
+  <div class='sub'>Accumulation BASE + Dip-Buy · RSI/CMF จริง · ไม่มี Reddit / token หุ้น</div></div>
+  <div class='stats'>
+    <div class='chip b'><b>8</b>BASE</div>
+    <div class='chip b'><b>1</b>DIP</div>
+  </div>
+</div>
+
+<div class='note'>
+📌 <b>BASE</b> = เหรียญกำลังสะสมเงียบ (range แคบ + OBV up + higher lows) → มีแนวโน้มพุ่ง<br>
+📌 <b>DIP</b> = pullback มาหา support ในเทรนด์ขาขึ้น → รอซื้อตอนย่อ (ไม่ chase)<br>
+💡 ซื้อตอนสะสมเงียบ รอลงหา Entry zone อย่าไล่ราคา สไตล์ dip-buyer
+</div>
+
+<h2>🟢 BASE setups (8 เหรียญ — กำลังสะสม)</h2>
+<table><thead><tr>
+  <th>เหรียญ</th><th>ราคา</th><th>Score</th><th>OBV</th><th>CMF</th><th>Range</th>
+  <th>SL</th><th>TP1</th><th>TP2</th><th>R:R</th>
+</tr></thead><tbody>
+        <tr>
+          <td class='sym'>TRX<span class='q'>USDT</span></td>
+          <td class='num'>0.32874</td>
+          <td class='num adx'>6</td>
+          <td class='num' style='color:#22c55e'>up</td>
+          <td class='num' style='color:#22c55e'>+0.017</td>
+          <td class='num'>1.5%</td>
+          <td class='num sl'>0.319849</td>
+          <td class='num tp'>0.328941<span class='rr'>+0.9%</span></td>
+          <td class='num tp'>0.33082<span class='rr'>+1.5%</span></td>
+          <td class='num' style='text-align:center'>0.49/0.8</td>
+        </tr>
+        <tr>
+          <td class='sym'>NEAR<span class='q'>USDT</span></td>
+          <td class='num'>1.731</td>
+          <td class='num adx'>6</td>
+          <td class='num' style='color:#22c55e'>up</td>
+          <td class='num' style='color:#22c55e'>+0.033</td>
+          <td class='num'>9.0%</td>
+          <td class='num sl'>1.57994</td>
+          <td class='num tp'>1.75249<span class='rr'>+6.7%</span></td>
+          <td class='num tp'>1.794<span class='rr'>+9.3%</span></td>
+          <td class='num' style='text-align:center'>1.78/2.45</td>
+        </tr>
+        <tr>
+          <td class='sym'>BNB<span class='q'>USDT</span></td>
+          <td class='num'>590.19</td>
+          <td class='num adx'>5</td>
+          <td class='num' style='color:#22c55e'>up</td>
+          <td class='num' style='color:#ef4444'>-0.063</td>
+          <td class='num'>4.3%</td>
+          <td class='num sl'>562.809</td>
+          <td class='num tp'>595.407<span class='rr'>+3.1%</span></td>
+          <td class='num tp'>602.905<span class='rr'>+4.4%</span></td>
+          <td class='num' style='text-align:center'>1.19/1.7</td>
+        </tr>
+        <tr>
+          <td class='sym'>DOT<span class='q'>USDT</span></td>
+          <td class='num'>0.822</td>
+          <td class='num adx'>5</td>
+          <td class='num' style='color:#22c55e'>up</td>
+          <td class='num' style='color:#22c55e'>+0.135</td>
+          <td class='num'>11.4%</td>
+          <td class='num sl'>0.731264</td>
+          <td class='num tp'>0.830136<span class='rr'>+8.5%</span></td>
+          <td class='num tp'>0.85415<span class='rr'>+11.7%</span></td>
+          <td class='num' style='text-align:center'>1.95/2.67</td>
+        </tr>
+        <tr>
+          <td class='sym'>FIL<span class='q'>USDT</span></td>
+          <td class='num'>0.7208</td>
+          <td class='num adx'>5</td>
+          <td class='num' style='color:#22c55e'>up</td>
+          <td class='num' style='color:#ef4444'>-0.018</td>
+          <td class='num'>8.5%</td>
+          <td class='num sl'>0.664481</td>
+          <td class='num tp'>0.732732<span class='rr'>+6.3%</span></td>
+          <td class='num tp'>0.7491<span class='rr'>+8.6%</span></td>
+          <td class='num' style='text-align:center'>1.73/2.38</td>
+        </tr>
+        <tr>
+          <td class='sym'>WLD<span class='q'>USDT</span></td>
+          <td class='num'>0.322</td>
+          <td class='num adx'>5</td>
+          <td class='num' style='color:#22c55e'>up</td>
+          <td class='num' style='color:#22c55e'>+0.045</td>
+          <td class='num'>9.9%</td>
+          <td class='num sl'>0.291067</td>
+          <td class='num tp'>0.325747<span class='rr'>+7.4%</span></td>
+          <td class='num tp'>0.334125<span class='rr'>+10.2%</span></td>
+          <td class='num' style='text-align:center'>1.85/2.54</td>
+        </tr>
+        <tr>
+          <td class='sym'>1000PEPE<span class='q'>USDT</span></td>
+          <td class='num'>0.002913</td>
+          <td class='num adx'>5</td>
+          <td class='num' style='color:#22c55e'>up</td>
+          <td class='num' style='color:#22c55e'>+0.039</td>
+          <td class='num'>9.2%</td>
+          <td class='num sl'>0.002662</td>
+          <td class='num tp'>0.002958<span class='rr'>+6.9%</span></td>
+          <td class='num tp'>0.003029<span class='rr'>+9.4%</span></td>
+          <td class='num' style='text-align:center'>1.8/2.47</td>
+        </tr>
+        <tr>
+          <td class='sym'>1000SHIB<span class='q'>USDT</span></td>
+          <td class='num'>0.005003</td>
+          <td class='num adx'>5</td>
+          <td class='num' style='color:#22c55e'>up</td>
+          <td class='num' style='color:#ef4444'>-0.082</td>
+          <td class='num'>11.9%</td>
+          <td class='num sl'>0.00451</td>
+          <td class='num tp'>0.00515<span class='rr'>+9.0%</span></td>
+          <td class='num tp'>0.005305<span class='rr'>+12.3%</span></td>
+          <td class='num' style='text-align:center'>1.99/2.72</td>
+        </tr></tbody></table>
+
+<h2>🔵 DIP setups (1 เหรียญ — pullback to support)</h2>
+<table><thead><tr>
+  <th>เหรียญ</th><th>ราคา</th><th>Score</th><th>RSI</th><th>ST</th>
+  <th>SL</th><th>TP1</th><th>TP2</th><th>R:R</th><th>TF</th>
+</tr></thead><tbody>
+        <tr>
+          <td class='sym'>AAVE<span class='q'>USDT</span></td>
+          <td class='num'>92.14</td>
+          <td class='num adx'>4</td>
+          <td class='num' style='color:#22c55e'>RSI 59.8</td>
+          <td class='num' style='color:#22c55e'>bull</td>
+          <td class='num sl'>88.6433</td>
+          <td class='num tp'>101.042<span class='rr'>+9.7%</span></td>
+          <td class='num tp'>100.882<span class='rr'>+9.5%</span></td>
+          <td class='num' style='text-align:center'>2.55/2.5</td>
+          <td class='num' style='text-align:center;color:#8b93a7'>4h</td>
+        </tr></tbody></table>
+
+<div class='foot'>สแกนสด Binance USD-M Futures · อัปเดต 2026-08-04 07:24:15 · CMF บวก=เงินไหลเข้า · ข้อมูลจาก scanner_v2_checkpoint.json</div>
+</div></body></html>
