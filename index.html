@@ -1,209 +1,76 @@
-<!DOCTYPE html><html lang='th'><head><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width,initial-scale=1'>
-<title>Trend Rider Dashboard</title>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accumulation Scanner Dashboard</title>
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',Roboto,sans-serif;background:#0b0e14;color:#e6e6e6;padding:24px}
-.wrap{max-width:1100px;margin:0 auto}
-.head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-h1{font-size:24px;background:linear-gradient(90deg,#22c55e,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.sub{color:#8b93a7;font-size:13px;margin-top:4px}
-.stats{display:flex;gap:10px}
-.chip{background:#151a24;border:1px solid #232a38;border-radius:10px;padding:8px 14px;font-size:13px}
-.chip b{font-size:18px;display:block}
-.chip.l b{color:#22c55e} .chip.s b{color:#ef4444}
-table{width:100%;border-collapse:collapse;background:#111620;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.4)}
-th{background:#0f141d;color:#8b93a7;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:12px 10px;text-align:left}
-td{padding:12px 10px;border-top:1px solid #1b2230;font-size:14px;vertical-align:middle}
-tr:hover td{background:#161d2b}
-.rank{color:#5b6478;font-weight:700;width:28px}
-.sym{font-weight:700;font-size:15px} .q{color:#5b6478;font-size:10px;margin-left:2px}
-.num{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
-.sl{color:#f87171} .tp{color:#34d399}
-.rr{display:block;font-size:9px;color:#5b6478;font-weight:400}
-.adx{color:#fbbf24;text-align:center}
-.b{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700}
-.b.long{background:rgba(34,197,94,.15);color:#22c55e}
-.b.short{background:rgba(239,68,68,.15);color:#ef4444}
-.fresh{font-size:12px}
-.r-long{border-left:3px solid #22c55e} .r-short{border-left:3px solid #ef4444}
-.dots{display:flex;gap:3px}
-.dot{font-size:8px;padding:2px 4px;border-radius:4px;color:#0b0e14;font-weight:700}
-.d-bull{background:#22c55e} .d-bear{background:#ef4444} .d-neu{background:#3b4354;color:#8b93a7}
-.ms{font-size:10px;color:#8b93a7;margin-top:3px}
-.mtf{min-width:120px}
-.empty{text-align:center;color:#5b6478;padding:30px}
-.foot{color:#5b6478;font-size:11px;margin-top:14px;text-align:center}
-</style></head><body><div class='wrap'>
-<div class='head'>
-  <div><h1>🟢 Trend Rider Dashboard</h1>
-  <div class='sub'>EMA 20/50/200 · ADX(14)&gt;25 · MTF 5m/15m/1h/4h/1D · SL=ATR×2 · TF=15m</div></div>
-  <div class='stats'>
-    <div class='chip l'><b>3</b>LONG</div>
-    <div class='chip s'><b>6</b>SHORT</div>
-  </div>
-</div>
-<table><thead><tr>
-  <th>#</th><th>Signal</th><th>เหรียญ</th><th>Entry</th><th>SL</th>
-  <th>TP1</th><th>TP2</th><th>ADX</th><th>MTF</th>
-</tr></thead><tbody>
-        <tr class='r-short'>
-          <td class='rank'>1</td>
-          <td><span class='b short'>🔴 SHORT</span> </td>
-          <td class='sym'>XRP<span class='q'>USDT</span></td>
-          <td class='num'>1.0176</td>
-          <td class='num sl'>1.02549</td>
-          <td class='num tp'>1.00576<span class='rr'>1.5R</span></td>
-          <td class='num tp'>0.993919<span class='rr'>3R</span></td>
-          <td class='num adx'>32.9</td>
-          <td class='num' style='color:#22c55e;text-align:center'>40.6</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 5S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr>
-        <tr class='r-long'>
-          <td class='rank'>2</td>
-          <td><span class='b long'>🟢 LONG</span> </td>
-          <td class='sym'>BICO<span class='q'>USDT</span></td>
-          <td class='num'>0.05396</td>
-          <td class='num sl'>0.048824</td>
-          <td class='num tp'>0.061664<span class='rr'>1.5R</span></td>
-          <td class='num tp'>0.0693681<span class='rr'>3R</span></td>
-          <td class='num adx'>28.7</td>
-          <td class='num' style='color:#22c55e;text-align:center'>57.7</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bull' title='5m:BULL'>5m</span><span class='dot d-bull' title='15m:BULL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-bull' title='1d:BULL'>1d</span></div><div class='ms'>5B / 0S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr>
-        <tr class='r-long'>
-          <td class='rank'>3</td>
-          <td><span class='b long'>🟢 LONG</span> </td>
-          <td class='sym'>CYS<span class='q'>USDT</span></td>
-          <td class='num'>0.9018</td>
-          <td class='num sl'>0.826202</td>
-          <td class='num tp'>1.0152<span class='rr'>1.5R</span></td>
-          <td class='num tp'>1.12859<span class='rr'>3R</span></td>
-          <td class='num adx'>28.4</td>
-          <td class='num' style='color:#22c55e;text-align:center'>62.5</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bull' title='5m:BULL'>5m</span><span class='dot d-bull' title='15m:BULL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-bull' title='1d:BULL'>1d</span></div><div class='ms'>5B / 0S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr>
-        <tr class='r-short'>
-          <td class='rank'>4</td>
-          <td><span class='b short'>🔴 SHORT</span> </td>
-          <td class='sym'>SKHYNIX<span class='q'>USDT</span></td>
-          <td class='num'>1010.91</td>
-          <td class='num sl'>1026.5</td>
-          <td class='num tp'>987.518<span class='rr'>1.5R</span></td>
-          <td class='num tp'>964.127<span class='rr'>3R</span></td>
-          <td class='num adx'>27.8</td>
-          <td class='num' style='color:#22c55e;text-align:center'>47.8</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 5S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr>
-        <tr class='r-short'>
-          <td class='rank'>5</td>
-          <td><span class='b short'>🔴 SHORT</span> </td>
-          <td class='sym'>DRAM<span class='q'>USDT</span></td>
-          <td class='num'>50.28</td>
-          <td class='num sl'>50.9827</td>
-          <td class='num tp'>49.2259<span class='rr'>1.5R</span></td>
-          <td class='num tp'>48.1718<span class='rr'>3R</span></td>
-          <td class='num adx'>26.6</td>
-          <td class='num' style='color:#22c55e;text-align:center'>49.0</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 5S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr>
-        <tr class='r-short'>
-          <td class='rank'>6</td>
-          <td><span class='b short'>🔴 SHORT</span> </td>
-          <td class='sym'>SAMSUNG<span class='q'>USDT</span></td>
-          <td class='num'>163.28</td>
-          <td class='num sl'>165.417</td>
-          <td class='num tp'>160.075<span class='rr'>1.5R</span></td>
-          <td class='num tp'>156.87<span class='rr'>3R</span></td>
-          <td class='num adx'>26.5</td>
-          <td class='num' style='color:#fbbf24;text-align:center'>50.1</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 5S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr>
-        <tr class='r-short'>
-          <td class='rank'>7</td>
-          <td><span class='b short'>🔴 SHORT</span> </td>
-          <td class='sym'>SNDK<span class='q'>USDT</span></td>
-          <td class='num'>1231.99</td>
-          <td class='num sl'>1258.06</td>
-          <td class='num tp'>1192.88<span class='rr'>1.5R</span></td>
-          <td class='num tp'>1153.77<span class='rr'>3R</span></td>
-          <td class='num adx'>26.2</td>
-          <td class='num' style='color:#22c55e;text-align:center'>45.1</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 5S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr>
-        <tr class='r-short'>
-          <td class='rank'>8</td>
-          <td><span class='b short'>🔴 SHORT</span> </td>
-          <td class='sym'>SNXX<span class='q'>USDT</span></td>
-          <td class='num'>9.34</td>
-          <td class='num sl'>9.74895</td>
-          <td class='num tp'>8.72658<span class='rr'>1.5R</span></td>
-          <td class='num tp'>8.11315<span class='rr'>3R</span></td>
-          <td class='num adx'>25.7</td>
-          <td class='num' style='color:#22c55e;text-align:center'>44.3</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 5S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr>
-        <tr class='r-long'>
-          <td class='rank'>9</td>
-          <td><span class='b long'>🟢 LONG</span> </td>
-          <td class='sym'>CRCL<span class='q'>USDT</span></td>
-          <td class='num'>67.03</td>
-          <td class='num sl'>65.8396</td>
-          <td class='num tp'>68.8156<span class='rr'>1.5R</span></td>
-          <td class='num tp'>70.6013<span class='rr'>3R</span></td>
-          <td class='num adx'>35.7</td>
-          <td class='num' style='color:#22c55e;text-align:center'>57.2</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bull' title='5m:BULL'>5m</span><span class='dot d-bull' title='15m:BULL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>4B / 1S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr></tbody></table>
-<div class='foot'>สแกนสดจาก Binance USD-M Futures · อัปเดต 2026-08-08 02:01:21 · MTF dot = สถานะแต่ละกรอบเวลา (เขียว=BULL แดง=BEAR เทา=NEUTRAL)</div>
-<div class='head' style='margin-top:28px'><div><h2 style='font-size:18px;color:#e6e6e6'>👁️ เหรียญเฝ้าระวัง</h2>
-<div class='sub'>โชว์เสมอแม้ไม่มีสัญญาณ · ADX เขียว=แรงพอ(>25) เหลือง=ยังอ่อน</div></div></div>
-<table><thead><tr>
-  <th>เหรียญ</th><th>ภาพรวม</th><th>ราคา</th><th>ADX</th><th>MTF</th>
-</tr></thead><tbody>
-        <tr>
-          <td class='sym'>BNB<span class='q'>USDT</span></td>
-          <td><span class='dot d-neu' style='font-size:10px;padding:3px 8px'>NEUTRAL</span></td>
-          <td class='num'>591.92</td>
-          <td class='num adx' style='color:#fbbf24'>20.5</td>
-          <td class='mtf'><div class='dots'><span class='dot d-neu' title='5m:NEUTRAL'>5m</span><span class='dot d-neu' title='15m:NEUTRAL'>15m</span><span class='dot d-neu' title='1h:NEUTRAL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>1B / 1S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>KAITO<span class='q'>USDT</span></td>
-          <td><span class='dot d-bear' style='font-size:10px;padding:3px 8px'>BEAR</span></td>
-          <td class='num'>0.8478</td>
-          <td class='num adx' style='color:#34d399'>41.2</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bull' title='1d:BULL'>1d</span></div><div class='ms'>1B / 4S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>SOL<span class='q'>USDT</span></td>
-          <td><span class='dot d-bull' style='font-size:10px;padding:3px 8px'>BULL</span></td>
-          <td class='num'>73.42</td>
-          <td class='num adx' style='color:#fbbf24'>24.4</td>
-          <td class='mtf'><div class='dots'><span class='dot d-neu' title='5m:NEUTRAL'>5m</span><span class='dot d-neu' title='15m:NEUTRAL'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 3S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>XRP<span class='q'>USDT</span></td>
-          <td><span class='dot d-bear' style='font-size:10px;padding:3px 8px'>BEAR</span></td>
-          <td class='num'>1.0187</td>
-          <td class='num adx' style='color:#34d399'>32.8</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 5S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>ETH<span class='q'>USDT</span></td>
-          <td><span class='dot d-neu' style='font-size:10px;padding:3px 8px'>NEUTRAL</span></td>
-          <td class='num'>1910.44</td>
-          <td class='num adx' style='color:#fbbf24'>19.6</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-neu' title='15m:NEUTRAL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-neu' title='1d:NEUTRAL'>1d</span></div><div class='ms'>2B / 1S</div></td>
-        </tr></tbody></table>
-<div class='foot'>Watchlist: BNB, KAITO, SOL, XRP, ETH</div>
-</div></body></html>
+  :root {{ --bg:#0d1117; --card:#161b22; --fg:#e6edf3; --mut:#8b949e;
+          --grn:#3fb950; --red:#f85149; --blu:#58a6ff; --bd:#30363d; }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; background:var(--bg); color:var(--fg);
+          font-family:"Segoe UI",Tahoma,Roboto,sans-serif; }}
+  header {{ padding:16px 20px; border-bottom:1px solid var(--bd); }}
+  h1 {{ margin:0; font-size:18px; }}
+  .sub {{ color:var(--mut); font-size:12px; margin-top:4px; }}
+  .grid {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+           gap:12px; padding:16px 20px; }}
+  .card {{ background:var(--card); border:1px solid var(--bd); border-radius:10px;
+           padding:14px; position:relative; }}
+  .sym {{ font-size:15px; font-weight:700; color:var(--blu); }}
+  .price {{ font-size:22px; font-weight:700; margin:6px 0; }}
+  .row {{ display:flex; justify-content:space-between; font-size:12px;
+          color:var(--mut); margin:3px 0; }}
+  .chg.up {{ color:var(--grn); }} .chg.down {{ color:var(--red); }}
+  svg.spark {{ display:block; margin-top:8px; }}
+  .tip {{ position:absolute; background:#000; color:#fff; font-size:11px;
+          padding:4px 7px; border-radius:5px; pointer-events:none; opacity:0;
+          transition:opacity .1s; white-space:nowrap; z-index:9; }}
+  .mtf {{ display:flex; gap:3px; margin-top:8px; }}
+  .mtf .t {{ font-size:9px; padding:2px 4px; border-radius:4px; font-weight:700; }}
+  .mtf .BULL {{ background:var(--grn); color:#000; }}
+  .mtf .BEAR {{ background:var(--red); color:#000; }}
+  .mtf .NEUTRAL {{ background:var(--bd); color:var(--mut); }}
+  .badge {{ display:inline-block; font-size:10px; padding:2px 6px; border-radius:4px;
+            background:var(--bd); color:var(--fg); margin-left:6px; }}
+  footer {{ padding:12px 20px; color:var(--mut); font-size:11px; border-top:1px solid var(--bd); }}
+</style>
+</head>
+<body>
+<header>
+  <h1>📊 Crypto Accumulation Scanner</h1>
+  <div class="sub">เหรียญที่ผ่านเกณฑ์ 5 ข้อ (สะสมเงียบ / Vol&gt;1.5M / ทยอยซื้อ / Social / Breakout&gt;0.8) &middot; อัปเดต 2026-08-08 02:28</div>
+</header>
+<div class="grid" id="grid"></div>
+<footer>สแกนโดย Binance Spot API + CoinGecko trending &middot; Static file เปิดได้โดยไม่ต้อง server</footer>
+<div class="tip" id="tip"></div>
+<script>
+const DATA = [{"sym": "AXTIBUSDT", "price": 75.35, "res14": 79.4, "chg": 86.8, "spark": "M0.0,22.2 L7.5,22.2 L15.0,26.1 L22.5,26.4 L30.0,25.5 L37.5,26.2 L45.0,28.6 L52.5,32.0 L60.0,19.0 L67.5,18.7 L75.0,17.4 L82.5,16.8 L90.0,10.9 L97.5,15.4 L105.0,12.4 L112.5,7.2 L120.0,0.0", "closes": [53.26, 53.34, 47.14, 46.65, 48.1, 46.96, 43.2, 37.92, 58.31, 58.73, 60.73, 61.81, 70.99, 63.9, 68.59, 76.71, 88.07], "mtf": {"5m": "BULL", "15m": "BULL", "1h": "BULL", "4h": "NEUTRAL", "1d": "NEUTRAL"}, "tooltip": "60.7300 | 61.8100 | 70.9900 | 63.9000 | 68.5900 | 76.7100 | 88.0700", "score": 4}, {"sym": "EPICUSDT", "price": 0.9224, "res14": 1.1627, "chg": 66.8, "spark": "M0.0,31.1 L4.1,32.0 L8.3,29.9 L12.4,29.0 L16.6,30.0 L20.7,29.6 L24.8,28.3 L29.0,27.6 L33.1,27.7 L37.2,27.7 L41.4,27.8 L45.5,27.6 L49.7,23.8 L53.8,21.5 L57.9,19.8 L62.1,18.0 L66.2,18.2 L70.3,16.8 L74.5,16.9 L78.6,17.0 L82.8,16.8 L86.9,16.5 L91.0,14.4 L95.2,10.8 L99.3,9.0 L103.4,8.7 L107.6,5.1 L111.7,10.7 L115.9,9.6 L120.0,0.0", "closes": [0.356, 0.333, 0.386, 0.411, 0.385, 0.396, 0.428, 0.446, 0.443, 0.444, 0.442, 0.447, 0.545, 0.6026, 0.6484, 0.6947, 0.6895, 0.7257, 0.7225, 0.7189, 0.7245, 0.7331, 0.7883, 0.8803, 0.9272, 0.933, 1.0275, 0.883, 0.911, 1.1585], "mtf": {"5m": "BULL", "15m": "BULL", "1h": "BULL", "4h": "BULL", "1d": "BULL"}, "tooltip": "0.8803 | 0.9272 | 0.9330 | 1.0275 | 0.8830 | 0.9110 | 1.1585", "score": 4}, {"sym": "ENSOUSDT", "price": 1.015, "res14": 0.976, "chg": 27.7, "spark": "M0.0,30.1 L4.1,29.0 L8.3,32.0 L12.4,31.0 L16.6,29.2 L20.7,30.7 L24.8,26.3 L29.0,27.2 L33.1,29.2 L37.2,30.3 L41.4,30.3 L45.5,25.9 L49.7,27.3 L53.8,25.7 L57.9,24.5 L62.1,21.7 L66.2,20.2 L70.3,21.4 L74.5,18.7 L78.6,16.5 L82.8,15.5 L86.9,15.4 L91.0,10.7 L95.2,7.2 L99.3,8.9 L103.4,8.9 L107.6,11.0 L111.7,11.1 L115.9,0.3 L120.0,0.0", "closes": [0.708, 0.719, 0.689, 0.699, 0.717, 0.702, 0.747, 0.738, 0.717, 0.706, 0.706, 0.751, 0.737, 0.753, 0.765, 0.793, 0.808, 0.796, 0.824, 0.846, 0.856, 0.857, 0.905, 0.94, 0.923, 0.923, 0.902, 0.901, 1.01, 1.013], "mtf": {"5m": "BEAR", "15m": "BULL", "1h": "BULL", "4h": "BULL", "1d": "BULL"}, "tooltip": "0.9400 | 0.9230 | 0.9230 | 0.9020 | 0.9010 | 1.0100 | 1.0130", "score": 4}, {"sym": "GOOGLBUSDT", "price": 358.9, "res14": 384.59, "chg": 11.3, "spark": "M0.0,11.4 L4.1,11.4 L8.3,10.6 L12.4,12.3 L16.6,14.2 L20.7,10.6 L24.8,3.8 L29.0,11.4 L33.1,17.7 L37.2,17.6 L41.4,16.1 L45.5,13.9 L49.7,16.1 L53.8,25.6 L57.9,31.8 L62.1,32.0 L66.2,31.7 L70.3,29.2 L74.5,27.9 L78.6,23.4 L82.8,23.2 L86.9,23.2 L91.0,13.2 L95.2,14.5 L99.3,11.2 L103.4,4.5 L107.6,0.0 L111.7,7.6 L115.9,10.8 L120.0,12.8", "closes": [358.1, 358.0, 359.61, 356.41, 352.87, 359.61, 372.35, 358.16, 346.14, 346.32, 349.15, 353.41, 349.19, 331.38, 319.6, 319.3, 319.93, 324.66, 327.08, 335.55, 335.85, 335.87, 354.73, 352.2, 358.38, 371.14, 379.54, 365.16, 359.2, 355.52], "mtf": {"5m": "BEAR", "15m": "BEAR", "1h": "BEAR", "4h": "NEUTRAL", "1d": "NEUTRAL"}, "tooltip": "352.2000 | 358.3800 | 371.1400 | 379.5400 | 365.1600 | 359.2000 | 355.5200", "score": 4}, {"sym": "NVDABUSDT", "price": 219.15, "res14": 222.39, "chg": 7.9, "spark": "M0.0,20.9 L4.1,12.5 L8.3,14.6 L12.4,12.2 L16.6,19.7 L20.7,11.0 L24.8,11.9 L29.0,17.3 L33.1,20.6 L37.2,21.0 L41.4,19.1 L45.5,20.2 L49.7,16.8 L53.8,11.1 L57.9,15.4 L62.1,16.5 L66.2,15.1 L70.3,13.4 L74.5,27.0 L78.6,25.7 L82.8,32.0 L86.9,26.4 L91.0,24.0 L95.2,24.0 L99.3,22.8 L103.4,16.1 L107.6,6.6 L111.7,2.4 L115.9,3.3 L120.0,0.0", "closes": [202.33, 210.6, 208.5, 210.87, 203.54, 212.08, 211.18, 205.87, 202.59, 202.19, 204.07, 202.97, 206.34, 212.0, 207.71, 206.64, 208.0, 209.75, 196.27, 197.61, 191.35, 196.9, 199.26, 199.24, 200.45, 207.07, 216.48, 220.56, 219.7, 222.97], "mtf": {"5m": "BULL", "15m": "BULL", "1h": "BULL", "4h": "BULL", "1d": "NEUTRAL"}, "tooltip": "199.2400 | 200.4500 | 207.0700 | 216.4800 | 220.5600 | 219.7000 | 222.9700", "score": 4}, {"sym": "PAXGUSDT", "price": 4240.1, "res14": 4274.99, "chg": 7.1, "spark": "M0.0,20.2 L4.1,20.5 L8.3,21.5 L12.4,23.5 L16.6,30.8 L20.7,26.4 L24.8,26.1 L29.0,32.0 L33.1,30.2 L37.2,29.6 L41.4,31.4 L45.5,30.1 L49.7,24.1 L53.8,19.3 L57.9,26.7 L62.1,25.8 L66.2,25.7 L70.3,22.8 L74.5,24.7 L78.6,28.8 L82.8,23.4 L86.9,21.7 L91.0,26.4 L95.2,26.4 L99.3,24.2 L103.4,26.0 L107.6,24.6 L111.7,6.2 L115.9,8.3 L120.0,0.0", "closes": [4117.45, 4113.34, 4102.09, 4080.47, 3998.89, 4048.07, 4051.77, 3986.13, 4006.1, 4012.29, 3993.01, 4007.5, 4074.01, 4127.0, 4045.13, 4054.43, 4055.48, 4087.85, 4066.84, 4021.98, 4081.59, 4100.72, 4048.09, 4048.4, 4072.23, 4052.2, 4068.67, 4272.06, 4248.73, 4340.77], "mtf": {"5m": "BULL", "15m": "BULL", "1h": "BULL", "4h": "BULL", "1d": "BEAR"}, "tooltip": "4048.4000 | 4072.2300 | 4052.2000 | 4068.6700 | 4272.0600 | 4248.7300 | 4340.7700", "score": 4}, {"sym": "XAUTUSDT", "price": 4227.35, "res14": 4262.14, "chg": 6.8, "spark": "M0.0,20.5 L4.1,20.7 L8.3,21.7 L12.4,23.6 L16.6,31.1 L20.7,26.3 L24.8,26.0 L29.0,32.0 L33.1,30.3 L37.2,29.9 L41.4,31.4 L45.5,29.8 L49.7,23.8 L53.8,19.0 L57.9,26.5 L62.1,25.9 L66.2,25.8 L70.3,22.9 L74.5,25.0 L78.6,29.3 L82.8,23.9 L86.9,22.0 L91.0,27.1 L95.2,26.9 L99.3,25.3 L103.4,26.8 L107.6,25.3 L111.7,6.5 L115.9,8.7 L120.0,0.0", "closes": [4111.82, 4109.52, 4099.12, 4078.56, 3999.16, 4050.2, 4053.37, 3989.32, 4007.81, 4012.07, 3995.89, 4012.88, 4076.6, 4127.5, 4047.34, 4054.31, 4055.47, 4085.74, 4063.84, 4018.4, 4075.01, 4095.84, 4041.71, 4043.67, 4060.34, 4044.33, 4060.9, 4259.82, 4237.06, 4329.16], "mtf": {"5m": "BULL", "15m": "BULL", "1h": "BULL", "4h": "BULL", "1d": "NEUTRAL"}, "tooltip": "4043.6700 | 4060.3400 | 4044.3300 | 4060.9000 | 4259.8200 | 4237.0600 | 4329.1600", "score": 4}, {"sym": "BNBUSDT", "price": 592.0, "res14": 605.5, "chg": 5.0, "spark": "M0.0,27.8 L4.1,20.4 L8.3,21.2 L12.4,22.0 L16.6,29.1 L20.7,13.2 L24.8,14.7 L29.0,23.7 L33.1,28.5 L37.2,25.6 L41.4,25.2 L45.5,25.0 L49.7,22.0 L53.8,25.2 L57.9,29.2 L62.1,32.0 L66.2,27.5 L70.3,20.5 L74.5,30.5 L78.6,24.9 L82.8,24.2 L86.9,2.1 L91.0,7.6 L95.2,20.7 L99.3,6.0 L103.4,5.0 L107.6,0.7 L111.7,0.0 L115.9,1.6 L120.0,0.8", "closes": [568.72, 575.43, 574.65, 573.91, 567.49, 581.87, 580.55, 572.45, 568.09, 570.65, 571.06, 571.27, 573.95, 571.08, 567.41, 564.9, 568.94, 575.32, 566.28, 571.29, 571.99, 591.99, 587.01, 575.13, 588.46, 589.35, 593.18, 593.85, 592.39, 593.12], "mtf": {"5m": "BULL", "15m": "NEUTRAL", "1h": "NEUTRAL", "4h": "BULL", "1d": "BEAR"}, "tooltip": "575.1300 | 588.4600 | 589.3500 | 593.1800 | 593.8500 | 592.3900 | 593.1200", "score": 4}, {"sym": "SPYBUSDT", "price": 769.5, "res14": 777.29, "chg": 4.5, "spark": "M0.0,17.8 L4.1,13.4 L8.3,14.3 L12.4,16.5 L16.6,20.6 L20.7,16.4 L24.8,14.5 L29.0,18.3 L33.1,23.3 L37.2,22.9 L41.4,21.5 L45.5,24.2 L49.7,19.4 L53.8,20.7 L57.9,26.7 L62.1,26.8 L66.2,24.4 L70.3,21.8 L74.5,27.4 L78.6,24.0 L82.8,32.0 L86.9,23.1 L91.0,22.4 L95.2,22.8 L99.3,18.5 L103.4,11.6 L107.6,0.0 L111.7,1.4 L115.9,3.0 L120.0,0.1", "closes": [751.29, 756.89, 755.67, 753.0, 747.8, 753.11, 755.46, 750.69, 744.45, 744.94, 746.62, 743.3, 749.28, 747.68, 740.12, 740.08, 743.07, 746.25, 739.33, 743.59, 733.51, 744.68, 745.49, 745.05, 750.48, 759.13, 773.65, 771.95, 769.85, 773.53], "mtf": {"5m": "BULL", "15m": "BULL", "1h": "BULL", "4h": "NEUTRAL", "1d": "NEUTRAL"}, "tooltip": "745.0500 | 750.4800 | 759.1300 | 773.6500 | 771.9500 | 769.8500 | 773.5300", "score": 4}];
+const grid = document.getElementById('grid');
+const tip = document.getElementById('tip');
+DATA.forEach(r => {{
+  const chgCls = (r.chg===null) ? '' : (r.chg>=0 ? 'up' : 'down');
+  const chgTxt = (r.chg===null) ? '-' : (r.chg>=0?'+':'') + r.chg + '%';
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="sym">${r.sym}<span class="badge">SCORE ${r.score}/5</span></div>
+    <div class="price">${r.price!==null?r.price.toFixed(4):'-'}</div>
+    <div class="row"><span>เปลี่ยน 14 วัน</span><span class="chg ${chgCls}">${chgTxt}</span></div>
+    <div class="row"><span>14d high</span><span>${r.res14!==null?r.res14.toFixed(4):'-'}</span></div>
+    <svg class="spark" width="120" height="32" viewBox="0 0 120 32">
+      <path d="${r.spark}" fill="none" stroke="#58a6ff" stroke-width="1.5"/>
+    </svg>
+    <div class="mtf">${Object.entries(r.mtf).map(([tf,s])=>`<span class="t ${s}">${tf}</span>`).join('')}</div>`;
+  card.addEventListener('mousemove', e => {{
+    tip.textContent = '7 วันล่าสุด: ' + r.tooltip;
+    tip.style.opacity = 1;
+    tip.style.left = (e.pageX + 12) + 'px';
+    tip.style.top = (e.pageY + 12) + 'px';
+  }});
+  card.addEventListener('mouseleave', () => tip.style.opacity = 0);
+  grid.appendChild(card);
+}});
+</script>
+</body>
+</html>
