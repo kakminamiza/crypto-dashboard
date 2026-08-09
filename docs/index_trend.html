@@ -289,13 +289,18 @@ document.querySelectorAll(".tf").forEach(b=>b.onclick=()=>{
 $("filter").onchange=()=>render(lastList);
 $("rrmin").onchange=()=>{RR_MIN=+$("rrmin").value;render(lastList)};
 $("scan").onclick=scan;
+function startAuto(){
+  if(running||banned)return;
+  running=true;let btn=$("rfbtn");
+  btn.textContent="⏸ หยุด";btn.classList.add("on");
+  let sec=+$(interval).value;if(sec>0){timer=setInterval(scan,sec*1000)}
+  scan();
+}
 $("rfbtn").onclick=()=>{
-  running=!running;let btn=$("rfbtn");
-  if(running){btn.textContent="⏸ หยุด";btn.classList.add("on");
-    let sec=+$("interval").value;if(sec>0){timer=setInterval(scan,sec*1000)}scan();
-  }else{btn.textContent="▶ เริ่ม";btn.classList.remove("on");clearInterval(timer)}
+  if(running){running=false;let btn=$("rfbtn");btn.textContent="▶ เริ่ม";btn.classList.remove("on");clearInterval(timer)}
+  else{startAuto()}
 };
-$("interval").onchange=()=>{if(running){clearInterval(timer);let sec=+$("interval").value;if(sec>0)timer=setInterval(scan,sec*1000)}};
-scan();
+$("interval").onchange=()=>{if(running){clearInterval(timer);let sec=+$(interval).value;if(sec>0)timer=setInterval(scan,sec*1000)}};
+startAuto();   // โหลดปุ๊บเริ่มเรียลทามเลย ไม่ต้องกดปุ่ม เริ่ม
 </script>
 </body></html>
