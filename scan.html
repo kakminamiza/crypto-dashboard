@@ -82,8 +82,16 @@
 </head>
 <body>
 <header>
-  <h1>📡 เครื่องมือสแกนเทรด <span style="color:var(--mut);font-weight:500;font-size:14px">Crypto Scan TH</span></h1>
-  <div class="sub">สแกนเหรียญคริปโต USD-M Perpetuals จาก Binance · คำนวณ EMA/ADX/ATR/RSI/SuperTrend/MACD · เปิดลิงก์นี้ที่ไหนก็ใช้ได้ (ฟรี)</div>
+  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
+    <div>
+      <h1>📡 เครื่องมือสแกนเทรด <span style="color:var(--mut);font-weight:500;font-size:14px">Crypto Scan TH</span></h1>
+      <div class="sub">สแกนเหรียญคริปโต USD-M Perpetuals จาก Binance · คำนวณ EMA/ADX/ATR/RSI/SuperTrend/MACD · เปิดลิงก์นี้ที่ไหนก็ใช้ได้ (ฟรี)</div>
+    </div>
+    <div style="display:flex; gap:8px; align-items:center">
+      <a class="tab" href="index_trend.html" target="_blank" style="text-decoration:none">↗ Trend Rider Live</a>
+      <button class="ghost" id="btnShare">🔗 แชร์ลิงก์</button>
+    </div>
+  </div>
 </header>
 <div class="wrap">
   <div class="banner" id="banner"></div>
@@ -123,6 +131,19 @@
     <div class="bar" id="scanBar"><i></i></div>
     <div class="status" id="statusS"></div>
     <div id="resultS"></div>
+  </div>
+
+  <!-- WATCHLIST -->
+  <div class="card" style="margin-top:8px">
+    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px">
+      <div><b style="font-size:15px">⭐ Watchlist (เหรียญโปรด)</b> <span class="neu" style="font-size:12px;color:var(--mut)">เก็บในเบราว์เซอร์นี้ ไม่หายเมื่อรีเฟรช</span></div>
+      <div style="display:flex; gap:8px; align-items:flex-end">
+        <div class="fld"><label>เพิ่มเหรียญ</label><input id="wlSym" placeholder="ETHFIUSDT" list="symlist" style="text-transform:uppercase"></div>
+        <button class="ghost" id="btnWlAdd">+ เพิ่ม</button>
+        <button class="ghost" id="btnWlScan" style="background:linear-gradient(180deg,#2a7fff,#1f6ae0);color:#fff;border:0">สแกน Watchlist</button>
+      </div>
+    </div>
+    <div id="wlRows" style="margin-top:12px"></div>
   </div>
 
   <div class="card" style="margin-top:24px">
@@ -325,7 +346,8 @@ function renderAnalyze(r){
 }
 
 /* ====== render scanner ====== */
-function renderScan(rows){
+function renderScan(rows,targetId){
+  targetId=targetId||"resultS";
   rows.sort((a,b)=>(b.score)-(a.score));
   let body=rows.map(r=>{
     if(!r) return "";
@@ -341,7 +363,7 @@ function renderScan(rows){
       <td class="${r.rsiNow>70?'pos':r.rsiNow<30?'neg':'neu'}">${r.rsiNow.toFixed(1)}</td>
     </tr>`;
   }).join("");
-  document.getElementById("resultS").innerHTML=`
+  document.getElementById(targetId).innerHTML=`
   <div class="card" style="padding:10px 12px">
   <table class="scan">
     <thead><tr>
@@ -351,7 +373,7 @@ function renderScan(rows){
     <tbody>${body}</tbody>
   </table></div>
   <div class="status"><span class="neu">คลิกแถวเพื่อวิเคราะห์ลึก (เปลี่ยนไปแท็บ "วิเคราะห์เหรียญ")</span></div>`;
-  document.querySelectorAll('#resultS tr[data-sym]').forEach(tr=>{
+  document.querySelectorAll('#'+targetId+' tr[data-sym]').forEach(tr=>{
     tr.addEventListener('click',()=>{
       document.getElementById("sym").value=tr.dataset.sym;
       switchTab("analyze"); doAnalyze();
@@ -432,6 +454,72 @@ document.getElementById("autoS").addEventListener("change",function(){
 
 // first load
 doAnalyze();
+
+/* ====== SHARE link (offer 1) ====== */
+document.getElementById("btnShare").addEventListener("click",async()=>{
+  const url=location.href;
+  try{ await navigator.clipboard.writeText(url); flashStatus("statusA","🔗 คัดลอกลิงก์แล้ว — ส่งให้เพื่อนได้เลย!"); }
+  catch(e){ // fallback: prompt
+    window.prompt("คัดลอกลิงก์นี้ส่งเพื่อน:",url);
+  }
+});
+function flashStatus(id,msg){
+  const st=document.getElementById(id); if(!st)return;
+  const prev=st.innerHTML; st.innerHTML='<span class="ok">'+msg+'</span>';
+  setTimeout(()=>{ if(st.innerHTML.includes("ลิงก์")) st.innerHTML=prev; },4000);
+}
+
+/* ====== WATCHLIST (offer 2) ====== */
+const WL_KEY="crypto_scan_watchlist_v1";
+function loadWL(){ try{ return JSON.parse(localStorage.getItem(WL_KEY))||[]; }catch(e){ return []; } }
+function saveWL(arr){ localStorage.setItem(WL_KEY,JSON.stringify(arr)); }
+const DEFAULT_WL=["ETHFIUSDT","BEATUSDT","CRVUSDT","ETHUSDT","SOLUSDT"];
+let wl=loadWL(); if(!wl.length){ wl=DEFAULT_WL.slice(); saveWL(wl); }
+function renderWL(){
+  const box=document.getElementById("wlRows");
+  if(!wl.length){ box.innerHTML='<div class="neu" style="color:var(--mut);font-size:13px">ยังไม่มีเหรียญใน Watchlist — พิมพ์ชื่อด้านบนแล้วกด + เพิ่ม</div>'; return; }
+  box.innerHTML='<table class="scan"><thead><tr><th class="l">เหรียญ</th><th class="l">ทิศทาง</th><th>Score</th><th>ดาว</th><th>ราคา</th><th>ADX</th><th>RSI</th><th></th></tr></thead><tbody id="wlBody"></tbody></table><div class="status"><span class="neu">คลิกแถวเพื่อวิเคราะห์ลึก · กด ✕ ลบออก</span></div>';
+}
+document.getElementById("btnWlAdd").addEventListener("click",()=>{
+  const v=document.getElementById("wlSym").value.trim().toUpperCase();
+  if(!v) return;
+  if(!wl.includes(v)){ wl.push(v); saveWL(wl); renderWL(); }
+  document.getElementById("wlSym").value="";
+});
+document.getElementById("btnWlScan").addEventListener("click",async()=>{
+  if(!wl.length) return;
+  const tf=document.getElementById("scanTf").value;
+  const box=document.getElementById("wlRows");
+  box.innerHTML='<div class="status"><span class="ok">⏳ สแกน Watchlist '+wl.length+' เหรียญ…</span></div>';
+  let rows=[];
+  for(let i=0;i<wl.length;i++){
+    try{ let r=await scanCoin(wl[i],tf); if(r) rows.push(r); }catch(e){}
+  }
+  // reuse scanner table renderer (target wlRows)
+  renderScan(rows,"wlRows");
+  // add delete ✕ to each row
+  box.querySelectorAll("tr[data-sym]").forEach(tr=>{
+    const td=document.createElement("td"); td.innerHTML='<span style="cursor:pointer;color:var(--red)" data-del="'+tr.dataset.sym+'">✕</span>';
+    tr.appendChild(td);
+    tr.querySelector("[data-del]").addEventListener("click",(ev)=>{
+      ev.stopPropagation();
+      wl=wl.filter(s=>s!==tr.dataset.sym); saveWL(wl); renderWL();
+    });
+  });
+});
+// initial render (empty placeholder)
+renderWL();
+
+/* ====== DEEP-LINK (offer 3 support) ====== */
+(function(){
+  const p=new URLSearchParams(location.search);
+  const s=(p.get("sym")||"").toUpperCase();
+  if(s){
+    document.getElementById("sym").value=s;
+    switchTab("analyze"); doAnalyze();
+  }
+})();
+
 </script>
 </body>
 </html>
