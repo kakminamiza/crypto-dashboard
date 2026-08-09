@@ -96,7 +96,7 @@ tr:hover td{background:#161d2b}
     <select id="interval">
       <option value="0">ปิด</option>
       <option value="15">15 วิ</option>
-      <option value="30" selected>30 วิ</option>
+      <option value="60" selected>60 วิ</option>
       <option value="60">60 วิ</option>
       <option value="300">5 นาที</option>
     </select>
@@ -259,26 +259,46 @@ function showBan(){
     $("status").textContent="✅ พ้นแบนแล้ว — ลองกดสแกนใหม่ได้"; }, 300000);
 }
 
+const MIN_VOL=1e6;   // ตัดคู่ที่ Vol < 1M USDT (สภาพคล่องแห้ง → ข้ามตามสไตล์ไม่เล่นเหรียญแห้ง)
+async function quickPass(sym){
+  // ขั้นแรก: ดึงแค่ SIGNAL_TF เช็คผ่านเกณฑ์เบื้องต้นก่อน (ประหยัดคำขอ MTF)
+  let k=await klines(sym,SIGNAL_TF,210);
+  if(!k||k.c.length<210)return false;
+  let ef=ema(k.c,EMA_FAST),es=ema(k.c,EMA_SLOW),et=ema(k.c,EMA_TREND),p=k.c.at(-1);
+  let aligned = (ef.at(-1)>es.at(-1)&&p>et.at(-1)) || (ef.at(-1)<es.at(-1)&&p<et.at(-1));
+  return aligned;   // ผ่านเฉพาะคู่ที่มีแนวโน้มชัดเจน (อยู่ข้าง EMA)
+}
 async function scan(){
-  if(scanning||banned)return;scanning=true;kcache={};   // เคลียร์ cache ทุกครั้ง
-  $("status").innerHTML=`<span class='spin'></span>กำลังดึงรายชื่อเหรียญ...`;
+  if(scanning||banned)return;scanning=true;kcache={};
+  $("status").innerHTML=`<span class='spin'></span>กำลังดึงรายชื่อคู่ฟิวเจอร์สทั้งหมด...`;
   let info;
   try{ let r=await safeFetch(`${FAPI}/fapi/v1/ticker/24hr`); info=await r.json(); }
   catch(e){
     if(e&&e.message==="banned"){ showBan(); scanning=false; return; }
     $("status").textContent="❌ เชื่อม Binance ไม่ได้";scanning=false;return;
   }
-  let cands=info.filter(t=>t.symbol.endsWith("USDT")).sort((a,b)=>b.quoteVolume-a.quoteVolume).slice(0,50);
+  // เอา USD-M ทั้งหมด ตัดพวก Vol แห้ง
+  let cands=info.filter(t=>t.symbol.endsWith("USDT")&&+t.quoteVolume>=MIN_VOL)
+                 .sort((a,b)=>b.quoteVolume-a.quoteVolume);
   let vmap={};cands.forEach(t=>vmap[t.symbol]=+t.quoteVolume);
-  let syms=cands.map(t=>t.symbol),out=[];
+  let syms=cands.map(t=>t.symbol);
+  let passed=[],out=[];
+  // ขั้นแรก: กรองเบื้องต้น (ประหยัดน้ำหนัก)
   for(let i=0;i<syms.length;i++){
     if(banned)break;
-    $("status").innerHTML=`<span class='spin'></span>สแกน ${SIGNAL_TF} · ${i+1}/${syms.length} · ${syms[i]} · Weight ${Math.round(wUsed)}/${WEIGHT_BUDGET} · Gap ${curGap}ms`;
-    try{ let r=await analyze(syms[i],vmap[syms[i]]); if(r)out.push(r); }
+    $("status").innerHTML=`<span class='spin'></span>[1/2] กรองเบื้องต้น ${i+1}/${syms.length} · ${syms[i]} · Weight ${Math.round(wUsed)}/${WEIGHT_BUDGET} · Gap ${curGap}ms`;
+    try{ if(await quickPass(syms[i])) passed.push(syms[i]); }
+    catch(e){ if(e&&e.message==="banned"){ showBan(); break; } }
+  }
+  // ขั้นที่สอง: วิเคราะห์เต็มเฉพาะคู่ที่ผ่าน
+  for(let i=0;i<passed.length;i++){
+    if(banned)break;
+    $("status").innerHTML=`<span class='spin'></span>[2/2] วิเคราะห์ ${i+1}/${passed.length} · ${passed[i]} · Weight ${Math.round(wUsed)}/${WEIGHT_BUDGET} · Gap ${curGap}ms`;
+    try{ let r=await analyze(passed[i],vmap[passed[i]]); if(r)out.push(r); }
     catch(e){ if(e&&e.message==="banned"){ showBan(); break; } }
   }
   lastList=out;render(out);
-  if(!banned) $("status").textContent=`✅ สแกน 50 เหรียญเสร็จ · TF=${SIGNAL_TF} · ${new Date().toLocaleTimeString('th-TH')} · Weight ${Math.round(wUsed)}/${WEIGHT_BUDGET} · Gap ${curGap}ms`;
+  if(!banned) $("status").textContent=`✅ สแกนครบ ${syms.length} คู่ (ผ่านกรอง ${passed.length} · สัญญาณ ${out.length}) · TF=${SIGNAL_TF} · ${new Date().toLocaleTimeString('th-TH')} · Weight ${Math.round(wUsed)}/${WEIGHT_BUDGET} · Gap ${curGap}ms`;
   scanning=false;
 }
 
