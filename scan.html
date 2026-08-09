@@ -260,7 +260,11 @@ async function scanCoin(sym,signalTf){
   let score=dir?Math.min(100,align*22+adxNow+(fresh?12:0)):-1;
   let rsiArr=rsi(k.c,RSI_LEN),rsiNow=rsiArr.at(-1);
   let mom=null; if(price>et.at(-1))mom="up"; else if(price<et.at(-1))mom="down"; else mom="side";
-  return {sym,price,adxNow,rsiNow,dir,score,fresh,mom,bull,bear,chg:((price-k.c[0])/k.c[0]*100)};
+  // Entry/SL/TP (same formula as analyze: SL=ATRx2, TP1=1.5R, TP2=3R)
+  let entry=price,sl,tp1,tp2,risk=0;
+  if(dir==="long"){sl=entry-SL_ATR*atrNow;risk=entry-sl;tp1=entry+TP1R*risk;tp2=entry+TP2R*risk;}
+  else if(dir==="short"){sl=entry+SL_ATR*atrNow;risk=sl-entry;tp1=entry-TP1R*risk;tp2=entry-TP2R*risk;}
+  return {sym,price,entry,sl,tp1,tp2,adxNow,rsiNow,dir,score,fresh,mom,bull,bear,chg:((price-k.c[0])/k.c[0]*100)};
 }
 
 /* ====== formatting (no scientific notation) ====== */
@@ -351,24 +355,30 @@ function renderScan(rows,targetId){
   rows.sort((a,b)=>(b.score)-(a.score));
   let body=rows.map(r=>{
     if(!r) return "";
+    let slTxt = r.sl!=null ? `<span class="neg">${fmt(r.sl)}</span>` : "–";
+    let tp1Txt = r.tp1!=null ? `<span class="pos">${fmt(r.tp1)}</span> <span class="neu" style="font-size:10px">1.5R</span>` : "–";
+    let tp2Txt = r.tp2!=null ? `<span class="pos">${fmt(r.tp2)}</span> <span class="neu" style="font-size:10px">3R</span>` : "–";
     return `<tr data-sym="${r.sym}">
       <td class="l"><b style="color:var(--blu)">${r.sym}</b></td>
-      <td>${momTxt(r.mom)}</td>
       <td>${dirTag(r.dir)}</td>
       <td class="sc">${r.score>=0?r.score.toFixed(1):'–'}</td>
       <td><span class="stars">${stars(r.score)}</span></td>
-      <td>${fmt(r.price)}</td>
+      <td>${fmt(r.entry!=null?r.entry:r.price)}</td>
+      <td>${slTxt}</td>
+      <td>${tp1Txt}</td>
+      <td>${tp2Txt}</td>
       <td class="${r.chg>=0?'pos':'neg'}">${pct(r.chg)}</td>
       <td class="${r.adxNow>ADX_THRESH?'pos':'neu'}">${r.adxNow.toFixed(1)}</td>
       <td class="${r.rsiNow>70?'pos':r.rsiNow<30?'neg':'neu'}">${r.rsiNow.toFixed(1)}</td>
     </tr>`;
   }).join("");
   document.getElementById(targetId).innerHTML=`
-  <div class="card" style="padding:10px 12px">
+  <div class="card" style="padding:10px 12px; overflow-x:auto">
   <table class="scan">
     <thead><tr>
-      <th class="l">เหรียญ</th><th class="l">โมเมนตัม</th><th class="l">ทิศทาง</th>
-      <th>Score</th><th>ดาว</th><th>ราคา</th><th>24h</th><th>ADX</th><th>RSI</th>
+      <th class="l">เหรียญ</th><th class="l">ทิศทาง</th><th>Score</th><th>ดาว</th>
+      <th>ENTRY</th><th>SL</th><th>TP1</th><th>TP2</th>
+      <th>24h</th><th>ADX</th><th>RSI</th>
     </tr></thead>
     <tbody>${body}</tbody>
   </table></div>
