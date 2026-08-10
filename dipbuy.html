@@ -165,6 +165,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
       <span><i class="dot" style="background:var(--red)"></i>Resistance / SL</span>
       <span><i class="dot" style="background:var(--green)"></i>TP1 / TP2</span>
       <span><i class="dot" style="background:#f97316"></i>Liquidation Zone</span>
+      <span><i class="dot" style="background:#ef4444"></i>Volume Spike (แท่งใหญ่)</span>
     </div>
     <div class="note">Hover บนกราฟเพื่อดู OHLC · กรอบเวลา: <span id="chartTf" class="pill">4h</span></div>
     <table class="table" id="planTable"></table>
@@ -240,6 +241,21 @@ function atr(h,l,c,n=14){ const tr=[h[0]-l[0]];
   const out=[a]; for(let i=1;i<tr.length;i++){ a=(a*(n-1)+tr[i])/n; out.push(a);} return out; }
 
 /* ---------- fetch + parse (STRINGS -> NUMBERS) ---------- */
+async function oiHist(sym){
+  try{
+    const r=await fetch(FAPI+`futures/data/openInterestHist?symbol=${sym}&period=5m&limit=60`);
+    const j=await r.json();
+    if(!Array.isArray(j)||j.length<2) return null;
+    const vals=j.map(x=>+x.sumOpenInterest);
+    const first=vals[0], last=vals[vals.length-1];
+    const chg=(last-first)/first*100;
+    // find accumulation base: lowest OI point in window
+    let minI=0; vals.forEach((v,i)=>{ if(v<vals[minI]) minI=i; });
+    const accFrom=vals[minI];
+    const accChg=(last-accFrom)/accFrom*100;
+    return {first,last,chg,accChg,trend: chg>3?"up":chg<-3?"down":"flat"};
+  }catch(e){ return null; }
+}
 async function liqZones(sym){
   let res={avg:null,last:null,crowded:"bal",forceLevels:[],forceSide:null};
   try{
@@ -383,6 +399,12 @@ async function renderChart(sym,tf){
   const px=c[c.length-1];
   const atrArr=atr(h,l,c,14); const atrNow=atrArr[atrArr.length-1];
   const oiNow=await oiVal(sym), fdNow=await fundVal(sym);
+  const oiH=await oiHist(sym);
+  // volume spike detection
+  const vols=c.map(v=>+v);
+  const med=vols.slice().sort((a,b)=>a-b)[Math.floor(vols.length/2)]||1;
+  const SPIKE=med*2.5;
+  const spikeIdx=new Set(); vols.forEach((v,i)=>{ if(v>=SPIKE) spikeIdx.add(i); });
   const sup=Math.min(e20[e20.length-1],e50[e50.length-1]);
   const res=Math.max(...h.slice(-60))*0.995;
   const risk=Math.max(px-sup,px*0.01);
@@ -415,6 +437,13 @@ async function renderChart(sym,tf){
     s+=`<line x1="${xc}" y1="${yh}" x2="${xc}" y2="${yl}" stroke="${col}"/>`;
     const top=Math.min(yo,yc),bot=Math.max(yo,yc);
     s+=`<rect x="${xc-bw/2}" y="${top}" width="${bw}" height="${Math.max(1,bot-top)}" fill="${col}"/>`;}
+  // volume spike markers (red ring on big-liquidation bars)
+  spikeIdx.forEach(i=>{
+    const yc=Y(c[i]), col=c[i]>=o[i]?"#fca5a5":"#fecaca";
+    const rad=bw*0.9+2;
+    s+=`<circle cx="${X(i)}" cy="${yc}" r="${rad}" fill="none" stroke="#ef4444" stroke-width="1.6" opacity="0.9"/>`;
+    s+=`<circle cx="${X(i)}" cy="${yc}" r="2.2" fill="#ef4444"/>`;
+  });
   const line=(arr,col)=>{let p="";arr.forEach((v,i)=>{p+=(i?"L":"M")+X(i)+" "+Y(v)+" ";});
     return `<path d="${p}" fill="none" stroke="${col}" stroke-width="1.4" opacity=".9"/>`;};
   s+=line(e20,"#3b82f6")+line(e50,"#a78bfa");
@@ -438,6 +467,13 @@ async function renderChart(sym,tf){
       s+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="${c}" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>`;
     });
   }
+  // OI accumulation badge (top-left)
+  if(oiH){
+    const oiCol = oiH.trend==="up" ? "#22c55e" : oiH.trend==="down" ? "#ef4444" : "#93a1b5";
+    const oiTxt = oiH.trend==="up" ? `OI ↑ สะสม +${oiH.chg.toFixed(1)}%` : oiH.trend==="down" ? `OI ↓ กระจาย ${oiH.chg.toFixed(1)}%` : `OI สมดุล ${oiH.chg.toFixed(1)}%`;
+    s+=`<rect x="${padL}" y="${padT}" width="${W-padL-padR}" height="0"/>`;
+    s+=`<text x="${padL+4}" y="${padT+14}" fill="${oiCol}" font-size="12" font-weight="700">${oiTxt}</text>`;
+  }
   svg.innerHTML=s;
   document.getElementById("chartTf").textContent=tf;
   document.getElementById("planTable").innerHTML=
@@ -448,6 +484,7 @@ async function renderChart(sym,tf){
     <td>${fmt(atrNow,Math.abs(atrNow)<1?5:2)}</td>
     <td>${oiTxt2(oiNow)}</td><td>${fdTxt2(fdNow)}</td></tr>
     <tr><td>Long/Short Ratio</td><td colspan="9">${liq&&liq.last?liq.last.toFixed(2)+(liq.crowded!=="bal"?` · <b style="color:${liq.crowded==="long"?"#f97316":"#22d3ee"}">${liq.crowded==="long"?"ฝั่ง Long แน่น (ระวัง short squeeze)":"ฝั่ง Short แน่น (ระวัง long squeeze)"}</b>`:"สมดุล"):"–"}</td></tr>
+    <tr><td>Open Interest Trend</td><td colspan="9">${oiH?`<b style="color:${oiH.trend==="up"?"#22c55e":oiH.trend==="down"?"#ef4444":"#93a1b5"}">${oiH.trend==="up"?"↑ สะสม (Accumulation)":"↓ กระจาย (Distribution)"}</b> เปลี่ยน ${oiH.chg>=0?"+":""}${oiH.chg.toFixed(1)}% (${oiH.accChg>=0?"+":""}${oiH.accChg.toFixed(1)}% จากจุดต่ำสุด)`:"–"}</td></tr>
     <tr><td>Liquidation จริง (force)</td><td colspan="9">${liq&&liq.forceLevels&&liq.forceLevels.length?liq.forceLevels.slice(0,3).map(f=>`<span style="color:${f.longLiq>=f.shortLiq?'#fb923c':'#67e8f9'}">${fmt(f.price)}</span>`).join(" · ")+(liq.forceSide!=="bal"?` · <b style="color:${liq.forceSide==="long"?"#fb923c":"#67e8f9"}">${liq.forceSide==="long"?"มี Long โดนบังคับปิดเยอะ (ระวังเด้งกลับ)":"มี Short โดนบังคับปิดเยอะ (ระวังเทสขึ้น)"}</b>`:""):"– ไม่มีข้อมูลล่าสุด"}</td></tr>`;
   const tip=document.getElementById("tip");
   svg.onmousemove=ev=>{const r=svg.getBoundingClientRect();
