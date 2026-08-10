@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Crypto Terminal — Single Dashboard</title>
+<style>
+  :root{--bg:#0a0e15;--panel:#121824;--line:#26303f;
+        --txt:#e8eef7;--mut:#93a1b5;--accent:#38bdf8;--blue:#3b82f6;}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--txt);
+       font-family:"Segoe UI",Tahoma,"Leelawadee UI",system-ui,sans-serif}
+  .top{padding:14px 18px;background:#080c12;border-bottom:1px solid var(--line);
+       display:flex;align-items:center;gap:12px;flex-wrap:wrap;position:sticky;top:0;z-index:20}
+  .brand{font-weight:800;letter-spacing:.5px;color:var(--accent);font-size:18px}
+  .tabs{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+  .tab{padding:9px 16px;border-radius:9px;background:var(--panel);border:1px solid var(--line);
+       cursor:pointer;font-size:13px;font-weight:600;color:var(--mut);user-select:none}
+  .tab:hover{border-color:var(--accent)}
+  .tab.on{background:linear-gradient(135deg,#3b82f6,#38bdf8);color:#04101f;border-color:var(--accent)}
+  .frame{width:100%;height:calc(100vh - 64px);border:0;display:none;background:var(--bg)}
+  .frame.on{display:block}
+  .note{color:var(--mut);font-size:12px}
+</style>
+</head>
+<body>
+<div class="top">
+  <span class="brand">◈ CRYPTO TERMINAL</span>
+  <div class="tabs" id="tabs">
+    <div class="tab on" data-page="dipbuy.html">📊 Dip-Buy</div>
+    <div class="tab" data-page="fav.html">⭐ 39 เหรียญโปรด</div>
+    <div class="tab" data-page="top100.html">📡 Top 100</div>
+    <div class="tab" data-page="scan.html">🔍 Market Scan</div>
+    <div class="tab" data-page="entry.html">🎯 Entry Planner</div>
+    <div class="tab" data-page="trend.html">📈 Trend Rider</div>
+    <div class="tab" data-page="accum.html">🪙 Accum (live)</div>
+    <div class="tab" data-page="index.html">📋 Accumulation</div>
+  </div>
+  <span class="note">หน้าเดียว · ส่งผู้บริหารดูได้เลย</span>
+</div>
+
+<iframe class="frame on" id="f0" src="./dipbuy.html"></iframe>
+<iframe class="frame" id="f1" src="./fav.html" loading="lazy"></iframe>
+<iframe class="frame" id="f2" src="./top100.html" loading="lazy"></iframe>
+<iframe class="frame" id="f3" src="./scan.html" loading="lazy"></iframe>
+<iframe class="frame" id="f4" src="./entry.html" loading="lazy"></iframe>
+<iframe class="frame" id="f5" src="./trend.html" loading="lazy"></iframe>
+<iframe class="frame" id="f6" src="./accum.html" loading="lazy"></iframe>
+<iframe class="frame" id="f7" src="./index.html" loading="lazy"></iframe>
+
+<script>
+const tabs=document.querySelectorAll(".tab");
+const frames=document.querySelectorAll(".frame");
+function switchTo(i){
+  tabs.forEach((t,k)=>t.classList.toggle("on",k===i));
+  frames.forEach((f,k)=>f.classList.toggle("on",k===i));
+  // reload the frame so it re-fetches fresh data on view
+  const f=frames[i];
+  if(f.dataset.loaded!=="1"){ f.dataset.loaded="1"; }
+  else { /* keep state to avoid re-scan spam */ }
+}
+tabs.forEach((t,i)=>t.onclick=()=>switchTo(i));
+// deep-link: ?tab=top100 etc
+const q=new URLSearchParams(location.search);
+const want=q.get("tab");
+if(want){ const idx=[...tabs].findIndex(t=>t.dataset.page===want); if(idx>=0) switchTo(idx); }
+</script>
+</body>
+</html>
