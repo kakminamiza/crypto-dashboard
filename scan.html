@@ -275,7 +275,16 @@ async function scanCoin(sym,signalTf){
   let entry=price,sl,tp1,tp2,risk=0;
   if(dir==="long"){sl=entry-SL_ATR*atrNow;risk=entry-sl;tp1=entry+TP1R*risk;tp2=entry+TP2R*risk;}
   else if(dir==="short"){sl=entry+SL_ATR*atrNow;risk=sl-entry;tp1=entry-TP1R*risk;tp2=entry-TP2R*risk;}
-  return {sym,price,entry,sl,tp1,tp2,adxNow,rsiNow,dir,score,fresh,mom,bull,bear,chg:((price-k.c[0])/k.c[0]*100)};
+  // OI + Funding
+  let oi=null,fund=null;
+  try{
+    let oj=await (await safeFetch(`${FAPI}/futures/data/openInterest?symbol=${sym}`)).json();
+    oi=+oj.openInterest;
+    let pj=await (await safeFetch(`${FAPI}/fapi/v1/premiumIndex?symbol=${sym}`)).json();
+    fund=+pj.lastFundingRate;
+  }catch(e){ /* optional */ }
+  return {sym,price,entry,sl,tp1,tp2,adxNow,rsiNow,dir,score,fresh,mom,bull,bear,oi,fund,
+          chg:((price-k.c[0])/k.c[0]*100)};
 }
 
 /* ====== formatting (no scientific notation) ====== */
@@ -360,6 +369,9 @@ function renderAnalyze(r){
   </div></div>`;
 }
 
+function oiTxt(o){ if(o==null)return "–"; let v=o; return v>=1e9?(v/1e9).toFixed(2)+"B":v>=1e6?(v/1e6).toFixed(1)+"M":v>=1e3?(v/1e3).toFixed(1)+"K":v.toFixed(0); }
+function fundTxt(f){ if(f==null)return "–"; return `<span class="${f>=0?'pos':'neg'}">${(f*100).toFixed(4)}%</span>`; }
+
 /* ====== render scanner ====== */
 function renderScan(rows,targetId){
   targetId=targetId||"resultS";
@@ -381,6 +393,8 @@ function renderScan(rows,targetId){
       <td class="${r.chg>=0?'pos':'neg'}">${pct(r.chg)}</td>
       <td class="${r.adxNow>ADX_THRESH?'pos':'neu'}">${r.adxNow.toFixed(1)}</td>
       <td class="${r.rsiNow>70?'pos':r.rsiNow<30?'neg':'neu'}">${r.rsiNow.toFixed(1)}</td>
+      <td>${oiTxt(r.oi)}</td>
+      <td>${fundTxt(r.fund)}</td>
     </tr>`;
   }).join("");
   document.getElementById(targetId).innerHTML=`
@@ -389,7 +403,7 @@ function renderScan(rows,targetId){
     <thead><tr>
       <th class="l">เหรียญ</th><th class="l">ทิศทาง</th><th>Score</th><th>ดาว</th>
       <th>ราคาซื้อ</th><th>SL (Stop Loss)</th><th>TP1 (Take Profit)</th><th>TP2 (Take Profit)</th>
-      <th>24h</th><th>ADX</th><th>RSI</th>
+      <th>24h</th><th>ADX</th><th>RSI</th><th>OI</th><th>Funding</th>
     </tr></thead>
     <tbody>${body}</tbody>
   </table></div>
