@@ -44,6 +44,13 @@ button.pri:hover{filter:brightness(1.1)}
  cursor:pointer;font-size:13px;font-weight:600;transition:.15s;user-select:none}
 .tfb:hover{border-color:var(--accent)}
 .tfb.on{background:linear-gradient(135deg,#3b82f6,#38bdf8);color:#04101f;border-color:var(--accent)}
+/* ---- coin shortcut chips ---- */
+.chips{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px 0;max-width:1320px;margin:0 auto}
+.chip{padding:5px 11px;border-radius:999px;background:var(--panel);border:1px solid var(--line);
+ cursor:pointer;font-size:12px;font-weight:600;color:var(--muted);transition:.12s;user-select:none;white-space:nowrap}
+.chip:hover{border-color:var(--accent);color:var(--txt)}
+.chip.on{background:linear-gradient(135deg,#3b82f6,#38bdf8);color:#04101f;border-color:var(--accent)}
+.chips .ttl{color:var(--muted);font-size:11px;align-self:center;margin-right:4px;text-transform:uppercase;letter-spacing:.6px}
 .wrap{padding:14px 18px 40px;max-width:1320px;margin:0 auto}
 /* ---- summary strip ---- */
 .strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0 4px}
@@ -130,6 +137,8 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
   <span class="small" id="status"><span class="statusdot"></span>พร้อม</span>
 </div>
 
+<div class="chips" id="chips"><span class="ttl">เหรียญ</span></div>
+
 <div class="wrap">
 
   <div id="tab-scan">
@@ -181,6 +190,14 @@ const FAPI="https://fapi.binance.com/fapi/v1/";
 const TFS=["5m","15m","1h","4h","1d"];
 const STATUS=document.getElementById("status");
 let symList=[], CUR="BTCUSDT", TF="4h", LAST={};
+// preset watchlist (validated against Binance USD-M perps)
+const WATCH=[
+ "BTCUSDT","ETHUSDT","SOLUSDT","XRPUSDT","BNBUSDT","DOGEUSDT","ADAUSDT","LINKUSDT",
+ "NEARUSDT","UNIUSDT","SUIUSDT","TAOUSDT","HYPEUSDT","ZECUSDT","BOMEUSDT","PAXGUSDT",
+ "TUTUSDT","BMTUSDT","MUBARAKUSDT","TSTUSDT","BLUAIUSDT","PUMPUSDT","CYSUSDT","BICOUSDT",
+ "BEATUSDT","WLDUSDT","GUAUSDT","HOMEUSDT","1000PEPEUSDT","KAITOUSDT","NILUSDT","EPICUSDT",
+ "CAPUSDT","ENAUSDT","XANUSDT","BTWUSDT","GWEIUSDT","BLESSUSDT","龙虾USDT"
+];
 
 const fmt=(v,d)=>{ v=Number(v); if(!isFinite(v))return "—";
   return v.toFixed(d!==undefined?d:(Math.abs(v)<1?5:2)); };
@@ -385,6 +402,17 @@ function setTF(tf){
 }
 document.querySelectorAll(".tfb").forEach(b=>b.onclick=()=>setTF(b.dataset.tf));
 
+/* ---------- coin chips ---------- */
+function renderChips(){
+  const box=document.getElementById("chips");
+  WATCH.forEach(s=>{
+    const c=document.createElement("span");
+    c.className="chip"+(s===CUR?" on":""); c.textContent=s.replace("USDT","");
+    c.onclick=()=>{ CUR=s; document.getElementById("sym").value=s; renderChips(); renderScan(CUR); };
+    box.appendChild(c);
+  });
+}
+
 /* ---------- tabs ---------- */
 document.querySelectorAll(".tab").forEach(tb=>tb.onclick=()=>{
   document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
@@ -414,6 +442,7 @@ async function init(){
   inp.addEventListener("keydown",e=>{if(e.key==="Enter")document.getElementById("go").click();});
   ["psBudget","psLev","psEntry","psSl","psTp"].forEach(id=>
     document.getElementById(id).addEventListener("input",renderSize));
+  renderChips();
   renderScan(CUR);
   setInterval(()=>renderScan(CUR),60000);
 }
