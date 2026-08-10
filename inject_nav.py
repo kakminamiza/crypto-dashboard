@@ -9,6 +9,9 @@ LINKS = [("index.html", "Accumulation"), ("dipbuy.html", "Dip-Buy"),
          ("entry.html", "Entry Planner"), ("scan.html", "Market Scan"),
          ("trend.html", "Trend Rider"), ("accum.html", "Accum (live)")]
 
+BRAND = "◈ CRYPTO TERMINAL"
+MARK = BRAND          # present in both injected and hand-authored navs
+
 NAV_CSS = """<style id="xnav-css">
 .xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;
  border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;
@@ -21,7 +24,7 @@ NAV_CSS = """<style id="xnav-css">
 
 
 def nav_for(fname):
-    return ('<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span>' +
+    return ('<nav class="xnav"><span class="b">' + BRAND + '</span>' +
             "".join('<a href="./%s" class="%s">%s</a>' %
                     (u, "cur" if u == fname else "", n) for u, n in LINKS) +
             '</nav>')
@@ -31,7 +34,7 @@ def inject(path, fname):
     if not os.path.exists(path):
         return "missing"
     s = open(path, encoding="utf-8").read()
-    if 'id="xnav-css"' in s:
+    if MARK in s:                      # already has a nav (injected or hand-authored)
         return "already"
     if "</head>" not in s:
         return "no-head"
