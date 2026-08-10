@@ -239,6 +239,17 @@ function atr(h,l,c,n=14){ const tr=[h[0]-l[0]];
   const out=[a]; for(let i=1;i<tr.length;i++){ a=(a*(n-1)+tr[i])/n; out.push(a);} return out; }
 
 /* ---------- fetch + parse (STRINGS -> NUMBERS) ---------- */
+async function liqZones(sym){
+  try{
+    const r=await fetch(FAPI+`futures/data/topLongShortPositionRatio?symbol=${sym}&period=5m&limit=48`);
+    const j=await r.json();
+    if(!Array.isArray(j)||!j.length) return null;
+    const lr=j.map(x=>+x.longShortRatio);
+    const avg=lr.reduce((a,b)=>a+b,0)/lr.length;
+    const last=lr[lr.length-1];
+    return {avg,last,crowded:last>1.8?"long":last<0.6?"short":"bal"};
+  }catch(e){ return null; }
+}
 async function oiVal(sym){ try{ const r=await fetch(FAPI+`futures/data/openInterest?symbol=${sym}`); const j=await r.json(); return +j.openInterest; }catch(e){ return null; } }
 async function fundVal(sym){ try{ const r=await fetch(FAPI+`premiumIndex?symbol=${sym}`); const j=await r.json(); return +j.lastFundingRate; }catch(e){ return null; } }
 
