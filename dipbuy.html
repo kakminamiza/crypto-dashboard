@@ -254,22 +254,27 @@ async function liqZones(sym){
     }
   }catch(e){}
   try{
-    // 2) recent forced liquidation orders -> real liquity price clusters
-    const fo=await fetch(FAPI+`fapi/v1/allForceOrders?symbol=${sym}&limit=200`);
-    const fj=await fo.json();
-    if(Array.isArray(fj)&&fj.length){
-      // bucket by price, weight by qty
+    // 2) recent trades -> detect abnormally large prints (proxy for liquidation clusters)
+    const tr=await fetch(FAPI+`fapi/v1/trades?symbol=${sym}&limit=500`);
+    const tj=await tr.json();
+    if(Array.isArray(tj)&&tj.length){
+      const qtys=tj.map(x=>+x.qty);
+      const median=qtys.slice().sort((a,b)=>a-b)[Math.floor(qtys.length/2)]||1;
+      const BIG=median*8; // prints >=8x median considered liquidation-sized
       const buckets={};
-      fj.forEach(o=>{ const p=+o.price, q=+o.qty||0, sd=o.side; // side = SELL means long liquidated
-        const key=Math.round(p* (p<1?1e4:1e2)); 
+      tj.forEach(x=>{ const q=+x.qty; if(q<BIG) return;
+        const p=+x.price, isBuy=+x.isBuyerMaker===0; // buyerMaker=false => taker buy => someone sold into it
+        const key=Math.round(p*(p<1?1e4:1e2));
         if(!buckets[key]) buckets[key]={price:p,qty:0,longLiq:0,shortLiq:0};
         buckets[key].qty+=q;
-        if(sd==="SELL") buckets[key].longLiq+=q; else buckets[key].shortLiq+=q;
+        if(isBuy) buckets[key].shortLiq+=q; else buckets[key].longLiq+=q;
       });
       const arr=Object.values(buckets).sort((a,b)=>b.qty-a.qty).slice(0,5);
       res.forceLevels=arr;
-      const totL=arr.reduce((a,b)=>a+b.longLiq,0), totS=arr.reduce((a,b)=>a+b.shortLiq,0);
-      res.forceSide = totL>totS*1.3 ? "long" : totS>totL*1.3 ? "short" : "bal";
+      if(arr.length){
+        const totL=arr.reduce((a,b)=>a+b.longLiq,0), totS=arr.reduce((a,b)=>a+b.shortLiq,0);
+        res.forceSide = totL>totS*1.3 ? "long" : totS>totL*1.3 ? "short" : "bal";
+      }
     }
   }catch(e){}
   return res;
