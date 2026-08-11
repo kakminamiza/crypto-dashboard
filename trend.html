@@ -147,6 +147,9 @@ tr:hover td{background:#161d2b}
     </select>
     <button class="btn rf" id="rfbtn">▶ เริ่ม</button>
   </div>
+  <div class="grp"><label>โหมด</label>
+    <button class="btn" id="modeBtn">🎯 Dip-Buy (เข้ม)</button>
+  </div>
   <button class="btn" id="scan">🔄 สแกนเลย</button>
 </div>
 
@@ -195,10 +198,10 @@ tr:hover td{background:#161d2b}
 
 <script>
 const FAPI="https://fapi.binance.com";
-const EMA_FAST=20,EMA_SLOW=50,EMA_TREND=200,ADX_LEN=14,ADX_THRESH=25,SL_ATR=2,TP1R=1.5,TP2R=3;
+const EMA_FAST=20,EMA_SLOW=50,EMA_TREND=200,ADX_LEN=14,ADX_THRESH=20,SL_ATR=2,TP1R=1.5,TP2R=3;
 const RSI_LEN=14, ST_LEN=10, ST_MULT=3, MACD_F=12, MACD_S=26, MACD_SIG=9;
 const MTF=["5m","15m","1h","4h","1d"];
-let SIGNAL_TF="1h", timer=null, running=false, scanning=false, RR_MIN=0;
+let SIGNAL_TF="1h", timer=null, running=false, scanning=false, RR_MIN=0, WIDE_MODE=false;
 let BUDGET=100, RISK_PCT=0.02, MAX_LEV=5;
 
 /* ===== กัน IP-ban / Rate-limit ===== */
@@ -301,7 +304,22 @@ async function analyze(sym,vol,fd){
   let belowStruct = piv.highVal!=null ? price<piv.highVal : true;
   let longOK = bullBias && adxNow>ADX_THRESH && price>et.at(-1) && dipped && reclaimedL && aboveStruct && rsiNow>=45 && rsiNow<=70 && rsiNow>=rsiPrev && mHist>=0;
   let shortOK = bearBias && adxNow>ADX_THRESH && price<et.at(-1) && rised && reclaimedS && belowStruct && rsiNow<=55 && rsiNow>=30 && rsiNow<=rsiPrev && mHist<=0;
-  if(!longOK && !shortOK) return null;
+  // near-score: how close to a signal (for "wide/opportunity" mode)
+  let near=0;
+  near += bullBias?20:0; near += bearBias?20:0;
+  near += adxNow>ADX_THRESH?15:0; near += adxNow>15?5:0;
+  near += dipped?15:0; near += rised?15:0;
+  near += reclaimedL?5:0; near += reclaimedS?5:0;
+  near += (rsiNow>=45&&rsiNow<=70)?8:0; near += (rsiNow>=30&&rsiNow<=55)?8:0;
+  near += mHist>=0?5:0; near += mHist<=0?5:0;
+  near += vol>=1e8?10:vol>=1e7?5:0;
+  if(!longOK && !shortOK){
+    if(WIDE_MODE && vol>=1e7){
+      return {sym,dir:null,price,near,adx:adxNow,bull,bear,rsi:rsiNow,stDir,macdCross:mHist>0?"bull":(mHist<0?"bear":"neu"),mHist,
+        vol, fund:null, fundNext:null, fundFav:0, nearOnly:true};
+    }
+    return null;
+  }
   if(vol<5e6) return null;
   let dir=null,sl,risk;
   if(longOK){
@@ -358,7 +376,7 @@ function render(list){
   let goodFund=0;
   view.forEach((r,i)=>{
     let fundMark = r.fundFav===1 ? `<span class='b fund-ng'>💙</span> ` : "";
-    let badge=r.dir==="long"?`<span class='b long'>🟢 LONG</span>`:r.dir==="short"?`<span class='b short'>🔴 SHORT</span>`:`<span class='b neu'>– เฝ้าดู</span>`;
+    let badge=r.dir==="long"?`<span class='b long'>🟢 LONG</span>`:r.dir==="short"?`<span class='b short'>🔴 SHORT</span>`:`<span class='b neu'>👁 เฝ้าดู (${r.near|0})</span>`;
     let fresh=r.fresh?`<span class='fresh'>🔥</span>`:"";
     let dots=MTF.map(tf=>{let s=r.states[tf],c=s==="BULL"?"d-bull":s==="BEAR"?"d-bear":"d-neu";return `<span class='dot ${c}' title='${tf}:${s}'>${tf}</span>`}).join("");
     let rc=r.dir==="long"?"r-long":r.dir==="short"?"r-short":"r-neu";
@@ -503,6 +521,10 @@ $("budget").oninput=()=>{BUDGET=+$("budget").value||100;render(lastList)};
 $("risk").onchange=()=>{RISK_PCT=+$("risk").value;render(lastList)};
 $("maxlev").onchange=()=>{MAX_LEV=+$("maxlev").value;render(lastList)};
 $("scan").onclick=scan;
+$("modeBtn").onclick=()=>{ WIDE_MODE=!WIDE_MODE;
+  $("modeBtn").textContent=WIDE_MODE?"🌐 โอกาสทั้งหมด":"🎯 Dip-Buy (เข้ม)";
+  $("modeBtn").classList.toggle("active",WIDE_MODE);
+  scan(); };
 $("rfbtn").onclick=()=>{
   running=!running;let btn=$("rfbtn");
   if(running){btn.textContent="⏸ หยุด";btn.classList.add("on");
