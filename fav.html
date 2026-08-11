@@ -4,7 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>39 เหรียญโปรด — Scanner</title>
-<style>
+<style>@keyframes coinPop{0%{transform:scale(1)}40%{transform:scale(1.5)}100%{transform:scale(1)}}
+.pop{animation:coinPop .45s ease-out;display:inline-block}
+
   :root{--bg:#0a0e17;--bg2:#0f1626;--card:#121a2b;--card2:#16203a;
         --fg:#e6edf3;--mut:#8b98ad;--grn:#26d07c;--red:#ff5b5b;
         --blu:#4aa8ff;--yel:#ffce4a;--bd:#23304d;--chip:#1c2740;}
@@ -58,7 +60,7 @@
 </style>
 </head>
 <body>
-<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="cur">39 เหรียญโปรด</a><a href="./accum.html" class="">Accum (live)</a><a href="./dashboard.html" class="">Dashboard</a></nav>
+<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="cur">39 เหรียญโปรด</a><a href="./accum.html" class="">Accum (live)</a></nav>
 <header>
   <h1>⭐ 39 เหรียญโปรด — สแกนเร็วพร้อมสัญญาณ</h1>
   <div class="sub">ตารางเทียบเหรียญที่คุณเลือก · EMA/ADX/ATR/RSI/SuperTrend/MACD + OI + Funding Rate · คลิกแถวเพื่อวิเคราะห์ลึก</div>
@@ -187,7 +189,7 @@ function renderScan(rows){
     let tp2Txt=r.tp2!=null?`<span class="pos">${fmt(r.tp2)}</span> <span class="neu" style="font-size:10px">3R</span>`:"–";
     let mom=r.mom==="up"?'<span class="mom pos">▲ ขึ้น</span>':r.mom==="down"?'<span class="mom neg">▼ ลง</span>':'<span class="mom neu">• ข้าง</span>';
     return `<tr data-sym="${r.sym}">
-      <td class="l"><b style="color:var(--blu)">${r.sym.replace('USDT','')}</b></td>
+      <td class="l"><b style="color:var(--blu)" class="symcell" data-sym="${r.sym}">${(r.sym==='龙虾USDT'?'🦞 ':r.sym.replace('USDT',''))}</b></td>
       <td>${dirTag(r.dir)}</td>
       <td class="sc">${r.score>=0?r.score.toFixed(1):'–'}</td>
       <td><span class="stars">${stars(r.score)}</span></td>
@@ -212,6 +214,10 @@ function renderScan(rows){
   </table>`;
   document.querySelectorAll('#resultS tr[data-sym]').forEach(tr=>{
     tr.addEventListener('click',()=>{ window.open(`./scan.html?sym=${tr.dataset.sym}`,"_blank"); });
+  });
+  document.querySelectorAll('#resultS .symcell').forEach(b=>{
+    b.addEventListener('click',(ev)=>{ ev.stopPropagation();
+      b.classList.remove('pop'); void b.offsetWidth; b.classList.add('pop'); });
   });
 }
 

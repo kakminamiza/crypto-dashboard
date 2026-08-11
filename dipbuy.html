@@ -44,6 +44,10 @@ button.pri:hover{filter:brightness(1.1)}
  cursor:pointer;font-size:13px;font-weight:600;transition:.15s;user-select:none}
 .tfb:hover{border-color:var(--accent)}
 .tfb.on{background:linear-gradient(135deg,#3b82f6,#38bdf8);color:#04101f;border-color:var(--accent)}
+/* coin icon click-to-expand */
+@keyframes coinPop{0%{transform:scale(1)}40%{transform:scale(1.45)}100%{transform:scale(1)}}
+.chip.pop{animation:coinPop .45s ease-out}
+.chip{transition:transform .12s;}
 /* ---- coin shortcut chips ---- */
 .chips{display:flex;gap:6px;flex-wrap:wrap;padding:12px 18px 0;max-width:1320px;margin:0 auto}
 .chip{padding:5px 11px;border-radius:999px;background:var(--panel);border:1px solid var(--line);
@@ -111,7 +115,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
   <a class="n" href="./scan.html">Market Scan</a>
   <a class="n" href="./trend.html">Trend Rider</a>
   <a class="n" href="./accum.html">Accum (live)</a>
-<a href="./dashboard.html" class="">Dashboard</a></nav>
+</nav>
 
 <header>
   <h1>📊 Dip-Buy Terminal</h1>
@@ -540,8 +544,11 @@ function renderChips(){
   const box=document.getElementById("chips");
   WATCH.forEach(s=>{
     const c=document.createElement("span");
-    c.className="chip"+(s===CUR?" on":""); c.textContent=s.replace("USDT","");
-    c.onclick=()=>{ CUR=s; document.getElementById("sym").value=s; renderChips(); renderScan(CUR); };
+    c.className="chip"+(s===CUR?" on":"");
+    c.textContent=(s==="龙虾USDT"?"🦞":s.replace("USDT",""));
+    c.onclick=()=>{ CUR=s; document.getElementById("sym").value=s; renderChips();
+      c.classList.remove("pop"); void c.offsetWidth; c.classList.add("pop");
+      renderScan(CUR); };
     box.appendChild(c);
   });
 }
