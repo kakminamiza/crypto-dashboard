@@ -134,6 +134,7 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
   <span class="small" id="status"><span class="statusdot"></span>พร้อม</span>
 </div>
 
+<div class="card" style="margin:12px 18px;padding:12px 14px"><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><label style="font-size:12px;color:var(--muted)">🪙 Watchboard</label><input id="watchSym" placeholder="เช่น BTC, ETH, SOL" style="text-transform:uppercase;flex:1;min-width:150px;background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:8px 11px;border-radius:8px;font-size:13px"><button id="watchAdd" style="background:linear-gradient(135deg,#3b82f6,#38bdf8);color:#04101f;border:none;padding:8px 14px;border-radius:8px;font-weight:700;cursor:pointer">➕ เพิ่ม</button></div><div id="watchChips" style="margin-top:8px"></div></div>
 <div class="chips" id="chips"><span class="ttl">เหรียญ</span></div>
 
 <div class="wrap">
@@ -368,6 +369,7 @@ async function renderScan(sym){
   }
   renderKPI(sym);
   STATUS.innerHTML=`<span class="statusdot"></span>${sym} · ${ok}/${TFS.length} TF · ${new Date().toLocaleTimeString("th-TH")}`;
+  addInfoDots();
   document.getElementById("ts").textContent=new Date().toLocaleString("th-TH");
   const a=LAST[TF];
   if(a){const e=document.getElementById("psEntry"); if(!+e.value) e.value=a.px;}
@@ -534,6 +536,40 @@ function setTF(tf){
 }
 document.querySelectorAll(".tfb").forEach(b=>b.onclick=()=>setTF(b.dataset.tf));
 
+/* ---------- Watchboard (localStorage) ---------- */
+const WATCH_KEY="dipbuy_watch_v1";
+let COINS=loadCoins();
+function loadCoins(){try{return JSON.parse(localStorage.getItem(WATCH_KEY))||[]}catch(e){return[]}}
+function saveCoins(){try{localStorage.setItem(WATCH_KEY,JSON.stringify(COINS))}catch(e){}}
+function renderCoins(){
+  const el=document.getElementById("watchChips");
+  if(!COINS.length){el.innerHTML='<span style="color:var(--muted);font-size:12px">ยังไม่มี — พิมพ์ชื่อแล้วกด ➕</span>';return;}
+  el.innerHTML=COINS.map(c=>`<span class="chip" data-sym="${c}" title="คลิกเพื่อวิเคราะห์">${c.replace("USDT","")}<span class="x" data-del="${c}">✕</span></span>`).join("");
+  el.querySelectorAll(".chip").forEach(el=>el.onclick=()=>{
+    document.getElementById("sym").value=el.dataset.sym;
+    CUR=el.dataset.sym; renderScan(CUR);
+    document.querySelectorAll("#chips .chip").forEach(x=>x.classList.remove("on"));
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+  el.querySelectorAll(".x").forEach(x=>x.onclick=e=>{e.stopPropagation();COINS=COINS.filter(c=>c!==x.dataset.del);saveCoins();renderCoins();});
+}
+function addCoin(){
+  const v=document.getElementById("watchSym").value.trim().toUpperCase();
+  if(!v)return;
+  v.split(/[\s,]+/).map(s=>s.includes("USDT")?s:s+"USDT").filter(Boolean).forEach(c=>{if(!COINS.includes(c))COINS.push(c);});
+  saveCoins();renderCoins();document.getElementById("watchSym").value="";
+}
+renderCoins();
+
+/* ---------- info dots ---------- */
+function addInfoDots(){
+  const tips={"ราคา":"price","RSI(14)":"rsi","EMA20/50":"ema","EMA100/200":"ema","SuperTrend":"supertrend","MACD":"macd","TEMA20":"ema","ATR(14)":"atr","Open Interest":"oi","Funding Rate":"fund"};
+  document.querySelectorAll(".card .row span:first-child").forEach(td=>{
+    const label=td.textContent.trim();
+    for(const k in tips){if(label.includes(k) && !td.querySelector(".info")){const sp=document.createElement("span");sp.className="info";sp.dataset.tip=tips[k];sp.textContent="i";td.appendChild(sp);break;}}
+  });
+}
+
 /* ---------- coin chips ---------- */
 function renderChips(){
   const box=document.getElementById("chips");
@@ -574,6 +610,8 @@ async function init(){
       let dl=document.getElementById("dl");
       if(!dl){dl=document.createElement("datalist");dl.id="dl";inp.after(dl);}
       dl.innerHTML=m.map(s=>`<option value="${s}">`).join("");inp.setAttribute("list","dl");}});
+  document.getElementById("watchAdd").onclick=addCoin;
+  document.getElementById("watchSym").addEventListener("keydown",e=>{if(e.key==="Enter")addCoin();});
   document.getElementById("go").onclick=()=>{
     CUR=(inp.value.toUpperCase()||"BTCUSDT"); if(!/USDT$|USDC$/.test(CUR))CUR+="USDT";
     renderScan(CUR);};
