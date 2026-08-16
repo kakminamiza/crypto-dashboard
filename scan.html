@@ -512,7 +512,14 @@ document.getElementById("autoS").addEventListener("change",function(){
   if(this.checked)autoS=setInterval(doScan,300000);
 });
 
-// first load
+// first load (apply deep-link sym first)
+(function(){
+  try{
+    const p=new URLSearchParams(location.search);
+    const s=(p.get("sym")||"").toUpperCase();
+    if(s){ document.getElementById("sym").value=s; }
+  }catch(e){}
+})();
 doAnalyze();
 
 /* ====== SHARE link (offer 1) ====== */
@@ -602,15 +609,6 @@ document.getElementById("warAuto").addEventListener("change",function(){
 });
 renderWar();
 
-/* ====== DEEP-LINK (offer 3 support) ====== */
-(function(){
-  const p=new URLSearchParams(location.search);
-  const s=(p.get("sym")||"").toUpperCase();
-  if(s){
-    document.getElementById("sym").value=s;
-    switchTab("analyze"); doAnalyze();
-  }
-})();
 
 </script>
 </body>
