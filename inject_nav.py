@@ -68,7 +68,7 @@ def augment(path):
     if "./tooltip.js" not in s and "tooltip.js" not in s:
         if "</body>" in s:
             s = s.replace("</body>", TOOL_JS + "\n</body>", 1); changed = True
-    # add manual button if nav lacks it
+    # add manual button if nav lacks it (independent of css/js)
     if 'class="manual"' not in s and 'class="xnav"' in s:
         s = s.replace('</nav>', MANUAL_BTN + '</nav>', 1); changed = True
     if changed:
