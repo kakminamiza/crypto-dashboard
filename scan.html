@@ -105,9 +105,10 @@
 .xnav a:hover{background:#1a2130;color:#e8eef7}
 .xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
 </style>
+<link rel="stylesheet" href="./tooltip.css">
 </head>
 <body>
-<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="cur">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./accum.html" class="">Accum (live)</a></nav>
+<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="cur">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./accum.html" class="">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav>
 <header>
   <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
     <div>
@@ -392,10 +393,10 @@ function renderAnalyze(r){
   let macdTxt=r.macdCross==="bull"?"Bull ▲":r.macdCross==="bear"?"Bear ▼":"Neu";
   let ef=ema(r.k.c,EMA_FAST),es=ema(r.k.c,EMA_SLOW),em=ema(r.k.c,EMA_MID),et=ema(r.k.c,EMA_TREND);
   let rR=r.dir?`
-    <tr><td class="k">SL (ATR×2)</td><td class="v neg">${fmt(r.sl)} <span class="neg">(${pct(-r.risk/r.entry*100)})</span></td></tr>
-    <tr><td class="k">TP1 (1.5R)</td><td class="v pos">${fmt(r.tp1)} <span class="pos">(+${r.rr1.toFixed(2)}R / ${pct((r.tp1-r.entry)/r.entry*100)})</span></td></tr>
-    <tr><td class="k">TP2 (3.0R)</td><td class="v pos">${fmt(r.tp2)} <span class="pos">(+${r.rr2.toFixed(2)}R / ${pct((r.tp2-r.entry)/r.entry*100)})</span></td></tr>
-    <tr><td class="k">R:R (TP1/SL)</td><td class="v">${r.rr1.toFixed(2)} : 1</td></tr>`:`<tr><td class="k">SL / TP</td><td class="v neu">ยังไม่เข้าเงื่อนไข</td></tr>`;
+    <tr><td class="k">SL (ATR×2)<span class="info" data-tip="sltp">i</span></td><td class="v neg">${fmt(r.sl)} <span class="neg">(${pct(-r.risk/r.entry*100)})</span></td></tr>
+    <tr><td class="k">TP1 (1.5R)<span class="info" data-tip="sltp">i</span></td><td class="v pos">${fmt(r.tp1)} <span class="pos">(+${r.rr1.toFixed(2)}R / ${pct((r.tp1-r.entry)/r.entry*100)})</span></td></tr>
+    <tr><td class="k">TP2 (3.0R)<span class="info" data-tip="sltp">i</span></td><td class="v pos">${fmt(r.tp2)} <span class="pos">(+${r.rr2.toFixed(2)}R / ${pct((r.tp2-r.entry)/r.entry*100)})</span></td></tr>
+    <tr><td class="k">R:R (TP1/SL)<span class="info" data-tip="sltp">i</span></td><td class="v">${r.rr1.toFixed(2)} : 1</td></tr>`:`<tr><td class="k">SL / TP</td><td class="v neu">ยังไม่เข้าเงื่อนไข</td></tr>`;
   document.getElementById("resultA").innerHTML=`
   <div class="card"><div class="grid2">
     <div>
@@ -406,15 +407,15 @@ function renderAnalyze(r){
     </div>
     <div>
       <table>
-        <tr><td class="k">EMA 20 / 50 / 200</td><td class="v">${fmt(r.ef)} / ${fmt(r.es)} / ${fmt(r.et)}</td></tr>
-        <tr><td class="k">ADX(14)</td><td class="v ${r.adxNow>ADX_THRESH?'pos':'neu'}">${r.adxNow.toFixed(2)} ${r.adxNow>ADX_THRESH?'(เทรนด์ชัด)':'(อ่อน)'}</td></tr>
-        <tr><td class="k">ATR(14)</td><td class="v">${fmt(r.atrNow)}</td></tr>
-        <tr><td class="k">RSI(14)</td><td class="v ${r.rsiNow>70?'pos':r.rsiNow<30?'neg':'neu'}">${r.rsiNow.toFixed(2)} ${r.rsiNow>70?'Overbought':r.rsiNow<30?'Oversold':'Neutral'}</td></tr>
-        <tr><td class="k">SuperTrend</td><td class="v ${r.stDir===1?'pos':'neg'}">${stTxt}</td></tr>
-        <tr><td class="k">MACD</td><td class="v ${r.macdCross==='bull'?'pos':r.macdCross==='bear'?'neg':'neu'}">${macdTxt} (hist=${fmt(r.mHist)})</td></tr>
-        <tr><td class="k">MTF states</td><td class="v"><div class="mtf">${mtf}</div><div class="neu" style="font-size:11px;margin-top:4px">${r.bull} BULL / ${r.bear} BEAR</div></td></tr>
+        <tr><td class="k">EMA 20 / 50 / 200<span class="info" data-tip="ema">i</span></td><td class="v">${fmt(r.ef)} / ${fmt(r.es)} / ${fmt(r.et)}</td></tr>
+        <tr><td class="k">ADX(14)<span class="info" data-tip="adx">i</span></td><td class="v ${r.adxNow>ADX_THRESH?'pos':'neu'}">${r.adxNow.toFixed(2)} ${r.adxNow>ADX_THRESH?'(เทรนด์ชัด)':'(อ่อน)'}</td></tr>
+        <tr><td class="k">ATR(14)<span class="info" data-tip="atr">i</span></td><td class="v">${fmt(r.atrNow)}</td></tr>
+        <tr><td class="k">RSI(14)<span class="info" data-tip="rsi">i</span></td><td class="v ${r.rsiNow>70?'pos':r.rsiNow<30?'neg':'neu'}">${r.rsiNow.toFixed(2)} ${r.rsiNow>70?'Overbought':r.rsiNow<30?'Oversold':'Neutral'}</td></tr>
+        <tr><td class="k">SuperTrend<span class="info" data-tip="supertrend">i</span></td><td class="v ${r.stDir===1?'pos':'neg'}">${stTxt}</td></tr>
+        <tr><td class="k">MACD<span class="info" data-tip="macd">i</span></td><td class="v ${r.macdCross==='bull'?'pos':r.macdCross==='bear'?'neg':'neu'}">${macdTxt} (hist=${fmt(r.mHist)})</td></tr>
+        <tr><td class="k">MTF states<span class="info" data-tip="mtf">i</span></td><td class="v"><div class="mtf">${mtf}</div><div class="neu" style="font-size:11px;margin-top:4px">${r.bull} BULL / ${r.bear} BEAR</div></td></tr>
         <tr><td class="k">Fresh cross</td><td class="v ${r.fresh?'pos':'neu'}">${r.fresh?'YES 🔥':'no'}</td></tr>
-        <tr><td class="k">Score</td><td class="v"><span class="stars">${stars(r.score)}</span> ${r.score>=0?r.score.toFixed(1):'–'}</td></tr>
+        <tr><td class="k">Score<span class="info" data-tip="score">i</span></td><td class="v"><span class="stars">${stars(r.score)}</span> ${r.score>=0?r.score.toFixed(1):'–'}</td></tr>
         ${rR}
       </table>
     </div>
@@ -641,5 +642,6 @@ renderWar();
 
 
 </script>
+<script src="./tooltip.js"></script>
 </body>
 </html>

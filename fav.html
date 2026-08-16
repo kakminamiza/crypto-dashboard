@@ -58,9 +58,10 @@
 .xnav a:hover{background:#1a2130;color:#e8eef7}
 .xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
 </style>
+<link rel="stylesheet" href="./tooltip.css">
 </head>
 <body>
-<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="cur">39 เหรียญโปรด</a><a href="./accum.html" class="">Accum (live)</a></nav>
+<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="cur">39 เหรียญโปรด</a><a href="./accum.html" class="">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav>
 <header>
   <h1>⭐ 39 เหรียญโปรด — สแกนเร็วพร้อมสัญญาณ</h1>
   <div class="sub">ตารางเทียบเหรียญที่คุณเลือก · EMA/ADX/ATR/RSI/SuperTrend/MACD + OI + Funding Rate · คลิกแถวเพื่อวิเคราะห์ลึก</div>
@@ -249,5 +250,6 @@ document.getElementById("autoMin").addEventListener("change",function(){
 });
 doScan();
 </script>
+<script src="./tooltip.js"></script>
 </body>
 </html>

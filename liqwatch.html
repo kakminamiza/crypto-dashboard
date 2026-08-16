@@ -53,9 +53,10 @@ h1{margin:0;font-size:22px;background:linear-gradient(90deg,#ef4444,#f0b90b);-we
 footer{padding:14px 22px;color:var(--mut);font-size:11px;border-top:1px solid var(--bd)}
 .hint{font-size:11px;color:var(--mut);padding:0 22px 10px}
 </style>
+<link rel="stylesheet" href="./tooltip.css">
 </head>
 <body>
-<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="">39 เหรียญโปรด</a><a href="./liqwatch.html" class="cur">Liquidation Watch</a><a href="./accum.html" class="">Accum (live)</a></nav>
+<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="">39 เหรียญโปรด</a><a href="./liqwatch.html" class="cur">Liquidation Watch</a><a href="./accum.html" class="">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav>
 <div id="banner"></div>
 <header>
   <h1>⚠️ Liquidation Watch</h1>
@@ -183,5 +184,6 @@ render();
 update();
 if(document.getElementById("wAuto").checked) autoT=setInterval(update,15000);
 </script>
+<script src="./tooltip.js"></script>
 </body>
 </html>

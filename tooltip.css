@@ -1,0 +1,54 @@
+/* ===== Tooltip / Manual system (shared across all pages) ===== */
+.xnav .manual{
+  margin-left:auto; background:linear-gradient(90deg,#3b82f6,#22d3ee); color:#06121f;
+  font-weight:800; border:none; padding:6px 12px; border-radius:8px; cursor:pointer; font-size:12px;
+}
+.xnav .manual:hover{ filter:brightness(1.1); }
+
+/* inline info dots next to indicator labels */
+.info{
+  display:inline-flex; align-items:center; justify-content:center;
+  width:15px; height:15px; margin-left:5px; border-radius:50%;
+  background:#26303f; color:#9fb3c8; font-size:10px; font-weight:800; cursor:help;
+  vertical-align:middle; transition:background .15s;
+}
+.info:hover{ background:#3b82f6; color:#fff; }
+
+/* tooltip bubble */
+#tipBox{
+  position:fixed; z-index:99999; max-width:320px; background:#0b1018; color:#e6edf3;
+  border:1px solid #2c3a4d; border-radius:12px; padding:12px 14px; font-size:12.5px; line-height:1.5;
+  box-shadow:0 14px 40px rgba(0,0,0,.6); pointer-events:none; opacity:0; transform:translateY(6px);
+  transition:opacity .12s, transform .12s; font-family:"Segoe UI",Tahoma,sans-serif;
+}
+#tipBox.show{ opacity:1; transform:translateY(0); }
+#tipBox h4{ margin:0 0 5px; font-size:13.5px; color:#38bdf8; }
+#tipBox .tag{ display:inline-block; font-size:10px; font-weight:800; padding:1px 7px; border-radius:6px; margin-bottom:6px; }
+#tipBox .tag.use{ background:#1e3a5f; color:#7dd3fc; }
+#tipBox .tag.ben{ background:#14331f; color:#86efac; }
+#tipBox p{ margin:4px 0; color:#aeb9c9; }
+#tipBox b{ color:#e6edf3; }
+
+/* manual panel (full guide) */
+#manualPanel{
+  position:fixed; inset:0; z-index:99998; background:rgba(3,7,13,.72);
+  display:none; align-items:flex-start; justify-content:center; padding:40px 16px; overflow:auto;
+}
+#manualPanel.show{ display:flex; }
+#manualPanel .box{
+  background:#0b1018; border:1px solid #2c3a4d; border-radius:16px; max-width:760px; width:100%;
+  padding:22px 26px; box-shadow:0 20px 60px rgba(0,0,0,.7);
+}
+#manualPanel h2{ margin:0 0 4px; color:#38bdf8; font-size:20px; }
+#manualPanel .sub{ color:#8b93a7; font-size:12px; margin-bottom:16px; }
+#manualPanel .close{ float:right; background:#1a2130; border:1px solid #2a3444; color:#cbd3e1; border-radius:8px; padding:6px 12px; cursor:pointer; font-weight:700; }
+#manualPanel .close:hover{ background:#232d40; }
+#manualPanel .card{
+  background:#111620; border:1px solid #26303f; border-radius:12px; padding:14px 16px; margin-bottom:12px;
+}
+#manualPanel .card h3{ margin:0 0 6px; font-size:15px; color:#7dd3fc; display:flex; align-items:center; gap:8px; }
+#manualPanel .card .badge{ font-size:10px; font-weight:800; padding:2px 8px; border-radius:6px; background:#1e3a5f; color:#7dd3fc; }
+#manualPanel .card p{ margin:5px 0; font-size:12.5px; color:#aeb9c9; line-height:1.55; }
+#manualPanel .card p b{ color:#e6edf3; }
+#manualPanel .grid2{ display:grid; grid-template-columns:repeat(auto-fill,minmax(330px,1fr)); gap:12px; }
+@media(max-width:560px){ #manualPanel .grid2{ grid-template-columns:1fr; } }
