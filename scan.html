@@ -517,12 +517,16 @@ document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>swit
 document.getElementById("btnAnalyze").addEventListener("click",doAnalyze);
 document.getElementById("btnScan").addEventListener("click",doScan);
 
+// ensure sym present in select (deep-link may point to a coin not in perps list)
+function ensureSym(sel, sym){ try{ const el=document.getElementById(sel); if(!el)return; let found=[...el.options].some(o=>o.value===sym); if(!found){ const o=document.createElement("option"); o.value=sym; o.textContent=sym+" (ไม่พบในรายชื่อหลัก)"; el.appendChild(o);} }catch(e){} }
 // autocomplete symbol list (load once)
 (async()=>{ try{
   let info=await safeFetch(`${FAPI}/fapi/v1/exchangeInfo`); let j=await info.json();
   let perps=j.symbols.filter(s=>s.contractType==="PERPETUAL"&&s.quoteAsset==="USDT"&&s.status==="TRADING"&&!/UP|DOWN|BULL|BEAR/.test(s.symbol)).map(s=>s.symbol).sort();
   document.getElementById("sym").innerHTML=perps.map(s=>`<option value="${s}">${s}</option>`).join("");
   document.getElementById("warSym").innerHTML=perps.map(s=>`<option value="${s}">${s}</option>`).join("");
+  try{ const p=new URLSearchParams(location.search); const s=(p.get("sym")||"").toUpperCase(); if(s){ ensureSym("sym",s); document.getElementById("sym").value=s; } }catch(e){}
+  try{ const p=new URLSearchParams(location.search); const s=(p.get("sym")||"").toUpperCase(); if(s){ ensureSym("sym",s); document.getElementById("sym").value=s; } }catch(e){}
 }catch(e){} })();
 
 // auto-refresh analyze
@@ -548,7 +552,7 @@ document.getElementById("autoS").addEventListener("change",function(){
   try{
     const p=new URLSearchParams(location.search);
     const s=(p.get("sym")||"").toUpperCase();
-    if(s){ document.getElementById("sym").value=s; }
+    if(s){ ensureSym("sym",s); document.getElementById("sym").value=s; }
   }catch(e){}
 })();
 doAnalyze();
