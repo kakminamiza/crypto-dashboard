@@ -201,7 +201,7 @@
 /* ====== Indicator math (ported from analyze_coin.js — verified against live Binance) ====== */
 const FAPI="https://fapi.binance.com";
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-const EMA_FAST=20,EMA_SLOW=50,EMA_TREND=200,ADX_LEN=14,ADX_THRESH=25,SL_ATR=2,TP1R=1.5,TP2R=3;
+const EMA_FAST=20,EMA_SLOW=50,EMA_MID=100,EMA_TREND=200,ADX_LEN=14,ADX_THRESH=25,SL_ATR=2,TP1R=1.5,TP2R=3;
 const RSI_LEN=14,ST_LEN=10,ST_MULT=3,MACD_F=12,MACD_S=26,MACD_SIG=9;
 const MTF=["5m","15m","1h","4h","1d"];
 function ema(v,n){let k=2/(n+1),e=v[0],o=[e];for(let i=1;i<v.length;i++){e=v[i]*k+e*(1-k);o.push(e)}return o}
@@ -249,7 +249,7 @@ async function klines(sym,tf,limit){
 async function analyze(sym,signalTf){
   let k=await klines(sym,signalTf,300);
   if(!k||k.c.length<210) return {error:"แท่งไม่พอ (ต้อง >=210)"};
-  let ef=ema(k.c,EMA_FAST),es=ema(k.c,EMA_SLOW),et=ema(k.c,EMA_TREND),a=adx(k.h,k.l,k.c,ADX_LEN),at=atr(k.h,k.l,k.c,14);
+  let ef=ema(k.c,EMA_FAST),es=ema(k.c,EMA_SLOW),em=ema(k.c,EMA_MID),et=ema(k.c,EMA_TREND),a=adx(k.h,k.l,k.c,ADX_LEN),at=atr(k.h,k.l,k.c,14),rsArr=rsi(k.c,16);
   let price=k.c.at(-1),adxNow=a.at(-1),atrNow=at.at(-1);
   let states={};for(let tf of MTF)states[tf]=stateOf(await klines(sym,tf,260));
   let bull=Object.values(states).filter(s=>s==="BULL").length;
@@ -277,7 +277,7 @@ async function analyze(sym,signalTf){
 async function scanCoin(sym,signalTf){
   let k=await klines(sym,signalTf,300);
   if(!k||k.c.length<210) return null;
-  let ef=ema(k.c,EMA_FAST),es=ema(k.c,EMA_SLOW),et=ema(k.c,EMA_TREND),a=adx(k.h,k.l,k.c,ADX_LEN),at=atr(k.h,k.l,k.c,14);
+  let ef=ema(k.c,EMA_FAST),es=ema(k.c,EMA_SLOW),em=ema(k.c,EMA_MID),et=ema(k.c,EMA_TREND),a=adx(k.h,k.l,k.c,ADX_LEN),at=atr(k.h,k.l,k.c,14),rsArr=rsi(k.c,16);
   let price=k.c.at(-1),adxNow=a.at(-1),atrNow=at.at(-1);
   // 3-TF alignment (keep call count low): signalTf, 4h, 1d
   let states={}; states[signalTf]=stateOf(k);
@@ -307,7 +307,7 @@ async function scanCoin(sym,signalTf){
     fund=+pj.lastFundingRate;
   }catch(e){ /* optional */ }
   let volArr=[];try{let vj=await (await safeFetch(`${FAPI}/fapi/v1/klines?symbol=${sym}&interval=${SIGNAL_TF}&limit=50`)).json();volArr=vj.map(x=>+x[5]);}catch(e){}
-  return {sym,price,entry,sl,tp1,tp2,adxNow,rsiNow,dir,score,fresh,mom,bull,bear,oi,fund,vol:volArr,
+  return {sym,price,entry,sl,tp1,tp2,adxNow,rsiNow,dir,score,fresh,mom,bull,bear,oi,fund,vol:volArr,em:em.at(-1),rsi16:rsArr.at(-1),
           chg:((price-k.c[0])/k.c[0]*100)};
 }
 
@@ -324,7 +324,7 @@ function dirTag(d){ return d==="long"?'<span class="tag long">LONG</span>':d==="
 function momTxt(m){ return m==="up"?'<span class="mom pos">▲ ขึ้น</span>':m==="down"?'<span class="mom neg">▼ ลง</span>':'<span class="mom neu">• Sideways</span>'; }
 
 /* ====== chart ====== */
-function drawChart(k,ef,es,et,r){
+function drawChart(k,ef,es,em,et,r){
   let W=1000,H=240,pad=8;
   let vals=[...k.c,...ef,...es,...et];
   if(r){ if(r.sl)vals.push(r.sl); if(r.tp1)vals.push(r.tp1); if(r.tp2)vals.push(r.tp2); }
@@ -335,10 +335,11 @@ function drawChart(k,ef,es,et,r){
   let Y=v=>pad+(H-2*pad)*(1-(v-lo)/rng);
   let path=arr=>arr.map((v,i)=>(i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1)).join(" ");
   let pricePath=path(k.c);
-  let e20=path(ef), e50=path(es), e200=path(et);
+  let e20=path(ef), e50=path(es), e100=path(em), e200=path(et);
   let lastX=X(n-1), lastY=Y(k.c.at(-1));
   // support / resistance (swing low/high last 40 bars)
   let sup=Math.min(...k.l.slice(-40)), res=Math.max(...k.h.slice(-40));
+  let rsiLine=''; if(r&&r.rsi16!=null){ let Yr=v=>H-2-(H*0.18)*(v/100); let rsiP=r.k.c.map((_,i)=>i); let rp=r.k.c.map((_,i)=> (k.c[i]!=null?Yr(r.rsi16):Yr(r.rsi16))); let rpath=rp.map((v,i)=>(i?'L':'M')+X(i).toFixed(1)+' '+v.toFixed(1)).join(' '); rsiLine=`<path d="${rpath}" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.8"/>`; }
   // volume spikes: bar where vol >= 2.5x median
   let vols=k.vol||[];
   let med=vols.length?vols.slice(-30).sort((a,b)=>a-b)[Math.floor(vols.length/2)]:0;
@@ -358,14 +359,17 @@ function drawChart(k,ef,es,et,r){
     <path d="${pricePath}" fill="none" stroke="#4aa8ff" stroke-width="1.5"/>
     ${e20?`<path d="${e20}" fill="none" stroke="#ffce4a" stroke-width="1"/>`:""}
     ${e50?`<path d="${e50}" fill="none" stroke="#26d07c" stroke-width="1"/>`:""}
+    ${e100?`<path d="${e100}" fill="none" stroke="#a855f7" stroke-width="1"/>`:""}
     ${e200?`<path d="${e200}" fill="none" stroke="#ff5b5b" stroke-width="1" stroke-dasharray="3 3"/>`:""}
     ${supLine}${resLine}${levels}${spikeMarkup}
-    <circle cx="${lastX}" cy="${lastY}" r="3.5" fill="#fff"/>
+    <circle cx="${lastX}" cy="${lastY}" r="3.5" fill="#fff"/>${rsiLine}
   </svg>
   <div class="leg">
     <span><i style="background:#4aa8ff"></i>ราคา</span>
     <span><i style="background:#ffce4a"></i>EMA20</span>
     <span><i style="background:#26d07c"></i>EMA50</span>
+    <span><i style="background:#a855f7"></i>EMA100</span>
+    <span><i style="background:#f59e0b"></i>RSI(16)</span>
     <span><i style="background:#ff5b5b"></i>EMA200</span>
     <span><i style="background:#ffce4a"></i>Support</span>
     <span><i style="background:#ff5b5b"></i>Resistance/SL</span>
@@ -386,7 +390,7 @@ function renderAnalyze(r){
   let mtf=MTF.map(tf=>`<span class="t ${r.states[tf]}">${tf}=${r.states[tf][0]}</span>`).join(" ");
   let stTxt=r.stDir===1?"UP ▲ (long bias)":"DOWN ▼ (short bias)";
   let macdTxt=r.macdCross==="bull"?"Bull ▲":r.macdCross==="bear"?"Bear ▼":"Neu";
-  let ef=ema(r.k.c,EMA_FAST),es=ema(r.k.c,EMA_SLOW),et=ema(r.k.c,EMA_TREND);
+  let ef=ema(r.k.c,EMA_FAST),es=ema(r.k.c,EMA_SLOW),em=ema(r.k.c,EMA_MID),et=ema(r.k.c,EMA_TREND);
   let rR=r.dir?`
     <tr><td class="k">SL (ATR×2)</td><td class="v neg">${fmt(r.sl)} <span class="neg">(${pct(-r.risk/r.entry*100)})</span></td></tr>
     <tr><td class="k">TP1 (1.5R)</td><td class="v pos">${fmt(r.tp1)} <span class="pos">(+${r.rr1.toFixed(2)}R / ${pct((r.tp1-r.entry)/r.entry*100)})</span></td></tr>
@@ -398,7 +402,7 @@ function renderAnalyze(r){
       <div class="symh">${r.sym}</div>
       <div class="price">${fmt(r.price)}</div>
       <div class="dir ${dcls}">${dtext}${r.fresh?' 🔥':''}</div>
-      <div style="margin-top:12px">${drawChart(r.k,ef,es,et,r)}</div>
+      <div style="margin-top:12px">${drawChart(r.k,ef,es,em,et,r)}</div>
     </div>
     <div>
       <table>
