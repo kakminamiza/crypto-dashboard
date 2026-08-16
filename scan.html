@@ -133,7 +133,7 @@
   <div class="panel on" id="panel-analyze">
     <div class="controls">
       <div class="fld"><label>เหรียญ (เช่น BTC, ETH, SOL)</label>
-        <input id="sym" value="BTCUSDT" list="symlist"></div>
+        <select id="sym" style="text-transform:uppercase;min-width:150px;font-weight:700"></select></div>
       <div class="fld"><label>Timeframe สัญญาณ</label>
         <select id="tf"><option>5m</option><option>15m</option><option>1h</option><option selected>4h</option><option>1d</option></select></div>
       <div class="fld"><label>&nbsp;</label>
@@ -142,7 +142,7 @@
         <div class="chk"><input type="checkbox" id="autoA"> <span>ทุก</span>
           <select id="autoSec" style="min-width:70px"><option>30</option><option selected>60</option><option>120</option><option>300</option></select><span>วิ</span></div></div>
     </div>
-    <datalist id="symlist"></datalist>
+    
     <div class="status" id="statusA"></div>
     <div id="resultA"></div>
   </div>
@@ -168,7 +168,7 @@
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
         <b style="font-size:15px">⚔️ War Room</b>
         <span class="neu" style="font-size:12px;color:var(--mut)">บอร์ดเหรียญที่คุณติดตาม · อัปเดตเรียลไทม์ · เก็บในเครื่อง</span>
-        <input id="warSym" placeholder="เพิ่มเหรียญ เช่น BTC" list="symlist" style="text-transform:uppercase;min-width:140px">
+        <select id="warSym" style="text-transform:uppercase;min-width:140px"></select>
         <button class="ghost" id="btnWarAdd">+ เพิ่ม</button>
         <select id="warTf" style="min-width:70px"><option>1h</option><option selected>4h</option><option>1d</option></select>
         <button class="ghost" id="btnWarRefresh">🔄 รีเฟรช</button>
@@ -490,8 +490,9 @@ document.getElementById("btnScan").addEventListener("click",doScan);
 // autocomplete symbol list (load once)
 (async()=>{ try{
   let info=await safeFetch(`${FAPI}/fapi/v1/exchangeInfo`); let j=await info.json();
-  let perps=j.symbols.filter(s=>s.contractType==="PERPETUAL"&&s.quoteAsset==="USDT"&&s.status==="TRADING"&&!/UP|DOWN|BULL|BEAR/.test(s.symbol)).map(s=>s.symbol);
-  document.getElementById("symlist").innerHTML=perps.slice(0,200).map(s=>`<option value="${s}">`).join("");
+  let perps=j.symbols.filter(s=>s.contractType==="PERPETUAL"&&s.quoteAsset==="USDT"&&s.status==="TRADING"&&!/UP|DOWN|BULL|BEAR/.test(s.symbol)).map(s=>s.symbol).sort();
+  document.getElementById("sym").innerHTML=perps.map(s=>`<option value="${s}">${s}</option>`).join("");
+  document.getElementById("warSym").innerHTML=perps.map(s=>`<option value="${s}">${s}</option>`).join("");
 }catch(e){} })();
 
 // auto-refresh analyze
