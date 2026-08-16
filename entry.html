@@ -29,6 +29,15 @@
         padding:9px 11px;border-radius:9px;font-size:14px;min-width:120px;outline:none}
   input:focus,select:focus{border-color:var(--blu)}
   input#sym{text-transform:uppercase;min-width:150px;font-weight:700}
+.chips{display:flex;gap:7px;flex-wrap:wrap;padding:6px 0 0;}
+.chip{display:inline-flex;align-items:center;gap:6px;background:#1a2130;border:1px solid #2a3444;color:#cbd3e1;padding:5px 11px;border-radius:999px;font-size:12px;font-weight:600;cursor:pointer;transition:border-color .12s,background .12s;}
+.chip:hover{border-color:#3a4452;background:#1e2738;}
+.chip.on{background:linear-gradient(135deg,#3b82f6,#38bdf8);color:#04101f;border-color:#3b82f6;}
+.chip .x{opacity:.5;font-size:10px;margin-left:2px;}
+.chip:hover .x{opacity:1;}
+.info{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;margin-left:5px;border-radius:50%;background:#26303f;color:#8b98ad;font-size:9px;font-weight:700;cursor:pointer;vertical-align:middle;transition:background .12s,color .12s;}
+.info:hover{background:#3b82f6;color:#fff;}
+input#sym{text-transform:uppercase;min-width:150px;font-weight:700}
   button{background:linear-gradient(180deg,#2a7fff,#1f6ae0);color:#fff;border:0;
         padding:10px 18px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer}
   button.ghost{background:var(--panel2);border:1px solid var(--line);color:var(--txt)}
@@ -115,6 +124,16 @@
     <button id="go">วิเคราะห์จุดเข้า</button>
   </div>
 
+  <div class="card" style="margin-bottom:16px">
+    <div class="controls" style="margin-bottom:8px">
+      <div class="fld" style="flex:1;min-width:280px">
+        <label>🪙 Watchboard (เหรียญเฝ้าระวัง — เพิ่มเองได้ บันทึกในเครื่อง)</label>
+        <input id="watchSym" placeholder="เช่น BTC, ETH, SOL" style="text-transform:uppercase">
+        <button id="watchAdd" style="background:#1a2130;border:1px solid #2a3444;color:#cbd3e1;padding:7px 12px;border-radius:8px;font-weight:600;cursor:pointer">➕ เพิ่ม</button>
+      </div>
+    </div>
+    <div id="watchChips" class="chips"></div>
+  </div>
   <div class="card" style="margin-bottom:16px">
     <h3>🚀 รันหลายเหรียญ + จัดอันดับ (ตามคะแนน Dip-Buy / R:R / MTF)</h3>
     <div class="controls" style="margin-bottom:8px">
@@ -468,12 +487,56 @@ async function analyzeEntry(){
   }catch(e){ ST.innerHTML='<span class="err">❌ ผิดพลาด: '+(e.message||e)+'</span>'; }
 }
 
-// ---------- SVG chart ----------
+// ---------- Watchboard (localStorage) ----------
+const WATCH_KEY="entry_watch_v1";
+let WATCH=loadWatch();
+function loadWatch(){try{return JSON.parse(localStorage.getItem(WATCH_KEY))||[];}catch(e){return[]}}
+function saveWatch(){try{localStorage.setItem(WATCH_KEY,JSON.stringify(WATCH));}catch(e){}}
+function renderWatch(){
+  const el=document.getElementById("watchChips");
+  if(!WATCH.length){el.innerHTML='<span style="color:var(--mut);font-size:12px">ยังไม่มีเหรียญเฝ้าระวัง — พิมพ์ชื่อแล้วกด ➕ เพิ่ม</span>';return;}
+  el.innerHTML=WATCH.map(s=>`<span class="chip" data-sym="${s}" title="คลิกเพื่อวิเคราะห์">${s.replace("USDT","")}<span class="x" data-del="${s}">✕</span></span>`).join("");
+  el.querySelectorAll(".chip").forEach(c=>c.onclick=()=>{
+    document.getElementById("sym").value=c.dataset.sym;
+    CUR=c.dataset.sym; CURTF=document.getElementById("tf").value;
+    analyzeEntry();
+    window.scrollTo({top:0,behavior:"smooth"});
+  });
+  el.querySelectorAll(".x").forEach(x=>x.onclick=e=>{e.stopPropagation();WATCH=WATCH.filter(s=>s!==x.dataset.del);saveWatch();renderWatch();});
+}
+function addWatch(){
+  const v=document.getElementById("watchSym").value.trim().toUpperCase();
+  if(!v)return;
+  const syms=v.split(/[\s,]+/).map(s=>s.includes("USDT")?s:s+"USDT").filter(Boolean);
+  syms.forEach(s=>{if(!WATCH.includes(s))WATCH.push(s);});
+  saveWatch();renderWatch();document.getElementById("watchSym").value="";
+}
+renderWatch();
+
+// ---------- info dots on indicator labels ----------
+function addInfoDots(){
+  const indTips={
+    "ราคา":"price","EMA 20/50/100/200":"ema","RSI(14)":"rsi","ADX(14)":"adx",
+    "SuperTrend":"supertrend","MACD Hist":"macd","ATR(14)":"atr","Support / Resistance":"sr"
+  };
+  document.querySelectorAll("#indTbl td.k").forEach(td=>{
+    const label=td.textContent.trim();
+    for(const k in indTips){if(label.includes(k) && !td.querySelector(".info")){const sp=document.createElement("span");sp.className="info";sp.dataset.tip=indTips[k];sp.textContent="i";td.appendChild(sp);break;}}
+  });
+  // rank table headers
+  const rankTips={"#":"no","เหรียญ":"sym","RSI":"rsi","ADX":"adx","ST":"supertrend","MTF":"mtf","R:R":"sltp","คะแนน":"score","Entry":"sltp","SL":"sltp","TP1":"sltp"};
+  document.querySelectorAll("#rankTbl th").forEach(th=>{
+    const t=th.textContent.trim();
+    for(const k in rankTips){if(t===k && !th.querySelector(".info")){const sp=document.createElement("span");sp.className="info";sp.dataset.tip=rankTips[k];sp.textContent="i";th.appendChild(sp);break;}}
+  });
+}
+
+// ---------- S/R lines in chart ----------
 function renderChart(kl,A,plan){
   const svg=document.getElementById("chart"); const W=1000,H=420,padL=8,padR=8,padT=10,padB=24;
   const c=kl.map(k=>+k[4]),h=kl.map(k=>+k[2]),l=kl.map(k=>+k[3]),o=kl.map(k=>+k[1]),t=kl.map(k=>+k[0]);
   const e20=emaArr(c,20),e50=emaArr(c,50);
-  const allVals=[...h,...l,plan.entry,plan.sl,plan.tp1,plan.tp2];
+  const allVals=[...h,...l,plan.entry,plan.sl,plan.tp1,plan.tp2,A.sup,A.res];
   const min=Math.min(...allVals),max=Math.max(...allVals); const rng=max-min||1;
   const X=i=>padL+(W-padL-padR)*(i/(kl.length-1));
   const Y=v=>padT+(H-padT-padB)*(1-(v-min)/rng);
@@ -497,8 +560,10 @@ function renderChart(kl,A,plan){
   s+=lvl(plan.sl,"#ff5b5b","6,3","SL");
   s+=lvl(plan.tp1,"#26d07c","2,2","TP1");
   s+=lvl(plan.tp2,"#26d07c","2,2","TP2");
+  s+=lvl(A.sup,"#ffce4a","4,4","SUP");  // yellow dashed
+  s+=lvl(A.res,"#ff5b5b","6,3","RES");  // red dashed
   svg.innerHTML=s;
-  document.getElementById("chartTf").textContent="TIMEFRAME: "+CURTF+" · โซนสีฟ้า=Entry แดง=SL เขียว=TP";
+  document.getElementById("chartTf").textContent="TIMEFRAME: "+CURTF+" · สีฟ้า=Entry แดง=SL/RES เขียว=TP1/TP2 เหลือง=SUP";
   const tip=document.getElementById("tip");
   svg.onmousemove=(ev)=>{const rect=svg.getBoundingClientRect();
     const xr=(ev.clientX-rect.left)/rect.width*W;
@@ -558,9 +623,12 @@ async function init(){
   document.getElementById("tf").onchange=()=>{ CURTF=document.getElementById("tf").value; };
   document.getElementById("multiGo").onclick=()=>{ CURTF=document.getElementById("tf").value; scanAll(); };
   document.getElementById("autoBtn").onclick=()=>{ CURTF=document.getElementById("tf").value; startAuto(); };
+  document.getElementById("watchAdd").onclick=addWatch;
+  document.getElementById("watchSym").addEventListener("keydown",e=>{if(e.key==="Enter")addWatch();});
   document.getElementById("rankFilter").onchange=()=>renderRank();
   ["psBudget","psLev","psEntry","psSl","psTp"].forEach(id=>document.getElementById(id).addEventListener("input",renderSize));
   analyzeEntry();
+  setTimeout(addInfoDots,400);
 }
 init();
 </script>
