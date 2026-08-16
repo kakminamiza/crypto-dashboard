@@ -210,7 +210,8 @@ function renderScan(rows){
     <tbody>${body}</tbody>
   </table>`;
   document.querySelectorAll('#resultS tr[data-sym]').forEach(tr=>{
-    tr.addEventListener('click',()=>{ window.open(`./scan.html?sym=${tr.dataset.sym}`,"_blank"); });
+    tr.style.cursor="pointer";
+    tr.addEventListener('click',()=>{ window.location.href=`./scan.html?sym=${tr.dataset.sym}`; });
   });
 }
 
