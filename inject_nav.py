@@ -9,6 +9,7 @@ LINKS = [("index.html", "Accumulation"), ("dipbuy.html", "Dip-Buy"),
          ("entry.html", "Entry Planner"), ("scan.html", "Market Scan"),
          ("trend.html", "Trend Rider"), ("top100.html", "Top 100"),
          ("fav.html", "39 เหรียญโปรด"), ("liqwatch.html", "Liquidation Watch"),
+         ("radar.html", "Futures Radar"),
          ("accum.html", "Accum (live)")]
 
 BRAND = "◈ CRYPTO TERMINAL"
