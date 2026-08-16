@@ -196,8 +196,9 @@
         <h3>คำนวณ Position (Futures)</h3>
         <div class="ps-inputs">
           <div><label>งบ (USDT)</label><input id="psBudget" type="number" value="100" min="20" max="150" step="5"></div>
-          <div><label>Leverage</label>
-            <select id="psLev"><option>3</option><option>4</option><option selected>5</option><option>10</option></select></div>
+          <div><label>Leverage (x)</label>
+            <input id="psLev" type="number" value="5" min="1" max="100" step="1" list="levList" style="width:70px">
+            <datalist id="levList"><option value="3"></option><option value="5"></option><option value="10"></option><option value="20"></option><option value="25"></option><option value="50"></option><option value="75"></option><option value="100"></option></datalist></div>
           <div><label>Entry</label><input id="psEntry" type="number" value="0" step="any"></div>
           <div><label>SL</label><input id="psSl" type="number" value="0" step="any"></div>
           <div><label>TP</label><input id="psTp" type="number" value="0" step="any"></div>
@@ -527,16 +528,16 @@ function renderSize(){
   const mmr=0.004;
   const liqLong=entry*(1-1/lev+mmr);
   const liqShort=entry*(1+1/lev-mmr);
-  document.getElementById("psTable").innerHTML=`<tr><th>งบ</th><th>Lev</th><th>Notional</th><th>Qty</th><th>SL</th><th>TP</th><th>Risk$</th><th>Reward$</th><th>R:R</th><th>Liq</th></tr>
+  document.getElementById("psTable").innerHTML=`<tr><th>งบ</th><th>Lev</th><th>Notional</th><th>Qty</th><th>SL</th><th>TP</th><th>Risk$</th><th>Reward$</th><th>R:R</th><th>Liq(Long)</th><th>Liq(Short)</th></tr>
    <tr>
      <td>${budget.toFixed(0)}</td><td>${lev}x</td><td>${notional.toFixed(0)}</td>
      <td>${qty.toFixed(qty<1?4:2)}</td><td>${sl.toFixed(sl<1?4:2)}</td><td>${tp.toFixed(tp<1?4:2)}</td>
      <td class="neg">${riskAmt.toFixed(2)}</td><td class="pos">${rewardAmt.toFixed(2)}</td>
      <td><b class="${rr>=1.5?'pos':rr<1?'neg':'neu'}">${rr.toFixed(2)}</b></td>
-     <td class="neg">${liqLong.toFixed(liqLong<1?4:2)}</td></tr>`;
+     <td class="neg">${liqLong.toFixed(liqLong<1?4:2)}</td><td class="neg">${liqShort.toFixed(liqShort<1?4:2)}</td></tr>`;
   document.getElementById("psNote").innerHTML=
     `💡 งบ $${budget} @ ${lev}x → Notional ${notional.toFixed(0)} USDT · Risk ${riskAmt.toFixed(2)}$ (${((riskPerUnit/entry)*100).toFixed(2)}%) · `+
-    `R:R ${rr.toFixed(2)} ${rr>=1.5?'✅':'⚠️ ควร ≥1.5'} · Liq(Long) หัก Maintenance 0.4% (ประมาณ)`;
+    `R:R ${rr.toFixed(2)} ${rr>=1.5?'✅':'⚠️ ควร ≥1.5'} · Liq(Long) ${liqLong.toFixed(liqLong<1?4:2)} / Liq(Short) ${liqShort.toFixed(liqShort<1?4:2)} หัก Maintenance 0.4% (ประมาณ)`;
 }
 
 // ---------- init ----------
