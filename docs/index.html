@@ -25,7 +25,7 @@ h1{margin:0;font-size:22px;background:linear-gradient(90deg,#22c55e,#38bdf8);-we
 .btn:hover{background:#232d40}
 .btn.active{background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;border-color:#22c55e}
 .status{font-size:12px;color:var(--mut);padding:8px 22px;min-height:16px}
-#banner{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:300;background:linear-gradient(90deg,#0ea5e9,#22c55e);color:#04101f;font-weight:800;font-size:14px;padding:10px 20px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none}
+#banner{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:300;background:linear-gradient(90deg,#0ea5e9,#22c55e);color:#04101f;font-weight:800;font-size:14px;padding:10px 20px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none;max-width:90%}
 #banner.show{display:block;animation:bpop .3s}
 @keyframes bpop{0%{transform:translateX(-50%) translateY(-12px);opacity:0}100%{transform:translateX(-50%) translateY(0);opacity:1}}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:18px 22px}
@@ -39,21 +39,23 @@ h1{margin:0;font-size:22px;background:linear-gradient(90deg,#22c55e,#38bdf8);-we
 .card .row{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin:3px 0}
 .card .up{color:var(--grn)}.card .down{color:var(--red)}
 .card svg{display:block;margin-top:8px}
-.card .mtf{display:flex;gap:4px;margin-top:8px}
+.card .mtf{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
 .card .mtf span{font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700;color:#04101f}
 .card .bull{background:var(--grn)}.card .bear{background:var(--red)}.card .neu{background:#3b4354;color:#8b93a7}
-.card .tip{position:absolute;background:#000;color:#fff;font-size:11px;padding:4px 7px;border-radius:5px;pointer-events:none;opacity:0;transition:opacity .1s;white-space:nowrap;z-index:9}
+.card .crit{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap}
+.card .crit span{font-size:9px;padding:2px 6px;border-radius:4px;background:#1a2130;border:1px solid #2a3444;color:var(--mut)}
+.card .crit span.on{background:#14331f;border-color:var(--grn);color:var(--grn)}
 .empty{text-align:center;color:var(--mut);padding:40px;font-size:14px}
 footer{padding:14px 22px;color:var(--mut);font-size:11px;border-top:1px solid var(--bd)}
 </style>
 <link rel="stylesheet" href="./tooltip.css">
 </head>
 <body>
-<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="">39 เหรียญโปรด</a><a href="./liqwatch.html" class="">Liquidation Watch</a><a href="./accum.html" class="">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav>
+<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="cur">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="">39 เหรียญโปรด</a><a href="./liqwatch.html" class="">Liquidation Watch</a><a href="./accum.html" class="">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav>
 <div id="banner"></div>
 <header>
   <h1>📊 Crypto Accumulation Scanner</h1>
-  <div class="sub">เหรียญที่ผ่านเกณฑ์สะสม (Vol>1.5M · sideways แล้ว breakout · OI เพิ่ม · RSI เย็น · MTF bull) · ดึงสดจาก Binance USD-M</div>
+  <div class="sub">เหรียญที่ผ่านเกณฑ์ 5 ข้อ (สะสมเงียบ / Vol>1.5M / ทยอยซื้อ / Social / Breakout>0.8) · ดึงสด Binance USD-M · เน้นเทรดฟิวเจอร์</div>
 </header>
 <div class="controls">
   <button class="btn active" id="btnScan">🔄 สแกนสะสม</button>
@@ -62,7 +64,7 @@ footer{padding:14px 22px;color:var(--mut);font-size:11px;border-top:1px solid va
 </div>
 <div class="status" id="status"></div>
 <div class="grid" id="grid"></div>
-<footer>Accumulation Scanner · ดึงสด Binance Futures API · กัน IP-ban · ไม่ใช่คำแนะนำลงทุน</footer>
+<footer>Accumulation Scanner · ดึงสด Binance Futures API · เกณฑ์ 5 ข้อ · ไม่ใช่คำแนะนำลงทุน</footer>
 
 <script>
 const FAPI="https://fapi.binance.com";
@@ -89,7 +91,7 @@ async function analyze(sym,vol24){
     const volOK=vol24>1.5e6;
     // 2. sideways แล้ว breakout: last 20 bars low range, price broke above recent high
     const recent=c.slice(-20); const rng=(Math.max(...recent)-Math.min(...recent))/price;
-    const sideway=rng<0.15; // นิ่ง
+    const sideway=rng<0.15;
     const broke=price>=Math.max(...c.slice(-40,-1));
     // 3. OI เพิ่ม (proxy: ใช้ volume สูงขึ้นเทียบช่วงก่อน)
     const volNow=c.slice(-5).reduce((a,b)=>a+b,0), volPrev=c.slice(-15,-5).reduce((a,b)=>a+b,0);
@@ -105,8 +107,8 @@ async function analyze(sym,vol24){
     // score
     let score=0;
     if(volOK)score++; if(sideway&&broke)score++; if(oiUp)score++; if(rsiCool)score++; if(mtfBull)score++;
-    if(score<3) return null; // ต้องผ่านอย่างน้อย 3/5
-    return {sym,price,score,vol24,rsiNow,mtf,sideway,broke,oiUp};
+    if(score<3) return null;
+    return {sym,price,score,vol24,rsiNow,mtf,sideway,broke,oiUp,volOK,rsiCool,mtfBull};
   }catch(e){return null}
 }
 
@@ -140,12 +142,19 @@ async function doScan(){
     const isNew=!prevSigs[r.sym];
     if(isNew) newSigs.push(r);
     const mtfHtml=Object.entries(r.mtf).map(([tf,s])=>`<span class="mtf ${s.toLowerCase()}">${tf}</span>`).join("");
+    const critHtml=[
+      ['Vol>1.5M', r.volOK],
+      ['สะสมเงียบ', r.sideway],
+      ['ทยอยซื้อ', r.oiUp],
+      ['RSI เย็น', r.rsiCool],
+      ['Breakout', r.mtfBull]
+    ].map(([label,on])=>`<span class="${on?'on':''}">${label}</span>`).join("");
     return `<div class="card ${isNew?'new':''}" data-sym="${r.sym}">
       <div class="sym">${r.sym.replace("USDT","")}<span class="score">${r.score}/5</span></div>
       <div class="price">${r.price>=1?r.price.toFixed(2):r.price.toFixed(4)}</div>
       <div class="row"><span>Vol 24h</span><span>$${(r.vol24/1e6).toFixed(1)}M</span></div>
       <div class="row"><span>RSI(14)</span><span class="${r.rsiNow>70?'down':'up'}">${r.rsiNow.toFixed(0)}</span></div>
-      <div class="row"><span>สถานะ</span><span>${r.sideway&&r.broke?'sideways→breakout ✅':r.oiUp?'OI เพิ่ม 📈':'รอ'}</span></div>
+      <div class="crit">${critHtml}</div>
       ${spark(Array.from({length:30},(_,i)=>r.price*(1+Math.sin(i)/100)))}
       <div class="mtf">${mtfHtml}</div>
     </div>`;
