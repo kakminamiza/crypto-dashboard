@@ -3,54 +3,25 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FUTURES RADAR — สแกนสัญญาณเรียลไทม์</title>
+<title>FUTURES RADAR — สแกนเหรียซิ่ง + สัญญาณเรียลไทม์</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --bg:#0A0C10;
-    --panel:#12151C;
-    --panel2:#181C25;
-    --line:#242A36;
-    --text:#E6E9EF;
-    --dim:#7C8496;
-    --bull:#17E3A8;
-    --bull-dim:#0E5F4E;
-    --bear:#FF5C7A;
-    --bear-dim:#5C1E2A;
-    --warn:#FFB454;
-    --accent:#6C8CFF;
-  }
+  :root{--bg:#0A0C10;--panel:#12151C;--panel2:#181C25;--line:#242A36;--text:#E6E9EF;--dim:#7C8496;--bull:#17E3A8;--bull-dim:#0E5F4E;--bear:#FF5C7A;--bear-dim:#5C1E2A;--warn:#FFB454;--accent:#6C8CFF;--gold:#FFD700;--purple:#A78BFA;}
   *{box-sizing:border-box;margin:0;padding:0;}
-  body{
-    background:radial-gradient(ellipse at top,#12151E 0%,#0A0C10 60%);
-    color:var(--text);
-    font-family:'Noto Sans Thai','JetBrains Mono',monospace;
-    min-height:100vh;
-    padding:18px 16px 60px;
-  }
+  body{background:radial-gradient(ellipse at top,#12151E 0%,#0A0C10 60%);color:var(--text);font-family:'Noto Sans Thai','JetBrains Mono',monospace;min-height:100vh;padding:18px 16px 80px;}
   .mono{font-family:'JetBrains Mono',monospace;}
   .wordmark{font-family:'Space Grotesk',sans-serif;}
-
-  /* shared nav (minimal) */
-  .xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;
-    border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;
-    font-family:"Segoe UI",Tahoma,sans-serif;font-size:13px;margin:-18px -16px 18px}
+  .xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;font-family:"Segoe UI",Tahoma,sans-serif;font-size:13px;margin:-18px -16px 18px}
   .xnav .b{font-weight:800;letter-spacing:.5px;color:#38bdf8;margin-right:12px;font-size:15px}
   .xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;border:1px solid transparent}
   .xnav a:hover{background:#1a2130;color:#e8eef7}
   .xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
-  .xnav .manual{margin-left:auto;background:transparent;color:#7d889c;border:1px solid #2a3340;
-    padding:5px 11px;border-radius:7px;cursor:pointer;font-size:11.5px;font-weight:600;
-    transition:color .15s,border-color .15s}
+  .xnav .manual{margin-left:8px;background:transparent;color:#7d889c;border:1px solid #2a3340;padding:5px 11px;border-radius:7px;cursor:pointer;font-size:11.5px;font-weight:600;transition:color .15s,border-color .15s}
   .xnav .manual:hover{color:#cbd5e1;border-color:#3a4452}
-
-  header{
-    max-width:1280px;margin:0 auto 18px;
-    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
-    border-bottom:1px solid var(--line);
-    padding-bottom:16px;
-  }
+  .xnav .settings-btn{margin-left:auto;background:transparent;color:#7d889c;border:1px solid #2a3340;padding:5px 11px;border-radius:7px;cursor:pointer;font-size:11.5px;font-weight:600;transition:color .15s,border-color .15s}
+  .xnav .settings-btn:hover{color:#cbd5e1;border-color:#3a4452}
+  header{max-width:1280px;margin:0 auto 18px;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:16px;}
   .brand{display:flex;align-items:center;gap:10px;}
   .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--bull);box-shadow:0 0 10px var(--bull);animation:pulse 1.6s infinite;}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
@@ -62,88 +33,88 @@
   .conn{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);}
   .conn .led{width:7px;height:7px;border-radius:50%;background:var(--bear);}
   .conn.on .led{background:var(--bull);box-shadow:0 0 8px var(--bull);}
-
-  .toolbar{
-    max-width:1280px;margin:0 auto 16px;
-    display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
-  }
+  .toolbar{max-width:1280px;margin:0 auto 16px;display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;}
   .tabs{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;}
   .tab{padding:7px 14px;border-radius:7px;font-size:12.5px;color:var(--dim);cursor:pointer;user-select:none;transition:.15s;}
   .tab.active{background:var(--panel2);color:var(--text);box-shadow:inset 0 0 0 1px var(--line);}
   .addbar{display:flex;gap:8px;}
-  .addbar input{
-    background:var(--panel);border:1px solid var(--line);color:var(--text);
-    border-radius:8px;padding:8px 10px;font-size:12.5px;font-family:'JetBrains Mono',monospace;
-    width:140px;text-transform:uppercase;
-  }
+  .addbar input{background:var(--panel);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 10px;font-size:12.5px;font-family:'JetBrains Mono',monospace;width:140px;text-transform:uppercase;}
   .addbar input:focus{outline:none;border-color:var(--accent);}
-  .btn{
-    background:var(--panel2);border:1px solid var(--line);color:var(--text);
-    border-radius:8px;padding:8px 13px;font-size:12.5px;cursor:pointer;font-family:'Noto Sans Thai';
-    transition:.15s;
-  }
+  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px 13px;font-size:12.5px;cursor:pointer;font-family:'Noto Sans Thai';transition:.15s;}
   .btn:hover{border-color:var(--accent);color:var(--accent);}
   .btn.ghost{color:var(--dim);}
-
-  .grid{
-    max-width:1280px;margin:0 auto;
-    display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;
-  }
-  .card{
-    background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;
-    position:relative;overflow:hidden;transition:border-color .2s;
-  }
+  .btn.danger{color:var(--bear);border-color:rgba(255,92,122,.3);}
+  .btn.danger:hover{border-color:var(--bear);}
+  .grid{max-width:1280px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 14px 12px;position:relative;overflow:hidden;transition:border-color .2s;}
   .card.updated{animation:flash .5s;}
   @keyframes flash{0%{border-color:var(--accent);}100%{border-color:var(--line);}}
-  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;}
+  .card.alert-long{border-color:rgba(23,227,168,.4);box-shadow:0 0 20px rgba(23,227,168,.1);}
+  .card.alert-short{border-color:rgba(255,92,122,.4);box-shadow:0 0 20px rgba(255,92,122,.1);}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
   .sym{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:15px;}
   .sym .quote{color:var(--dim);font-weight:500;font-size:11px;}
   .rm-btn{background:none;border:none;color:var(--dim);cursor:pointer;font-size:14px;line-height:1;padding:2px;}
   .rm-btn:hover{color:var(--bear);}
-  .badge{
-    font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.4px;
-  }
+  .stars{display:flex;gap:2px;align-items:center;}
+  .stars .star{font-size:14px;color:var(--line);transition:color .2s;}
+  .stars .star.on{color:var(--gold);text-shadow:0 0 6px rgba(255,215,0,.4);}
+  .stars .star.dim{color:#3a3a3a;}
+  .badge{font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.4px;}
   .badge.long{background:rgba(23,227,168,.14);color:var(--bull);}
   .badge.short{background:rgba(255,92,122,.14);color:var(--bear);}
   .badge.wait{background:rgba(255,180,84,.14);color:var(--warn);}
-
   .price-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:2px;}
   .price{font-family:'JetBrains Mono',monospace;font-size:21px;font-weight:600;}
   .chg{font-family:'JetBrains Mono',monospace;font-size:12.5px;font-weight:600;}
   .chg.up{color:var(--bull);} .chg.down{color:var(--bear);}
-  .thb{font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:10px;}
-
-  .gauge-wrap{display:flex;align-items:center;gap:10px;margin:8px 0 10px;}
-  .gauge-wrap svg{flex:0 0 auto;}
-  .gauge-txt{font-size:11px;color:var(--dim);line-height:1.5;}
-  .gauge-txt b{color:var(--text);font-family:'JetBrains Mono',monospace;font-size:13px;}
-
-  .metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:11px;color:var(--dim);margin-top:6px;}
-  .metrics div b{color:var(--text);font-family:'JetBrains Mono',monospace;font-weight:600;}
-  .metric-bar{height:3px;border-radius:2px;background:var(--line);margin-top:3px;overflow:hidden;}
-  .metric-bar i{display:block;height:100%;border-radius:2px;}
-
-  .trend-row{display:flex;align-items:center;gap:6px;margin-top:10px;padding-top:9px;border-top:1px solid var(--line);font-size:11.5px;color:var(--dim);}
+  .thb{font-size:11px;color:var(--dim);font-family:'JetBrains Mono',monospace;margin-bottom:8px;}
+  .sig-table{width:100%;border-collapse:collapse;margin:6px 0;font-family:'JetBrains Mono',monospace;font-size:11px;}
+  .sig-table td{padding:4px 6px;border-bottom:1px solid rgba(36,42,54,.4);}
+  .sig-table td:first-child{color:var(--dim);font-size:10px;width:30%;}
+  .sig-table td:nth-child(2){text-align:right;font-weight:600;font-size:11.5px;}
+  .sig-table td:nth-child(3){text-align:right;color:var(--dim);font-size:10px;width:24%;}
+  .sig-table .long-td{color:var(--bull);}
+  .sig-table .short-td{color:var(--bear);}
+  .sig-table .inv{color:var(--warn);}
+  .conf-wrap{display:flex;align-items:center;gap:8px;margin:6px 0;}
+  .conf-bar{flex:1;height:5px;border-radius:3px;background:var(--line);overflow:hidden;}
+  .conf-bar i{display:block;height:100%;border-radius:3px;transition:width .4s;}
+  .conf-label{font-size:10.5px;color:var(--dim);min-width:65px;}
+  .conf-val{font-family:'JetBrains Mono',monospace;font-size:11.5px;font-weight:700;}
+  .reason{margin-top:6px;padding:7px 9px;border-radius:7px;background:rgba(24,28,37,.4);border:1px solid rgba(36,42,54,.4);font-size:10.5px;color:var(--dim);line-height:1.4;}
+  .reason b{color:var(--text);font-weight:600;}
+  .trend-row{display:flex;align-items:center;gap:6px;margin-top:8px;padding-top:7px;border-top:1px solid rgba(36,42,54,.4);font-size:10.5px;color:var(--dim);}
   .trend-row b{color:var(--text);}
   .trend-up{color:var(--bull);} .trend-down{color:var(--bear);} .trend-flat{color:var(--warn);}
-
-  .skeleton{opacity:.35;}
-  .empty-note{max-width:1280px;margin:40px auto;text-align:center;color:var(--dim);font-size:13px;}
-
-  footer{max-width:1280px;margin:26px auto 0;font-size:11px;color:var(--dim);line-height:1.6;border-top:1px solid var(--line);padding-top:14px;}
-
-  /* tooltip */
-  .info{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;margin-left:5px;border-radius:50%;background:transparent;color:#5b6678;font-size:9px;font-weight:700;cursor:help;vertical-align:middle;transition:color .15s;opacity:.55;}
-  .info:hover{color:#9fb3c8;opacity:1;}
-  #tipBox{position:fixed;z-index:99999;max-width:300px;background:#0c1119;color:#d6dde8;border:1px solid #232c39;border-radius:10px;padding:11px 13px;font-size:12px;line-height:1.55;box-shadow:0 12px 34px rgba(0,0,0,.55);pointer-events:none;opacity:0;transform:translateY(5px);transition:opacity .12s,transform .12s;font-family:"Segoe UI",Tahoma,sans-serif;}
-  #tipBox.show{opacity:1;transform:translateY(0);}
-  #tipBox h4{margin:0 0 5px;font-size:13px;color:#9cc7e6;font-weight:700;}
-  #tipBox .tag{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:5px;margin-bottom:5px;letter-spacing:.2px;}
-  #tipBox .tag.use{background:#16222e;color:#7fa8c4;}
-  #tipBox .tag.ben{background:#142019;color:#7fb89a;}
-  #tipBox p{margin:4px 0;color:#9aa6b6;}
-  #tipBox b{color:#d6dde8;font-weight:600;}
-
+  .alert-banner{position:fixed;top:60px;right:18px;z-index:99999;background:#0c1119;border:1px solid #232c39;border-radius:12px;padding:14px 18px;max-width:360px;box-shadow:0 18px 54px rgba(0,0,0,.7);transform:translateX(420px);transition:transform .35s ease;font-family:'Noto Sans Thai',sans-serif;}
+  .alert-banner.show{transform:translateX(0);}
+  .alert-banner.long{border-color:rgba(23,227,168,.4);}
+  .alert-banner.short{border-color:rgba(255,92,122,.4);}
+  .alert-banner .title{font-size:14px;font-weight:700;margin-bottom:6px;}
+  .alert-banner .detail{font-size:12px;color:#9aa6b6;line-height:1.5;}
+  .alert-banner .close{position:absolute;top:8px;right:10px;background:none;border:none;color:#5b6678;cursor:pointer;font-size:14px;}
+  .alert-banner .time{font-size:10px;color:#5b6678;margin-top:6px;}
+  #settingsPanel{position:fixed;inset:0;z-index:99998;background:rgba(4,8,13,.7);display:none;align-items:flex-start;justify-content:center;padding:38px 16px;overflow:auto;}
+  #settingsPanel.show{display:flex;}
+  #settingsPanel .box{background:#0c1119;border:1px solid #232c39;border-radius:14px;max-width:520px;width:100%;padding:20px 24px;box-shadow:0 18px 54px rgba(0,0,0,.6);}
+  #settingsPanel h2{margin:0 0 3px;color:#9cc7e6;font-size:18px;font-weight:700;}
+  #settingsPanel .sub{color:#7d889c;font-size:11.5px;margin-bottom:16px;}
+  #settingsPanel .close{float:right;background:#141a23;border:1px solid #2a3340;color:#aab4c2;border-radius:7px;padding:5px 11px;cursor:pointer;font-weight:600;font-size:11.5px;}
+  #settingsPanel .close:hover{background:#1c232e;}
+  #settingsPanel label{display:block;font-size:12px;color:#9aa6b6;margin-bottom:4px;font-weight:600;}
+  #settingsPanel input[type="text"],#settingsPanel input[type="password"]{width:100%;background:#11161f;border:1px solid #1f2733;color:#e6e9ef;border-radius:8px;padding:9px 12px;font-size:13px;font-family:'JetBrains Mono',monospace;margin-bottom:12px;}
+  #settingsPanel input:focus{border-color:#6C8CFF;outline:none;}
+  #settingsPanel .toggle-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #1f2733;}
+  #settingsPanel .toggle-row:last-child{border-bottom:none;}
+  #settingsPanel .toggle-label{font-size:13px;color:#cbd5e1;font-weight:600;}
+  #settingsPanel .toggle-desc{font-size:11px;color:#7d889c;margin-top:2px;}
+  #settingsPanel .toggle{width:40px;height:22px;border-radius:11px;background:#2a3340;cursor:pointer;position:relative;transition:background .2s;}
+  #settingsPanel .toggle.on{background:#22c55e;}
+  #settingsPanel .toggle::after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#e6e9ef;transition:transform .2s;}
+  #settingsPanel .toggle.on::after{transform:translateX(18px);}
+  #settingsPanel .save-btn{width:100%;margin-top:16px;padding:10px;background:#1e40af;color:#e6e9ef;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:background .2s;font-family:'Noto Sans Thai';}
+  #settingsPanel .save-btn:hover{background:#2563eb;}
   #manualPanel{position:fixed;inset:0;z-index:99998;background:rgba(4,8,13,.66);display:none;align-items:flex-start;justify-content:center;padding:38px 16px;overflow:auto;}
   #manualPanel.show{display:flex;}
   #manualPanel .box{background:#0c1119;border:1px solid #232c39;border-radius:14px;max-width:720px;width:100%;padding:20px 24px;box-shadow:0 18px 54px rgba(0,0,0,.6);}
@@ -157,32 +128,63 @@
   #manualPanel .card .badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;background:#16222e;color:#7fa8c4;letter-spacing:.4px;}
   #manualPanel .card p{margin:4px 0;font-size:12px;color:#9aa6b6;line-height:1.55;}
   #manualPanel .card p b{color:#d6dde8;font-weight:600;}
-  @media(max-width:560px){ #manualPanel .grid2{grid-template-columns:1fr;} }
-
+  .skeleton{opacity:.35;}
+  .empty-note{max-width:1280px;margin:40px auto;text-align:center;color:var(--dim);font-size:13px;}
+  footer{max-width:1280px;margin:26px auto 0;font-size:11px;color:var(--dim);line-height:1.6;border-top:1px solid var(--line);padding-top:14px;}
+  .info{display:inline-flex;align-items:center;justify-content:center;width:13px;height:13px;margin-left:4px;border-radius:50%;background:transparent;color:#5b6678;font-size:9px;font-weight:700;cursor:help;vertical-align:middle;transition:color .15s;opacity:.55;}
+  .info:hover{color:#9fb3c8;opacity:1;}
+  #tipBox{position:fixed;z-index:99999;max-width:300px;background:#0c1119;color:#d6dde8;border:1px solid #232c39;border-radius:10px;padding:11px 13px;font-size:12px;line-height:1.55;box-shadow:0 12px 34px rgba(0,0,0,.55);pointer-events:none;opacity:0;transform:translateY(5px);transition:opacity .12s,transform .12s;font-family:"Segoe UI",Tahoma,sans-serif;}
+  #tipBox.show{opacity:1;transform:translateY(0);}
+  #tipBox h4{margin:0 0 5px;font-size:13px;color:#9cc7e6;font-weight:700;}
+  #tipBox .tag{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:5px;margin-bottom:5px;letter-spacing:.2px;}
+  #tipBox .tag.use{background:#16222e;color:#7fa8c4;}
+  #tipBox .tag.ben{background:#142019;color:#7fb89a;}
+  #tipBox p{margin:4px 0;color:#9aa6b6;}
+  #tipBox b{color:#d6dde8;font-weight:600;}
+  .wr-good{color:var(--bull);font-weight:700;}
+  .wr-bad{color:var(--bear);font-weight:700;}
+  .wr-mid{color:var(--warn);font-weight:700;}
+  .wr-n{color:var(--dim);font-size:11px;}
   @media(max-width:560px){
     .head-stats{gap:14px;}
     .toolbar{flex-direction:column;align-items:stretch;}
     .addbar{flex-wrap:wrap;}
     .addbar input{flex:1;width:auto;}
+    .grid{grid-template-columns:1fr;}
+    #manualPanel .grid2{grid-template-columns:1fr;}
   }
 </style>
-<link rel="stylesheet" href="./tooltip.css">
 </head>
 <body>
 
-<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="">39 เหรียญโปรด</a><a href="./liqwatch.html" class="">Liquidation Watch</a><a href="./radar.html" class="">Futures Radar</a><a href="./accum.html" class="">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav>
+<nav class="xnav">
+  <span class="b">◈ CRYPTO TERMINAL</span>
+  <a href="./index.html">Accumulation</a>
+  <a href="./dipbuy.html">Dip-Buy</a>
+  <a href="./entry.html">Entry Planner</a>
+  <a href="./scan.html">Market Scan</a>
+  <a href="./trend.html">Trend Rider</a>
+  <a href="./top100.html">Top 100</a>
+  <a href="./fav.html">สแกนเร็ว</a>
+  <a href="./liqwatch.html">Liquidation Watch</a>
+  <a href="./radar.html" class="cur">Futures Radar</a>
+  <a href="./accum.html">Accum (live)</a>
+  <button class="settings-btn" id="openSettings">⚙️ ตั้งค่า</button>
+  <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
+</nav>
 
 <header>
   <div class="brand">
     <span class="dot"></span>
     <div>
       <h1 class="wordmark">FUTURES RADAR</h1>
-      <span class="sub">สแกนสัญญาณโมเมนตัม + แนวโน้มสวิง แบบเรียลไทม์ · Binance Futures</span>
+      <span class="sub">สแกนเหรียซิ่ง · Top 10 โมเมนตัม+วอลุ่ม · สัญญาณเรียลไทม์</span>
     </div>
   </div>
   <div class="head-stats">
     <div class="conn" id="connStatus"><span class="led"></span><span>เชื่อมต่อ...</span></div>
     <div class="head-stat">USDT/THB<b id="thbRate">—</b></div>
+    <div class="head-stat">สัญญาณ<b id="signalCount" class="mono">0</b></div>
     <div class="head-stat">อัปเดตล่าสุด<b id="lastUpdate" class="mono">—</b></div>
     <div class="head-stat">รีเฟรชใน<b id="countdown" class="mono">—</b></div>
   </div>
@@ -190,328 +192,266 @@
 
 <div class="toolbar">
   <div class="tabs">
-    <div class="tab active" data-tab="watch">รายการเฝ้าดู</div>
-    <div class="tab" data-tab="volume">วอลุ่มสูงสุด 12 คู่</div>
+    <div class="tab active" data-tab="signals">🔥 Top 10 สัญญาณ</div>
+    <div class="tab" data-tab="watch">👁️ เฝ้าดู</div>
+    <div class="tab" data-tab="volume">📊 วอลุ่มสูงสุด</div>
+    <div class="tab" data-tab="validator">✅ Signal Validator</div>
   </div>
   <div class="addbar">
     <input id="symInput" placeholder="เช่น OPUSDT" maxlength="15">
-    <button class="btn" id="addBtn">+ เพิ่มคู่เหรียญ</button>
-    <button class="btn ghost" id="refreshBtn">↻ รีเฟรชตอนน้ี</button>
+    <button class="btn" id="addBtn">+ เพิ่ม</button>
+    <button class="btn ghost" id="refreshBtn">↻ รีเฟรช</button>
+    <button class="btn danger" id="testBtn">🔔 ทดสอบแจ้งเตือน</button>
   </div>
 </div>
 
 <div class="grid" id="grid"></div>
-<div class="empty-note" id="emptyNote" style="display:none">ยังไม่มีคู่เหรียญในรายการเฝ้าดู — เพิ่มด้านบน หรือสลับไปแท็บ "วอลุ่มสูงสุด"</div>
+<div class="empty-note" id="emptyNote" style="display:none">ไม่มีสัญญาณ ≥ 3 ดาวตอนนี้</div>
+
+<div id="validatorView" style="display:none;max-width:1280px;margin:0 auto;">
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+    <div class="tabs" style="padding:3px;">
+      <div class="tab active" data-group="symbol">แยกตาม Symbol</div>
+      <div class="tab" data-group="signal">แยกตาม LONG/SHORT</div>
+    </div>
+    <span style="font-size:11px;color:var(--dim)">นับเฉพาะสัญญาณที่ปิดแล้ว (ถึง TP หรือโดน SL) — ไม่นับที่ยัง open</span>
+  </div>
+  <div id="validatorSummary" style="margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dim);"></div>
+  <table class="sig-table" id="validatorTable" style="width:100%;font-size:12.5px;">
+    <thead><tr id="validatorHead"></tr></thead>
+    <tbody id="validatorBody"></tbody>
+  </table>
+</div>
+
+<div class="alert-banner" id="alertBanner">
+  <button class="close" id="closeAlert">✕</button>
+  <div class="title" id="alertTitle">—</div>
+  <div class="detail" id="alertDetail">—</div>
+  <div class="time" id="alertTime">—</div>
+</div>
+
+<div id="settingsPanel">
+  <div class="box">
+    <button class="close" id="closeSettings">✕ ปิด</button>
+    <h2>⚙️ ตั้งค่าการแจ้งเตือน</h2>
+    <div class="sub">เลือกช่องทางรับสัญญาณ — ข้อมูลเก็บในเครื่อง (localStorage)</div>
+    <div class="toggle-row"><div><div class="toggle-label">🔔 Browser Notification</div><div class="toggle-desc">แจ้งเตือนเด้งบนหน้าจอ</div></div><div class="toggle on" data-key="notif_browser"></div></div>
+    <div class="toggle-row"><div><div class="toggle-label">🔊 เสียงแจ้งเตือน</div><div class="toggle-desc">เล่นเสียงเมื่อเจอสัญญาณ</div></div><div class="toggle on" data-key="notif_sound"></div></div>
+    <div class="toggle-row"><div><div class="toggle-label">📱 LINE Notify</div><div class="toggle-desc">ส่งเข้าไลน์ผ่าน LINE Notify</div></div><div class="toggle" data-key="notif_line"></div></div>
+    <div id="lineTokenRow" style="display:none"><label>LINE Notify Token</label><input type="password" id="lineToken" placeholder="วาง token ที่นี่"></div>
+    <div class="toggle-row"><div><div class="toggle-label">✈️ Telegram (Webhook)</div><div class="toggle-desc">ส่งผ่าน Generic Webhook</div></div><div class="toggle" data-key="notif_webhook"></div></div>
+    <div id="webhookRow" style="display:none"><label>Webhook URL</label><input type="text" id="webhookUrl" placeholder="https://hook.eu1.make.com/xxx"></div>
+    <button class="save-btn" id="saveSettings">💾 บันทึก</button>
+  </div>
+</div>
+
+<div id="manualPanel">
+  <div class="box">
+    <button class="close" id="closeManual">✕ ปิด</button>
+    <h2>📖 คู่มือ</h2>
+    <div class="sub">Futures Radar</div>
+    <div class="grid2">
+      <div class="card"><h3><span class="badge">STAR</span> คะแนนดาว 1-5</h3><p>★★★★★ = สัญญาณแรงมาก (≥80)</p><p>★★★★☆ = สัญญาณดี (65-79)</p><p>★★★☆☆ = น่าสนใจ (50-64)</p></div>
+      <div class="card"><h3><span class="badge">ENTRY</span> ราคาเข้า</h3><p>ราคาปัจจุบันตามสัญญาณ</p></div>
+      <div class="card"><h3><span class="badge">SL</span> Stop Loss (ATR×2)</h3><p>เคาะ = โมเมนตัมกลับทาง</p></div>
+      <div class="card"><h3><span class="badge">TP1</span> Take Profit (1.5R)</h3><p>กำไร 1.5 เท่าของเงินเสี่ยง</p></div>
+      <div class="card"><h3><span class="badge">TP2</span> Take Profit (3R)</h3><p>กำไร 3 เท่าของเงินเสี่ยง</p></div>
+    </div>
+  </div>
+</div>
 
 <footer>
-  ข้อมูลราคาจาก Binance Futures · อัตรา USDT/THB อ้างอิงจาก CoinGecko · คำนวณ RSI(14) / MACD(12,26,9) / Bollinger(20,2) จากแท่งเทียน 15 นาที และแนวโน้มสวิงจาก EMA50/EMA200 บนกรอบ 4 ชั่วโมง<br>
-  เครื่องมือนี้ใช้เพื่อการวิเคราะห์ทางเทคนิคเท่านั้น ไม่ใช่คำแนะนำการลงทุน ไม่มีความแม่นยำ 100% และไม่รับประกันผลกำไร โปรดบริหารความเสี่ยงและตัดสินใจด้วยดุลยพินิจของตัวเอง
+  ข้อมูลจาก Binance Futures ผ่าน Cloudflare Worker · อัตรา USDT/THB อ้างอิง CoinGecko<br>
+  คำนวณ RSI/MACD/BB/ATR จากแท่ง 15 นาที + แนวโน้ม 4H<br>
+  สัญญาณจากโปรแกรมวิเคราะห์เทคนิค · ไม่ใช่คำแนะนำการลงทุน · บริหารความเสี่ยงด้วยดุลยพินิจ
 </footer>
 
 <script>
+// ============================================================
+// CONFIG — แก้ URL นี้หลัง deploy Worker แล้ว
+// ============================================================
+const WORKER_API = 'https://futures-radar-worker.YOURNAME.workers.dev';
+
 const FUTURES_BASE = 'https://fapi.binance.com';
 const WS_BASE = 'wss://fstream.binance.com/stream?streams=';
 const DEFAULT_WATCHLIST = ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','LINKUSDT','SUIUSDT'];
-const POLL_MS = 30000;
+const POLL_MS = 60000; // 1 นาที
 const KEY = 'futures_radar_watchlist_v1';
-
-const TOOL_DATA = {
-  rsi: { t:"RSI(14) — เช็ค Overbought/Oversold", use:"จับจังหวะหมุนกลับ", ben:"ถ้า >70 แพง ถ้า <30 ถูก ใช้กรองสัญญาณ", d:"RSI > 70 = Overbought (ระวังรีบาวด์ลง)।RSI < 30 = Oversold (ระวังรีบาวด์ขึ้น)।ใช้คู่กับสัญญาณอื่นเพื่อลด false signal" },
-  macd: { t:"MACD Hist — โมเมนตัม", use:"จับจังหวะเริ่ม/จบเทรนด์", ben:"ดูว่ากำลังขับหรือซาลง", d:"MACD Hist บวก = โมเมนตัมขาึ้น แรงขับเพิ่มขึ้น = บวกมากขึ้น।ติดลบ = โมเมนตัมขาลง।ใช้ช่วง crossover จับเริ่มเทรนด์ใหม่" },
-  bb: { t:"Bollinger Bands(20,2) — แถบความผันผวน", use:"ดูว่าราคาอยู่ต่ำ/สุดของกรอบ", ben:"ซื้อตอนชนล่าง ขายตอนชนบน", d:"ราคาเกิน BB บน = แพงเกิน (ระวัง)।ชน BB ล่าง = ถูกเกิน (ระวัง)।ตำแหน่งใน BB แสดงว่าราคาสัมพันธ์กับกรอบ 0-100%" },
-  vol: { t:"Vol Ratio — วอลุ่มเทียบค่าเฉลี่ย", use:"จับเงินใหญ่ไหลเข้า", ben:"เปลี่ยนแปลงวอลุ่ม = มีเงินใหญ่", d:"วอลุ่ม/ค่าเฉลี่ย > 1.4 = มีเงินใหญ่ขยับ มักนำราคาวิ่ง ใช้คู่กับ breakout" },
-  trend: { t:"แนวโน้มสวิง (4H EMA50/200)", use:"ดูทิศทางระยะกลาง-ยาว", ben:"ไม่เปิดสวนเทรนด์หลัก", d:"ขาขึ้น = ราคา > EMA50 > EMA200।ขาลง = ราคา < EMA50 < EMA200।ไซด์เวย์ = EMA ตัดกัน ใช้ยืนยันทิศทาว" },
-  score: { t:"คะแนนโมเมนตัม (-100 ถึง +100)", use:"รวมสัญญาณทั้งหมดเป็นตัวเลข", ben:"เลือกคู่เหรียญที่สัญญาณดีสุดก่อนลงมือ", d:"รวม RSI + MACD + BB + Vol Ratio เป็นคะแนนเดียว เรียงลำดับคู่ที่โมเมนตัมแรงสุด" },
-  signal: { t:"สัญญาณ LONG/SHORT/รอจังหวะ", use:"ตัดสินใจเข้าเทรดจากคะแนนรวม", ben:"ไม่ต้องคิดเองว่าต้องซื้อหรือขาย", d:"คะแนน ≥ 55 = LONG แรง, ≥ 20 = LONG, ≤ -55 = SHORT แรง, ≤ -20 = SHORT, รอจังหวะ = กลางๆ" },
-};
+const SETTINGS_KEY = 'futures_radar_settings_v1';
 
 let state = {
-  tab: 'watch',
+  tab: 'signals',
   watchlist: [...DEFAULT_WATCHLIST],
   volumeTop: [],
   data: {},
-  liveTicker: {},
   thbRate: null,
   ws: null,
-  countdownTimer: null,
-  secondsLeft: 30,
+  secondsLeft: 60,
+  settings: {notif_browser:true,notif_sound:true,notif_line:false,notif_webhook:false},
 };
 
-// ---------- storage (localStorage, works in browser) ----------
-function loadWatchlist(){
-  try{
-    const v = localStorage.getItem(KEY);
-    if(v){
-      const arr = JSON.parse(v);
-      if(Array.isArray(arr) && arr.length) state.watchlist = arr;
-    }
-  }catch(e){ /* use default */ }
-}
-function saveWatchlist(){
-  try{ localStorage.setItem(KEY, JSON.stringify(state.watchlist)); }
-  catch(e){ console.error('save failed', e); }
-}
-
-// ---------- indicators ----------
-function ema(values, period){
-  const k = 2/(period+1);
-  let emaArr = [values[0]];
-  for(let i=1;i<values.length;i++){
-    emaArr.push(values[i]*k + emaArr[i-1]*(1-k));
-  }
-  return emaArr;
-}
-function rsi(closes, period=14){
-  if(closes.length < period+1) return 50;
-  let gains=0, losses=0;
-  for(let i=closes.length-period;i<closes.length;i++){
-    const diff = closes[i]-closes[i-1];
-    if(diff>=0) gains+=diff; else losses-=diff;
-  }
-  let avgGain = gains/period, avgLoss = losses/period;
-  if(avgLoss===0) return 100;
-  const rs = avgGain/avgLoss;
-  return 100 - (100/(1+rs));
-}
-function macd(closes){
-  const ema12 = ema(closes,12);
-  const ema26 = ema(closes,26);
-  const macdLine = closes.map((_,i)=> ema12[i]-ema26[i]);
-  const signalLine = ema(macdLine.slice(-Math.min(macdLine.length, 60)), 9);
-  const hist = macdLine[macdLine.length-1] - signalLine[signalLine.length-1];
-  return { macd: macdLine[macdLine.length-1], signal: signalLine[signalLine.length-1], hist };
-}
-function bollinger(closes, period=20, mult=2){
-  const slice = closes.slice(-period);
-  const mid = slice.reduce((a,b)=>a+b,0)/period;
-  const variance = slice.reduce((a,b)=>a+Math.pow(b-mid,2),0)/period;
-  const sd = Math.sqrt(variance);
-  return { upper: mid+mult*sd, mid, lower: mid-mult*sd };
-}
-function volRatio(volumes, period=20){
-  const slice = volumes.slice(-period-1,-1);
-  const avg = slice.reduce((a,b)=>a+b,0)/slice.length;
-  const cur = volumes[volumes.length-1];
-  return avg>0 ? cur/avg : 1;
-}
-
-function momentumScore({rsiVal, macdHist, price, bb, vRatio}){
-  let score = 0;
-  score += (rsiVal-50) * 1.3;
-  score += Math.max(-25, Math.min(25, macdHist * 4000));
-  const bbPos = (price - bb.lower) / (bb.upper - bb.lower);
-  score += (bbPos - 0.5) * 40;
-  if(vRatio > 1.4) score *= Math.min(1.4, 1 + (vRatio-1.4)*0.2);
-  return Math.max(-100, Math.min(100, Math.round(score)));
-}
-function swingTrend(closes4h){
-  const e50 = ema(closes4h,50);
-  const e200 = ema(closes4h.length>=200?closes4h:closes4h, Math.min(200, Math.floor(closes4h.length/1.2)));
-  const last50 = e50[e50.length-1];
-  const last200 = e200[e200.length-1];
-  const price = closes4h[closes4h.length-1];
-  if(price > last50 && last50 > last200) return 'up';
-  if(price < last50 && last50 < last200) return 'down';
-  return 'flat';
-}
-
-// ---------- fetch ----------
-async function fetchKlines(symbol, interval, limit){
-  const url = `${FUTURES_BASE}/fapi/v1/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
-  const res = await fetch(url);
-  if(!res.ok) throw new Error('klines fail '+symbol);
-  const raw = await res.json();
-  return {
-    closes: raw.map(k=>parseFloat(k[4])),
-    highs: raw.map(k=>parseFloat(k[2])),
-    lows: raw.map(k=>parseFloat(k[3])),
-    volumes: raw.map(k=>parseFloat(k[5])),
-  };
-}
-async function fetchAllTicker24h(){
-  const res = await fetch(`${FUTURES_BASE}/fapi/v1/ticker/24hr`);
-  return res.json();
-}
-async function fetchThbRate(){
-  try{
-    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=thb');
-    const j = await res.json();
-    state.thbRate = j.tether.thb;
-  }catch(e){ /* keep previous rate on failure */ }
-  document.getElementById('thbRate').textContent = state.thbRate ? state.thbRate.toFixed(2) : '—';
-}
-
-async function computeSymbol(symbol, ticker24h){
-  const [m15, h4] = await Promise.all([
-    fetchKlines(symbol,'15m',100),
-    fetchKlines(symbol,'4h',210),
-  ]);
-  const rsiVal = rsi(m15.closes,14);
-  const macdRes = macd(m15.closes);
-  const bb = bollinger(m15.closes,20,2);
-  const vR = volRatio(m15.volumes,20);
-  const price = m15.closes[m15.closes.length-1];
-  const score = momentumScore({rsiVal, macdHist: macdRes.hist, price, bb, vRatio: vR});
-  const trend = swingTrend(h4.closes);
-  const t = ticker24h ? ticker24h[symbol] : null;
-  return {
-    symbol, price,
-    changePct: t ? parseFloat(t.priceChangePercent) : 0,
-    rsi: rsiVal, macdHist: macdRes.hist, bb, bbPos: (price-bb.lower)/(bb.upper-bb.lower),
-    volRatio: vR, score, trend,
-  };
-}
-
-// ---------- signal classification ----------
-function classify(score){
-  if(score>=55) return {label:'LONG แรง', cls:'long'};
-  if(score>=20) return {label:'LONG', cls:'long'};
-  if(score<=-55) return {label:'SHORT แรง', cls:'short'};
-  if(score<=-20) return {label:'SHORT', cls:'short'};
-  return {label:'รอจังหวะ', cls:'wait'};
-}
-function gaugeSvg(score){
-  const clamped = Math.max(-100,Math.min(100,score));
-  const angle = 180 - ((clamped+100)/200)*180;
-  const rad = angle*Math.PI/180;
-  const cx=42, cy=42, r=32;
-  const nx = cx + r*Math.cos(rad);
-  const ny = cy - r*Math.sin(rad);
-  const color = clamped>=20?'var(--bull)':clamped<=-20?'var(--bear)':'var(--warn)';
-  return `<svg width="84" height="50" viewBox="0 0 84 50">
-    <path d="M 10 42 A 32 32 0 0 1 74 42" fill="none" stroke="#242A36" stroke-width="6" stroke-linecap="round"/>
-    <path d="M 10 42 A 32 32 0 0 1 74 42" fill="none" stroke="${color}" stroke-width="6" stroke-linecap="round"
-      stroke-dasharray="100" stroke-dashoffset="${100 - ((clamped+100)/200)*100}" pathLength="100" opacity="0.9"/>
-    <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${color}" stroke-width="2.5" stroke-linecap="round"/>
-    <circle cx="${cx}" cy="${cy}" r="3" fill="${color}"/>
-  </svg>`;
-}
-
-// ---------- rendering ----------
-function symToTh(symbol){ return symbol.replace('USDT',''); }
-
-function renderCard(d){
-  const sig = classify(d.score);
-  const chgCls = d.changePct>=0?'up':'down';
-  const chgSign = d.changePct>=0?'+':'';
-  const priceThb = state.thbRate ? (d.price*state.thbRate) : null;
-  const rsiColor = d.rsi>=70?'var(--bear)':d.rsi<=30?'var(--bull)':'var(--accent)';
-  const macdColor = d.macdHist>=0?'var(--bull)':'var(--bear)';
-  const volColor = d.volRatio>=1.4?'var(--warn)':'var(--dim)';
-  const trendMap = {
-    up:{txt:'ขาขึ้น', cls:'trend-up', arrow:'↗'},
-    down:{txt:'ขาลง', cls:'trend-down', arrow:'↘'},
-    flat:{txt:'ไซด์เวย์', cls:'trend-flat', arrow:'→'},
-  };
-  const tr = trendMap[d.trend];
-
-  return `
-  <div class="card updated" data-symbol="${d.symbol}">
-    <div class="card-top">
-      <div class="sym">${symToTh(d.symbol)} <span class="quote">/USDT</span></div>
-      <div style="display:flex;align-items:center;gap:6px;">
-        <span class="badge ${sig.cls}">${sig.label}</span>
-        ${state.tab==='watch' ? `<button class="rm-btn" data-remove="${d.symbol}" title="ลบออกจากรายการ">✕</button>`:''}
-      </div>
-    </div>
-    <div class="price-row">
-      <span class="price">${formatPrice(d.price)}</span>
-      <span class="chg ${chgCls}">${chgSign}${d.changePct.toFixed(2)}%</span>
-    </div>
-    <div class="thb">${priceThb ? '≈ ฿'+formatPrice(priceThb)+' THB' : '—'}</div>
-
-    <div class="gauge-wrap">
-      ${gaugeSvg(d.score)}
-      <div class="gauge-txt">คะแนนโมเมนตัม<br><b>${d.score>0?'+':''}${d.score}</b> / 100 <span class="info" data-tip="score">i</span></div>
-    </div>
-
-    <div class="metrics">
-      <div>RSI(14) <b>${d.rsi.toFixed(1)}</b> <span class="info" data-tip="rsi">i</span>
-        <div class="metric-bar"><i style="width:${d.rsi}%;background:${rsiColor}"></i></div>
-      </div>
-      <div>MACD Hist <b style="color:${macdColor}">${d.macdHist>=0?'+':''}${d.macdHist.toFixed(5)}</b> <span class="info" data-tip="macd">i</span>
-        <div class="metric-bar"><i style="width:${Math.min(100,Math.abs(d.macdHist)*8000)}%;background:${macdColor}"></i></div>
-      </div>
-      <div>ตำแหน่งใน BB <b>${(d.bbPos*100).toFixed(0)}%</b> <span class="info" data-tip="bb">i</span>
-        <div class="metric-bar"><i style="width:${Math.max(0,Math.min(100,d.bbPos*100))}%;background:var(--accent)"></i></div>
-      </div>
-      <div>วอลุ่ม/ค่าเฉลี่ย <b style="color:${volColor}">${d.volRatio.toFixed(2)}x</b> <span class="info" data-tip="vol">i</span>
-        <div class="metric-bar"><i style="width:${Math.min(100,d.volRatio*40)}%;background:${volColor}"></i></div>
-      </div>
-    </div>
-
-    <div class="trend-row">
-      แนวโน้มสวิง (4H):&nbsp;<b class="${tr.cls}">${tr.arrow} ${tr.txt}</b> <span class="info" data-tip="trend">i</span>
-    </div>
-    <div style="margin-top:6px;font-size:11px;color:var(--dim)">
-      สัญญาณ: <b style="color:${sig.cls==='long'?'var(--bull)':sig.cls==='short'?'var(--bear)':'var(--warn)'}">${sig.label}</b> <span class="info" data-tip="signal">i</span>
-    </div>
-  </div>`;
-}
-
+// ---------- Helpers ----------
+function symToTh(s){ return s.replace('USDT',''); }
 function formatPrice(p){
+  if(!isFinite(p)) return '—';
   if(p>=1000) return p.toLocaleString('en-US',{maximumFractionDigits:2});
   if(p>=1) return p.toFixed(3);
   return p.toFixed(6);
 }
-
-function renderGrid(){
-  const list = state.tab==='watch' ? state.watchlist : state.volumeTop;
-  const grid = document.getElementById('grid');
-  const empty = document.getElementById('emptyNote');
-  if(!list.length){
-    grid.innerHTML=''; empty.style.display='block'; return;
-  }
-  empty.style.display='none';
-  grid.innerHTML = list.map(sym=>{
-    const d = state.data[sym];
-    if(!d) return `<div class="card skeleton"><div class="sym">${symToTh(sym)}</div><div style="color:var(--dim);font-size:12px;margin-top:20px;">กำลังโหลด...</div></div>`;
-    return renderCard(d);
-  }).join('');
-
-  grid.querySelectorAll('[data-remove]').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const sym = btn.getAttribute('data-remove');
-      state.watchlist = state.watchlist.filter(s=>s!==sym);
-      saveWatchlist();
-      renderGrid();
-    });
-  });
+function pct(cur, ref){
+  if(!ref || ref === 0 || !isFinite(cur) || !isFinite(ref)) return '0.00';
+  return (((cur-ref)/ref)*100).toFixed(2);
+}
+function starsHtml(n){
+  let h = '<div class="stars">';
+  for(let i=1;i<=5;i++) h += `<span class="star ${i<=n?'on':'dim'}">${i<=n?'★':'☆'}</span>`;
+  h += '</div>';
+  return h;
 }
 
-// ---------- main refresh cycle ----------
+// ---------- Render Card ----------
+function renderCard(d){
+  const sig = d.signal || { signal:'WAIT', stars:0, confidence:0, reason:'–' };
+  const chgCls = (d.change24h || 0) >= 0 ? 'up' : 'down';
+  const chgSign = (d.change24h || 0) >= 0 ? '+' : '';
+  const priceThb = state.thbRate ? (d.price * state.thbRate) : null;
+  const sigCls = sig.signal==='LONG'?'long':sig.signal==='SHORT'?'short':'wait';
+  const sigLabel = sig.signal==='LONG'?'▲ LONG':sig.signal==='SHORT'?'▼ SHORT':'● รอ';
+  const confColor = sig.confidence>=70?'var(--bull)':sig.confidence>=50?'var(--warn)':'var(--dim)';
+  const alertCls = sig.signal==='LONG'?'alert-long':sig.signal==='SHORT'?'alert-short':'';
+
+  let sigRows = '';
+  if(sig.signal === 'LONG' || sig.signal === 'SHORT'){
+    const cls = sig.signal==='LONG'?'long-td':'short-td';
+    sigRows = `
+      <tr><td>Entry</td><td class="${cls}">${formatPrice(d.price)}</td><td>${pct(d.price, d.price)}%</td></tr>
+      <tr><td>SL</td><td class="${sig.signal==='LONG'?'short-td':'long-td'}">${formatPrice(sig.sl)}</td><td>${pct(sig.sl, d.price)}%</td></tr>
+      <tr><td>TP1</td><td class="${cls}">${formatPrice(sig.tp1)}</td><td>+${pct(sig.tp1, d.price)}% (1.5R)</td></tr>
+      <tr><td>TP2</td><td class="${cls}">${formatPrice(sig.tp2)}</td><td>+${pct(sig.tp2, d.price)}% (3R)</td></tr>`;
+  }
+
+  return `
+  <div class="card updated ${alertCls}" data-symbol="${d.symbol}">
+    <div class="card-top">
+      <div>
+        <div class="sym">${symToTh(d.symbol)} <span class="quote">/USDT</span></div>
+        ${starsHtml(sig.stars || 0)}
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <span class="badge ${sigCls}">${sigLabel} <span style="opacity:.7;font-weight:500">${sig.confidence || 0}%</span></span>
+      </div>
+    </div>
+    <div class="price-row">
+      <span class="price">${formatPrice(d.price)}</span>
+      <span class="chg ${chgCls}">${chgSign}${(d.change24h || 0).toFixed(2)}%</span>
+    </div>
+    <div class="thb">${priceThb ? '≈ ฿'+formatPrice(priceThb)+' THB' : '—'}</div>
+    ${sigRows ? `<table class="sig-table">${sigRows}</table>` : ''}
+    <div class="reason"><b>เหตุผล:</b> ${sig.reason || '–'}</div>
+    <div class="trend-row">24h Vol: <b>${d.volume24h ? (d.volume24h/1e6).toFixed(1)+'M' : '–'}</b></div>
+  </div>`;
+}
+
+// ---------- Render Grid ----------
+function renderGrid(){
+  const list = state.tab==='watch' ? state.watchlist : state.tab==='volume' ? state.volumeTop : Object.keys(state.data);
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('emptyNote');
+
+  let displayList = list.filter(sym => state.data[sym]);
+  if(state.tab === 'signals'){
+    displayList.sort((a,b)=>{
+      const da = state.data[a], db = state.data[b];
+      const sa = da.signal?.stars || 0, sb = db.signal?.stars || 0;
+      return sb - sa;
+    });
+  }
+
+  if(!displayList.length){
+    grid.innerHTML=''; empty.style.display='block';
+    empty.textContent = state.tab==='signals' ? 'กำลังโหลดข้อมูลจาก Worker...' : 'ยังไม่มีเหรียญ';
+    return;
+  }
+  empty.style.display='none';
+  grid.innerHTML = displayList.map(sym => renderCard(state.data[sym])).join('');
+}
+
+// ---------- Signal Validator ----------
+let validatorGroupBy = 'symbol';
+
+function winRateClass(pct){ return pct>=60?'wr-good':pct>=45?'wr-mid':'wr-bad'; }
+
+async function renderValidator(){
+  document.getElementById('validatorSummary').innerHTML = '<span style="color:var(--dim)">กำลังโหลด...</span>';
+  try{
+    const res = await fetch(`${WORKER_API}/api/winrate?group=${validatorGroupBy}`);
+    if(!res.ok) throw new Error('API error');
+    const data = await res.json();
+
+    if(!data.overall){
+      document.getElementById('validatorSummary').innerHTML = '<span style="color:var(--bear)">ไม่มีข้อมูล</span>';
+      return;
+    }
+
+    const o = data.overall;
+    document.getElementById('validatorSummary').innerHTML =
+      `รวม: <b style="color:var(--text)">${o.n}</b> สัญญาณ · ชนะ <b style="color:var(--bull)">${o.wins}</b> · แพ้ <b style="color:var(--bear)">${o.losses}</b> · `+
+      `Win Rate <b class="${winRateClass(o.ratePct)}">${o.ratePct}%</b> · <span style="color:var(--dim)">เปิดอยู่ ${data.openCount}</span>`;
+
+    const head = document.getElementById('validatorHead');
+    const body = document.getElementById('validatorBody');
+
+    if(validatorGroupBy === 'symbol'){
+      head.innerHTML = '<th>Symbol</th><th>n</th><th>Win</th><th>Loss</th><th>Win Rate</th>';
+      body.innerHTML = data.rows.map(r=>`<tr><td><b>${symToTh(r.label)}</b></td><td class="wr-n">${r.n}</td><td style="color:var(--bull)">${r.wins}</td><td style="color:var(--bear)">${r.losses}</td><td class="${winRateClass(r.ratePct)}">${r.ratePct}%</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--dim)">ยังไม่มีข้อมูล</td></tr>';
+    } else {
+      head.innerHTML = '<th>ทิศทาง</th><th>n</th><th>Win</th><th>Loss</th><th>Win Rate</th>';
+      body.innerHTML = data.rows.map(r=>`<tr><td><b style="color:${r.label==='LONG'?'var(--bull)':'var(--bear)'}">${r.label}</b></td><td class="wr-n">${r.n}</td><td style="color:var(--bull)">${r.wins}</td><td style="color:var(--bear)">${r.losses}</td><td class="${r.n>0?winRateClass(r.ratePct):'wr-n'}">${r.n>0?r.ratePct+'%':'—'}</td></tr>`).join('');
+    }
+  }catch(e){
+    document.getElementById('validatorSummary').innerHTML = `<span style="color:var(--bear)">โหลดไม่ได้ — ${e.message}</span>`;
+  }
+}
+
+// ---------- Refresh (fetch from Worker) ----------
 async function refreshAll(){
   document.getElementById('refreshBtn').textContent = '↻ กำลังโหลด...';
   try{
-    const ticker24h = {};
-    const all = await fetchAllTicker24h();
-    all.forEach(t=> ticker24h[t.symbol]=t);
-
-    if(state.tab==='volume' && !state.volumeTop.length || state.tab==='volume'){
-      const usdtPerp = all.filter(t=>t.symbol.endsWith('USDT') && !t.symbol.includes('_'));
-      usdtPerp.sort((a,b)=> parseFloat(b.quoteVolume)-parseFloat(a.quoteVolume));
-      state.volumeTop = usdtPerp.slice(0,12).map(t=>t.symbol);
+    // Fetch top10 from Worker
+    const res = await fetch(`${WORKER_API}/api/top10`);
+    if(res.ok){
+      const j = await res.json();
+      if(j.top10){
+        j.top10.forEach(c => { state.data[c.symbol] = c; });
+        document.getElementById('lastUpdate').textContent = new Date(j.timestamp).toLocaleTimeString('th-TH',{hour12:false});
+        setConn(true);
+      }
     }
 
-    const activeList = state.tab==='watch' ? state.watchlist : state.volumeTop;
-    const results = await Promise.allSettled(activeList.map(sym=>computeSymbol(sym, ticker24h)));
-    results.forEach((r,i)=>{
-      if(r.status==='fulfilled') state.data[r.value.symbol]=r.value;
-    });
-    await fetchThbRate();
+    // Fetch THB rate
+    try{
+      const thb = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=thb');
+      const t = await thb.json();
+      state.thbRate = t.tether.thb;
+      document.getElementById('thbRate').textContent = state.thbRate.toFixed(2);
+    }catch(e){}
+
     renderGrid();
-    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('th-TH',{hour12:false});
-    setConn(true);
+    if(state.tab === 'validator') renderValidator();
+
+    // Count signals
+    const sigs = Object.values(state.data).filter(d => d.signal && d.signal.stars >= 3);
+    document.getElementById('signalCount').textContent = sigs.length;
   }catch(e){
     console.error(e);
     setConn(false);
   }
-  document.getElementById('refreshBtn').textContent = '↻ รีเฟรชตอนนี้';
+  document.getElementById('refreshBtn').textContent = '↻ รีเฟรช';
   resetCountdown();
 }
 
 function resetCountdown(){
-  state.secondsLeft = POLL_MS/1000;
+  state.secondsLeft = POLL_MS / 1000;
   document.getElementById('countdown').textContent = state.secondsLeft+'s';
 }
 function setConn(ok){
@@ -520,103 +460,78 @@ function setConn(ok){
   el.querySelector('span:last-child').textContent = ok ? 'เชื่อมต่อสด' : 'ขาดการเชื่อมต่อ';
 }
 
-// ---------- live price via websocket ----------
-function connectWS(){
-  if(state.ws) { try{state.ws.close();}catch(e){} }
-  const list = state.tab==='watch' ? state.watchlist : state.volumeTop;
-  if(!list.length) return;
-  const streams = list.map(s=>s.toLowerCase()+'@ticker').join('/');
-  const ws = new WebSocket(WS_BASE+streams);
-  ws.onmessage = (ev)=>{
-    try{
-      const msg = JSON.parse(ev.data);
-      const d = msg.data;
-      if(d && d.s && state.data[d.s]){
-        state.data[d.s].price = parseFloat(d.c);
-        state.data[d.s].changePct = parseFloat(d.P);
-        const card = document.querySelector(`.card[data-symbol="${d.s}"]`);
-        if(card){
-          const priceEl = card.querySelector('.price');
-          const chgEl = card.querySelector('.chg');
-          if(priceEl) priceEl.textContent = formatPrice(state.data[d.s].price);
-          if(chgEl){
-            chgEl.textContent = (state.data[d.s].changePct>=0?'+':'')+state.data[d.s].changePct.toFixed(2)+'%';
-            chgEl.className = 'chg '+(state.data[d.s].changePct>=0?'up':'down');
-          }
-        }
-      }
-    }catch(e){}
-  };
-  ws.onopen = ()=> setConn(true);
-  ws.onerror = ()=> setConn(false);
-  ws.onclose = ()=>{};
-  state.ws = ws;
+// ---------- Settings Panel ----------
+function initSettings(){
+  const panel = document.getElementById('settingsPanel');
+  document.getElementById('lineToken').value = localStorage.getItem('line_notify_token') || '';
+  document.getElementById('webhookUrl').value = localStorage.getItem('webhook_url') || '';
+
+  document.querySelectorAll('#settingsPanel .toggle').forEach(t=>{
+    t.classList.toggle('on', state.settings[t.dataset.key]);
+    t.addEventListener('click', ()=>{
+      state.settings[t.dataset.key] = !state.settings[t.dataset.key];
+      t.classList.toggle('on', state.settings[t.dataset.key]);
+      document.getElementById('lineTokenRow').style.display = state.settings.notif_line ? 'block' : 'none';
+      document.getElementById('webhookRow').style.display = state.settings.notif_webhook ? 'block' : 'none';
+    });
+  });
+
+  document.getElementById('saveSettings').addEventListener('click', ()=>{
+    localStorage.setItem('line_notify_token', document.getElementById('lineToken').value);
+    localStorage.setItem('webhook_url', document.getElementById('webhookUrl').value);
+    try{ localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings)); }catch(e){}
+    if(state.settings.notif_browser && 'Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+    panel.classList.remove('show');
+  });
+
+  document.getElementById('openSettings').addEventListener('click', ()=>{
+    panel.classList.add('show');
+    if('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+  });
+  document.getElementById('closeSettings').addEventListener('click', ()=> panel.classList.remove('show'));
+  panel.addEventListener('click', e=>{ if(e.target===panel) panel.classList.remove('show'); });
 }
 
-// ---------- tooltip + manual ----------
-function tipInit(){
-  const box=document.createElement("div"); box.id="tipBox"; document.body.appendChild(box);
-  let hideT=null;
-  function show(key,x,y){
-    const d=TOOL_DATA[key]; if(!d)return;
-    box.innerHTML=`<h4>${d.t}</h4><span class="tag use">ใช้: ${d.use}</span> <span class="tag ben">ประโยชน์: ${d.ben}</span><p>${d.d}</p>`;
-    box.classList.add("show");
-    const r=box.getBoundingClientRect();
-    let px=x+14, py=y+14;
-    if(px+r.width>innerWidth-10) px=x-r.width-14;
-    if(py+r.height>innerHeight-10) py=y-r.height-14;
-    box.style.left=px+"px"; box.style.top=py+"px";
-  }
-  function hide(){ box.classList.remove("show"); }
-  document.addEventListener("mouseover",e=>{
-    const el=e.target.closest(".info"); if(!el)return;
-    clearTimeout(hideT); show(el.dataset.tip, e.clientX, e.clientY);
-  });
-  document.addEventListener("mousemove",e=>{
-    if(box.classList.contains("show") && e.target.closest(".info")){
-      const r=box.getBoundingClientRect();
-      let px=e.clientX+14, py=e.clientY+14;
-      if(px+r.width>innerWidth-10) px=e.clientX-r.width-14;
-      if(py+r.height>innerHeight-10) py=e.clientY-r.height-14;
-      box.style.left=px+"px"; box.style.top=py+"px";
-    }
-  });
-  document.addEventListener("mouseout",e=>{
-    if(e.target.closest(".info")) hideT=setTimeout(hide,120);
-  });
-}
-
+// ---------- Manual Panel ----------
 function manualInit(){
   const p=document.createElement("div"); p.id="manualPanel";
-  const cards=Object.entries(TOOL_DATA).map(([k,d])=>`
-    <div class="card"><h3>${d.t}<span class="badge">${k.toUpperCase()}</span></h3>
-      <p><b>ทำอะไร:</b> ${d.use}</p>
-      <p><b>ประโยชน์:</b> ${d.ben}</p>
-      <p>${d.d}</p></div>`).join("");
-  p.innerHTML=`<div class="box">
-    <button class="close" onclick="document.getElementById('manualPanel').classList.remove('show')">✕ ปิด</button>
-    <h2>📖 คู่มือเครื่องมือเทรด</h2>
-    <div class="sub">Futures Radar — สแกนสัญญาณโมเมนตัม + แนวโน้มสวิง แบบเรียลไทม์</div>
-    <div class="grid2">${cards}</div>
-  </div>`;
+  p.innerHTML=`<div class="box"><button class="close" onclick="document.getElementById('manualPanel').classList.remove('show')">✕</button><h2>📖 คู่มือ</h2><div class="grid2"><div class="card"><h3>คะแนนดาว</h3><p>★★★★★ = แรงมาก (≥80)</p></div></div></div>`;
   document.body.appendChild(p);
-  p.addEventListener("click",e=>{ if(e.target===p) p.classList.remove("show"); });
-  document.addEventListener("click",e=>{
-    const b=e.target.closest(".manual"); if(b){ p.classList.add("show"); }
+  document.addEventListener("click",e=>{ if(e.target.closest(".manual")) p.classList.add("show"); });
+  document.getElementById('closeManual').addEventListener('click', ()=> p.classList.remove('show'));
+}
+
+// ---------- Alert Banner ----------
+function initAlertBanner(){
+  document.getElementById('closeAlert').addEventListener('click', ()=>{
+    document.getElementById('alertBanner').classList.remove('show');
   });
 }
 
-// ---------- events ----------
-document.querySelectorAll('.tab').forEach(tab=>{
+// ---------- Events ----------
+document.querySelectorAll('.tabs > .tab[data-tab]').forEach(tab=>{
   tab.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tabs > .tab[data-tab]').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
     state.tab = tab.getAttribute('data-tab');
-    renderGrid();
-    refreshAll();
-    connectWS();
+    const isValidator = state.tab === 'validator';
+    document.getElementById('grid').style.display = isValidator ? 'none' : '';
+    document.getElementById('emptyNote').style.display = 'none';
+    document.getElementById('validatorView').style.display = isValidator ? 'block' : 'none';
+    if(isValidator) renderValidator();
+    else { renderGrid(); refreshAll(); }
   });
 });
+
+document.querySelectorAll('#validatorView .tab[data-group]').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('#validatorView .tab[data-group]').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    validatorGroupBy = t.getAttribute('data-group');
+    renderValidator();
+  });
+});
+
 document.getElementById('addBtn').addEventListener('click', ()=>{
   const input = document.getElementById('symInput');
   let sym = input.value.trim().toUpperCase();
@@ -624,30 +539,34 @@ document.getElementById('addBtn').addEventListener('click', ()=>{
   if(!sym.endsWith('USDT')) sym += 'USDT';
   if(!state.watchlist.includes(sym)) state.watchlist.push(sym);
   input.value='';
-  saveWatchlist();
-  renderGrid();
+  try{ localStorage.setItem(KEY, JSON.stringify(state.watchlist)); }catch(e){}
   refreshAll();
-  connectWS();
 });
 document.getElementById('symInput').addEventListener('keydown', (e)=>{
   if(e.key==='Enter') document.getElementById('addBtn').click();
 });
 document.getElementById('refreshBtn').addEventListener('click', refreshAll);
+document.getElementById('testBtn').addEventListener('click', ()=>{
+  showBanner('🔔 ทดสอบ LONG BTCUSDT 5 ดาว | 88%', 'Entry 43250 | SL 42800 | TP1 43925', 'LONG');
+});
 
-// ---------- boot ----------
+// ---------- Boot ----------
 (function init(){
-  tipInit(); manualInit();
-  loadWatchlist();
+  try{
+    const v = localStorage.getItem(KEY);
+    if(v){ const a = JSON.parse(v); if(Array.isArray(a)&&a.length) state.watchlist = a; }
+    const s = localStorage.getItem(SETTINGS_KEY);
+    if(s) state.settings = JSON.parse(s);
+  }catch(e){}
+  manualInit(); initSettings(); initAlertBanner();
   renderGrid();
   refreshAll();
-  connectWS();
   setInterval(()=>{
     state.secondsLeft--;
-    if(state.secondsLeft<=0){ refreshAll(); }
+    if(state.secondsLeft<=0) refreshAll();
     else document.getElementById('countdown').textContent = state.secondsLeft+'s';
   },1000);
 })();
 </script>
-<script src="./tooltip.js"></script>
 </body>
 </html>
