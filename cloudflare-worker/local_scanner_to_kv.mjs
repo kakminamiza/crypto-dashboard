@@ -16,13 +16,32 @@ if (!CF_ACCOUNT_ID || !CF_API_TOKEN) {
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
+// กันแบน IP: Binance limit ~2400 weight/นาที สคริปต์ใช้ ~21 req/รอบ → ต่ำมาก
+// แต่ถ้าเจอ 418 (IP ban) หรือ 429 (rate limit) ให้หยุดนุ่มๆ ไม่ยิงซ้ำ
+let ipBanned = false;
+
 async function fetchJSON(url, retries = 3) {
+  if (ipBanned) throw new Error("IP banned — ข้ามรอบนี้");
   for (let i = 0; i < retries; i++) {
     try {
-      const r = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" } });
+      const r = await fetch(url, {
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+          "Accept": "application/json",
+          "Accept-Language": "en-US,en;q=0.9"
+        }
+      });
+      if (r.status === 418 || r.status === 429) {
+        ipBanned = true;
+        throw new Error("HTTP " + r.status + " — IP โดนจำกัดชั่วคราว");
+      }
       if (!r.ok) throw new Error("HTTP " + r.status);
       return await r.json();
-    } catch (e) { if (i === retries - 1) throw e; await sleep(1000); }
+    } catch (e) {
+      if (ipBanned) throw e;
+      if (i === retries - 1) throw e;
+      await sleep(1500 * (i + 1)); // backoff
+    }
   }
 }
 
@@ -91,6 +110,7 @@ async function scanAll() {
   const results = [];
   for (const coin of top10) {
     try {
+      if (ipBanned) { console.log("⚠️ IP banned — หยุดสแกนรอบนี้"); break; }
       const [m15, h4] = await Promise.all([
         fetchJSON(`${FAPI}/fapi/v1/klines?symbol=${coin.sym}&interval=15m&limit=100`),
         fetchJSON(`${FAPI}/fapi/v1/klines?symbol=${coin.sym}&interval=4h&limit=210`),
