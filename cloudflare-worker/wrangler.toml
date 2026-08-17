@@ -1,0 +1,10 @@
+name = "futures-radar-worker"
+main = "src/index.js"
+compatibility_date = "2025-08-01"
+
+# NOTE: Cron ปิดการใช้งาน — Binance บล็อก Cloudflare edge IP
+# radar.html สแกนจากเบราว์เซอร์โดยตรงแทน (ข้อมูลสด 100%)
+
+[[kv_namespaces]]
+binding = "SIGNAL_KV"
+id = "daa5f58e90f04dd4b01e528eb1a7cbab"
