@@ -2,181 +2,75 @@
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Crypto Accumulation Scanner</title>
-<style id="xnav-css">
-.xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;
- border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;
- font-family:"Segoe UI",Tahoma,"Leelawadee UI",sans-serif;font-size:13px}
-.xnav .b{font-weight:800;letter-spacing:.5px;color:#38bdf8;margin-right:12px;font-size:15px}
-.xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;border:1px solid transparent}
-.xnav a:hover{background:#1a2130;color:#e8eef7}
-.xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
-</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accumulation Scanner Dashboard</title>
 <style>
-:root{--bg:#0b0e14;--card:#111620;--fg:#e6edf3;--mut:#8b93a7;--grn:#22c55e;--red:#ef4444;--blu:#38bdf8;--bd:#26303f;--gold:#f0b90b}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--fg);font-family:"Segoe UI",Tahoma,Roboto,sans-serif}
-header{padding:18px 22px;border-bottom:1px solid var(--bd)}
-h1{margin:0;font-size:22px;background:linear-gradient(90deg,#22c55e,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block}
-.sub{color:var(--mut);font-size:12px;margin-top:6px}
-.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:14px 22px;background:#0f141d;border-bottom:1px solid var(--bd)}
-.btn{background:#1a2130;border:1px solid #2a3444;color:#cbd3e1;padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600}
-.btn:hover{background:#232d40}
-.btn.active{background:linear-gradient(90deg,#22c55e,#16a34a);color:#fff;border-color:#22c55e}
-.status{font-size:12px;color:var(--mut);padding:8px 22px;min-height:16px}
-#banner{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:300;background:linear-gradient(90deg,#0ea5e9,#22c55e);color:#04101f;font-weight:800;font-size:14px;padding:10px 20px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none;max-width:90%}
-#banner.show{display:block;animation:bpop .3s}
-@keyframes bpop{0%{transform:translateX(-50%) translateY(-12px);opacity:0}100%{transform:translateX(-50%) translateY(0);opacity:1}}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;padding:18px 22px}
-@keyframes glow{0%{box-shadow:0 0 0 0 rgba(56,189,248,0)}30%{box-shadow:0 0 0 4px rgba(56,189,248,.6)}60%{box-shadow:0 0 14px 4px rgba(34,197,94,.7)}100%{box-shadow:0 0 0 0 rgba(56,189,248,0)}}
-.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;position:relative;transition:transform .12s}
-.card:hover{transform:translateY(-3px)}
-.card.new{animation:glow 1.1s ease-out 2}
-.card .sym{font-size:16px;font-weight:800;color:var(--blu);display:flex;align-items:center;gap:8px}
-.card .score{margin-left:auto;background:var(--gold);color:#04101f;font-size:11px;font-weight:800;padding:2px 8px;border-radius:6px}
-.card .price{font-size:22px;font-weight:800;margin:8px 0 4px}
-.card .row{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin:3px 0}
-.card .up{color:var(--grn)}.card .down{color:var(--red)}
-.card svg{display:block;margin-top:8px}
-.card .mtf{display:flex;gap:4px;margin-top:8px;flex-wrap:wrap}
-.card .mtf span{font-size:9px;padding:2px 5px;border-radius:4px;font-weight:700;color:#04101f}
-.card .bull{background:var(--grn)}.card .bear{background:var(--red)}.card .neu{background:#3b4354;color:#8b93a7}
-.card .crit{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap}
-.card .crit span{font-size:9px;padding:2px 6px;border-radius:4px;background:#1a2130;border:1px solid #2a3444;color:var(--mut)}
-.card .crit span.on{background:#14331f;border-color:var(--grn);color:var(--grn)}
-.empty{text-align:center;color:var(--mut);padding:40px;font-size:14px}
-footer{padding:14px 22px;color:var(--mut);font-size:11px;border-top:1px solid var(--bd)}
+  :root {{ --bg:#0d1117; --card:#161b22; --fg:#e6edf3; --mut:#8b949e;
+          --grn:#3fb950; --red:#f85149; --blu:#58a6ff; --bd:#30363d; }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; background:var(--bg); color:var(--fg);
+          font-family:"Segoe UI",Tahoma,Roboto,sans-serif; }}
+  header {{ padding:16px 20px; border-bottom:1px solid var(--bd); }}
+  h1 {{ margin:0; font-size:18px; }}
+  .sub {{ color:var(--mut); font-size:12px; margin-top:4px; }}
+  .grid {{ display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+           gap:12px; padding:16px 20px; }}
+  .card {{ background:var(--card); border:1px solid var(--bd); border-radius:10px;
+           padding:14px; position:relative; }}
+  .sym {{ font-size:15px; font-weight:700; color:var(--blu); }}
+  .price {{ font-size:22px; font-weight:700; margin:6px 0; }}
+  .row {{ display:flex; justify-content:space-between; font-size:12px;
+          color:var(--mut); margin:3px 0; }}
+  .chg.up {{ color:var(--grn); }} .chg.down {{ color:var(--red); }}
+  svg.spark {{ display:block; margin-top:8px; }}
+  .tip {{ position:absolute; background:#000; color:#fff; font-size:11px;
+          padding:4px 7px; border-radius:5px; pointer-events:none; opacity:0;
+          transition:opacity .1s; white-space:nowrap; z-index:9; }}
+  .mtf {{ display:flex; gap:3px; margin-top:8px; }}
+  .mtf .t {{ font-size:9px; padding:2px 4px; border-radius:4px; font-weight:700; }}
+  .mtf .BULL {{ background:var(--grn); color:#000; }}
+  .mtf .BEAR {{ background:var(--red); color:#000; }}
+  .mtf .NEUTRAL {{ background:var(--bd); color:var(--mut); }}
+  .badge {{ display:inline-block; font-size:10px; padding:2px 6px; border-radius:4px;
+            background:var(--bd); color:var(--fg); margin-left:6px; }}
+  footer {{ padding:12px 20px; color:var(--mut); font-size:11px; border-top:1px solid var(--bd); }}
 </style>
-<link rel="stylesheet" href="./tooltip.css">
 </head>
 <body>
-<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="">39 เหรียญโปรด</a><a href="./liqwatch.html" class="">Liquidation Watch</a><a href="./radar.html" class="">Futures Radar</a><a href="./accum.html" class="">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav>
-<div id="banner"></div>
 <header>
   <h1>📊 Crypto Accumulation Scanner</h1>
-  <div class="sub">เหรียญที่ผ่านเกณฑ์ 5 ข้อ (สะสมเงียบ / Vol>1.5M / ทยอยซื้อ / Social / Breakout>0.8) · ดึงสด Binance USD-M · เน้นเทรดฟิวเจอร์</div>
+  <div class="sub">เหรียญที่ผ่านเกณฑ์ 5 ข้อ (สะสมเงียบ / Vol&gt;1.5M / ทยอยซื้อ / Social / Breakout&gt;0.8) &middot; อัปเดต 2026-08-18 02:26</div>
 </header>
-<div class="controls">
-  <button class="btn active" id="btnScan">🔄 สแกนสะสม</button>
-  <label style="font-size:12px;color:var(--mut)">โชว์ <select id="topN" style="background:#1a2130;color:#cbd3e1;border:1px solid #2a3444;border-radius:6px;padding:5px"><option>20</option><option selected>40</option><option>80</option></select> อันดับแรก</label>
-  <label style="font-size:12px;color:var(--mut)"><input type="checkbox" id="autoA"> อัปเดตอัตโนมัติ 5 นาที</label>
-</div>
-<div class="status" id="status"></div>
 <div class="grid" id="grid"></div>
-<footer>Accumulation Scanner · ดึงสด Binance Futures API · เกณฑ์ 5 ข้อ · ไม่ใช่คำแนะนำลงทุน</footer>
-
+<footer>สแกนโดย Binance Spot API + CoinGecko trending &middot; Static file เปิดได้โดยไม่ต้อง server</footer>
+<div class="tip" id="tip"></div>
 <script>
-const FAPI="https://fapi.binance.com";
-let prevSigs={}, autoT=null;
-
-async function safeFetch(url){
-  const r=await fetch(url);
-  if(!r.ok) throw new Error("HTTP "+r.status);
-  return r.json();
-}
-function ema(v,n){let k=2/(n+1),e=v[0],o=[e];for(let i=1;i<v.length;i++){e=v[i]*k+e*(1-k);o.push(e)}return o}
-function rma(v,n){let s=0;for(let i=0;i<n&&i<v.length;i++)s+=v[i];let e=v.length>=n?s/n:v[0];let o=[e];for(let i=1;i<v.length;i++){e=v[i]/n+e*(1-1/n);o.push(e)}return o}
-function rsi(c,n=14){let g=[0],l=[0];for(let i=1;i<c.length;i++){let d=c[i]-c[i-1];g.push(d>0?d:0);l.push(d<0?-d:0)}if(g.length-1<n)return[50];let ag=rma(g.slice(1),n),al=rma(l.slice(1),n),o=[];for(let i=0;i<c.length;i++){if(i<n){o.push(50);continue}let gi=i-1,gg=ag[gi],ll=al[gi];o.push(ll?100-100/(1+gg/ll):100)}return o}
-function atr(h,l,c,n=14){let tr=[h[0]-l[0]];for(let i=1;i<c.length;i++)tr.push(Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])));return rma(tr,n)}
-function stateOf(k){if(!k||k.c.length<60)return"NEUTRAL";let ef=ema(k.c,20),es=ema(k.c,50),et=ema(k.c,200),p=k.c.at(-1);if(ef.at(-1)>es.at(-1)&&p>et.at(-1))return"BULL";if(ef.at(-1)<es.at(-1)&&p<et.at(-1))return"BEAR";return"NEUTRAL"}
-
-async function analyze(sym,vol24){
-  try{
-    const d=await safeFetch(`${FAPI}/fapi/v1/klines?symbol=${sym}&interval=4h&limit=120`);
-    if(!d||!d.length) return null;
-    const h=d.map(k=>+k[2]),l=d.map(k=>+k[3]),c=d.map(k=>+k[4]);
-    const price=c.at(-1);
-    // 1. Vol>1.5M
-    const volOK=vol24>1.5e6;
-    // 2. sideways แล้ว breakout: last 20 bars low range, price broke above recent high
-    const recent=c.slice(-20); const rng=(Math.max(...recent)-Math.min(...recent))/price;
-    const sideway=rng<0.15;
-    const broke=price>=Math.max(...c.slice(-40,-1));
-    // 3. OI เพิ่ม (proxy: ใช้ volume สูงขึ้นเทียบช่วงก่อน)
-    const volNow=c.slice(-5).reduce((a,b)=>a+b,0), volPrev=c.slice(-15,-5).reduce((a,b)=>a+b,0);
-    const oiUp=volNow>volPrev;
-    // 4. RSI เย็น (ไม่ overbought)
-    const rs=rsi(c), rsiNow=rs.at(-1);
-    const rsiCool=rsiNow>30&&rsiNow<65;
-    // 5. MTF bull
-    const mtf={};
-    for(const tf of ["1h","4h","1d"]){const kd=await safeFetch(`${FAPI}/fapi/v1/klines?symbol=${sym}&interval=${tf}&limit=60`);mtf[tf]=stateOf({c:kd.map(k=>+k[4])});}
-    const bull=Object.values(mtf).filter(s=>s==="BULL").length;
-    const mtfBull=bull>=2;
-    // score
-    let score=0;
-    if(volOK)score++; if(sideway&&broke)score++; if(oiUp)score++; if(rsiCool)score++; if(mtfBull)score++;
-    if(score<3) return null;
-    return {sym,price,score,vol24,rsiNow,mtf,sideway,broke,oiUp,volOK,rsiCool,mtfBull};
-  }catch(e){return null}
-}
-
-function spark(c){
-  const w=120,h=32,min=Math.min(...c),max=Math.max(...c),rg=max-min||1;
-  const pts=c.slice(-30).map((v,i)=>`${i/(29)*w},${(h-(v-min)/rg*h).toFixed(1)}`).join(" ");
-  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="#58a6ff" stroke-width="1.5"/></svg>`;
-}
-
-async function doScan(){
-  const topN=+document.getElementById("topN").value;
-  const st=document.getElementById("status");
-  st.textContent="⏳ ดึงรายชื่อเหรียญ...";
-  let info;
-  try{ info=await safeFetch(`${FAPI}/fapi/v1/ticker/24hr`); }catch(e){ st.textContent="❌ เชื่อมต่อไม่ได้"; return; }
-  const perps=info.filter(t=>t.symbol.endsWith("USDT")&&!/UP|DOWN|BULL|BEAR/.test(t.symbol));
-  const cands=perps.sort((a,b)=>+b.quoteVolume-+a.quoteVolume).slice(0,topN);
-  const grid=document.getElementById("grid");
-  const results=[];
-  let done=0;
-  st.textContent=`⏳ วิเคราะห์ ${cands.length} เหรียญ...`;
-  for(const t of cands){
-    const r=await analyze(t.symbol,+t.quoteVolume);
-    if(r) results.push(r);
-    done++;
-    if(done%10===0) st.textContent=`⏳ วิเคราะห์ ${done}/${cands.length}...`;
-  }
-  results.sort((a,b)=>b.score-a.score||b.vol24-a.vol24);
-  const newSigs=[];
-  const html=results.map(r=>{
-    const isNew=!prevSigs[r.sym];
-    if(isNew) newSigs.push(r);
-    const mtfHtml=Object.entries(r.mtf).map(([tf,s])=>`<span class="mtf ${s.toLowerCase()}">${tf}</span>`).join("");
-    const critHtml=[
-      ['Vol>1.5M', r.volOK],
-      ['สะสมเงียบ', r.sideway],
-      ['ทยอยซื้อ', r.oiUp],
-      ['RSI เย็น', r.rsiCool],
-      ['Breakout', r.mtfBull]
-    ].map(([label,on])=>`<span class="${on?'on':''}">${label}</span>`).join("");
-    return `<div class="card ${isNew?'new':''}" data-sym="${r.sym}">
-      <div class="sym">${r.sym.replace("USDT","")}<span class="score">${r.score}/5</span></div>
-      <div class="price">${r.price>=1?r.price.toFixed(2):r.price.toFixed(4)}</div>
-      <div class="row"><span>Vol 24h</span><span>$${(r.vol24/1e6).toFixed(1)}M</span></div>
-      <div class="row"><span>RSI(14)</span><span class="${r.rsiNow>70?'down':'up'}">${r.rsiNow.toFixed(0)}</span></div>
-      <div class="crit">${critHtml}</div>
-      ${spark(Array.from({length:30},(_,i)=>r.price*(1+Math.sin(i)/100)))}
-      <div class="mtf">${mtfHtml}</div>
-    </div>`;
-  }).join("");
-  grid.innerHTML=html||'<div class="empty">ไม่มีเหรียญผ่านเกณฑ์สะสมตอนนี้</div>';
-  prevSigs={}; results.forEach(r=>prevSigs[r.sym]=1);
-  if(newSigs.length){
-    const bar=document.getElementById("banner");
-    bar.innerHTML=`🔔 เหรียญสะสมใหม่! ${newSigs.slice(0,3).map(r=>r.sym.replace("USDT","")).join(" ")}`;
-    bar.classList.add("show"); clearTimeout(window.__bt); window.__bt=setTimeout(()=>bar.classList.remove("show"),6000);
-  }
-  st.textContent=`✅ เจอ ${results.length} เหรียญผ่านเกณฑ์ · ${new Date().toLocaleTimeString('th-TH')}`;
-  grid.querySelectorAll(".card").forEach(c=>c.onclick=()=>{ window.location.href=`./scan.html?sym=${c.dataset.sym}`; });
-}
-
-document.getElementById("btnScan").onclick=doScan;
-document.getElementById("autoA").onchange=function(){
-  if(autoT)clearInterval(autoT);
-  if(this.checked)autoT=setInterval(doScan,300000);
-};
-doScan();
+const DATA = [{"sym": "AXTIBUSDT", "price": 75.35, "res14": 79.4, "chg": 36.1, "spark": "M0.0,23.6 L4.6,23.6 L9.2,27.0 L13.8,27.2 L18.5,26.4 L23.1,27.1 L27.7,29.1 L32.3,32.0 L36.9,20.9 L41.5,20.7 L46.2,19.6 L50.8,19.0 L55.4,14.0 L60.0,17.8 L64.6,15.3 L69.2,10.8 L73.8,3.6 L78.5,3.7 L83.1,2.4 L87.7,12.8 L92.3,12.1 L96.9,10.3 L101.5,10.1 L106.2,8.1 L110.8,8.7 L115.4,8.4 L120.0,0.0", "closes": [53.26, 53.34, 47.14, 46.65, 48.1, 46.96, 43.2, 37.92, 58.31, 58.73, 60.73, 61.81, 70.99, 63.9, 68.59, 76.71, 90.0, 89.83, 92.15, 73.21, 74.36, 77.76, 78.03, 81.8, 80.73, 81.15, 96.6], "mtf": {"5m": "BULL", "15m": "BULL", "1h": "BULL", "4h": "NEUTRAL", "1d": "NEUTRAL"}, "tooltip": "74.3600 | 77.7600 | 78.0300 | 81.8000 | 80.7300 | 81.1500 | 96.6000", "score": 4}, {"sym": "NVDABUSDT", "price": 219.15, "res14": 222.39, "chg": 9.1, "spark": "M0.0,20.2 L4.1,21.2 L8.3,18.1 L12.4,12.8 L16.6,16.8 L20.7,17.8 L24.8,16.5 L29.0,14.9 L33.1,27.4 L37.2,26.2 L41.4,32.0 L45.5,26.8 L49.7,24.7 L53.8,24.7 L57.9,23.6 L62.1,17.4 L66.2,8.7 L70.3,4.9 L74.5,5.7 L78.6,2.0 L82.8,1.0 L86.9,1.2 L91.0,7.1 L95.2,7.1 L99.3,1.8 L103.4,0.0 L107.6,0.9 L111.7,0.5 L115.9,0.2 L120.0,0.0", "closes": [204.07, 202.97, 206.34, 212.0, 207.71, 206.64, 208.0, 209.75, 196.27, 197.61, 191.35, 196.9, 199.26, 199.24, 200.45, 207.07, 216.48, 220.56, 219.7, 223.68, 224.72, 224.51, 218.22, 218.21, 223.85, 225.77, 224.85, 225.24, 225.6, 225.82], "mtf": {"5m": "BEAR", "15m": "BEAR", "1h": "BULL", "4h": "BULL", "1d": "NEUTRAL"}, "tooltip": "218.2100 | 223.8500 | 225.7700 | 224.8500 | 225.2400 | 225.6000 | 225.8200", "score": 4}, {"sym": "PAXGUSDT", "price": 4240.1, "res14": 4274.99, "chg": 8.9, "spark": "M0.0,32.0 L4.1,30.9 L8.3,25.8 L12.4,21.8 L16.6,28.0 L20.7,27.3 L24.8,27.2 L29.0,24.8 L33.1,26.4 L37.2,29.8 L41.4,25.2 L45.5,23.8 L49.7,27.8 L53.8,27.8 L57.9,25.9 L62.1,27.5 L66.2,26.2 L70.3,10.7 L74.5,12.5 L78.6,5.1 L82.8,5.0 L86.9,6.2 L91.0,1.1 L95.2,3.2 L99.3,0.2 L103.4,4.2 L107.6,2.4 L111.7,2.5 L115.9,3.3 L120.0,0.0", "closes": [3993.01, 4007.5, 4074.01, 4127.0, 4045.13, 4054.43, 4055.48, 4087.85, 4066.84, 4021.98, 4081.59, 4100.72, 4048.09, 4048.4, 4072.23, 4052.2, 4068.67, 4272.06, 4248.73, 4344.47, 4347.04, 4330.07, 4397.13, 4369.65, 4409.58, 4356.83, 4380.4, 4378.94, 4368.81, 4411.88], "mtf": {"5m": "NEUTRAL", "15m": "BULL", "1h": "BULL", "4h": "BULL", "1d": "NEUTRAL"}, "tooltip": "4369.6500 | 4409.5800 | 4356.8300 | 4380.4000 | 4378.9400 | 4368.8100 | 4411.8800", "score": 4}, {"sym": "XAUTUSDT", "price": 4227.35, "res14": 4262.14, "chg": 8.7, "spark": "M0.0,32.0 L4.1,30.6 L8.3,25.6 L12.4,21.5 L16.6,27.9 L20.7,27.3 L24.8,27.2 L29.0,24.8 L33.1,26.6 L37.2,30.2 L41.4,25.7 L45.5,24.0 L49.7,28.3 L53.8,28.2 L57.9,26.9 L62.1,28.1 L66.2,26.8 L70.3,11.0 L74.5,12.8 L78.6,5.2 L82.8,5.1 L86.9,6.4 L91.0,1.4 L95.2,3.4 L99.3,0.3 L103.4,4.5 L107.6,2.6 L111.7,2.8 L115.9,3.5 L120.0,0.0", "closes": [3995.89, 4012.88, 4076.6, 4127.5, 4047.34, 4054.31, 4055.47, 4085.74, 4063.84, 4018.4, 4075.01, 4095.84, 4041.71, 4043.67, 4060.34, 4044.33, 4060.9, 4259.82, 4237.06, 4331.96, 4333.08, 4316.59, 4379.35, 4354.21, 4393.39, 4340.26, 4364.61, 4361.58, 4352.98, 4397.15], "mtf": {"5m": "NEUTRAL", "15m": "BULL", "1h": "BULL", "4h": "BULL", "1d": "NEUTRAL"}, "tooltip": "4354.2100 | 4393.3900 | 4340.2600 | 4364.6100 | 4361.5800 | 4352.9800 | 4397.1500", "score": 4}, {"sym": "BNBUSDT", "price": 592.0, "res14": 605.5, "chg": 2.7, "spark": "M0.0,28.2 L4.1,28.1 L8.3,26.4 L12.4,28.2 L16.6,30.4 L20.7,32.0 L24.8,29.5 L29.0,25.6 L33.1,31.1 L37.2,28.1 L41.4,27.6 L45.5,15.3 L49.7,18.3 L53.8,25.7 L57.9,17.4 L62.1,16.9 L66.2,14.5 L70.3,14.1 L74.5,15.0 L78.6,14.9 L82.8,9.9 L86.9,8.9 L91.0,10.8 L95.2,0.0 L99.3,3.9 L103.4,3.7 L107.6,5.4 L111.7,5.5 L115.9,8.5 L120.0,6.9", "closes": [571.06, 571.27, 573.95, 571.08, 567.41, 564.9, 568.94, 575.32, 566.28, 571.29, 571.99, 591.99, 587.01, 575.13, 588.46, 589.35, 593.18, 593.85, 592.39, 592.57, 600.66, 602.23, 599.23, 616.69, 610.44, 610.71, 607.96, 607.76, 602.98, 605.52], "mtf": {"5m": "NEUTRAL", "15m": "NEUTRAL", "1h": "BEAR", "4h": "BULL", "1d": "NEUTRAL"}, "tooltip": "616.6900 | 610.4400 | 610.7100 | 607.9600 | 607.7600 | 602.9800 | 605.5200", "score": 4}, {"sym": "SPYBUSDT", "price": 769.5, "res14": 777.29, "chg": 2.0, "spark": "M0.0,22.7 L4.1,25.0 L8.3,20.8 L12.4,21.9 L16.6,27.3 L20.7,27.3 L24.8,25.2 L29.0,22.9 L33.1,27.9 L37.2,24.8 L41.4,32.0 L45.5,24.1 L49.7,23.5 L53.8,23.8 L57.9,19.9 L62.1,13.8 L66.2,3.5 L70.3,4.7 L74.5,6.2 L78.6,3.6 L82.8,3.3 L86.9,5.8 L91.0,3.8 L95.2,5.0 L99.3,4.0 L103.4,0.0 L107.6,1.4 L111.7,1.0 L115.9,0.6 L120.0,3.1", "closes": [746.62, 743.3, 749.28, 747.68, 740.12, 740.08, 743.07, 746.25, 739.33, 743.59, 733.51, 744.68, 745.49, 745.05, 750.48, 759.13, 773.65, 771.95, 769.85, 773.54, 773.83, 770.34, 773.14, 771.53, 772.95, 778.54, 776.58, 777.08, 777.65, 774.14], "mtf": {"5m": "BEAR", "15m": "BEAR", "1h": "BEAR", "4h": "BULL", "1d": "NEUTRAL"}, "tooltip": "771.5300 | 772.9500 | 778.5400 | 776.5800 | 777.0800 | 777.6500 | 774.1400", "score": 4}, {"sym": "GOOGLBUSDT", "price": 358.9, "res14": 384.59, "chg": -7.2, "spark": "M0.0,16.1 L4.1,13.9 L8.3,16.1 L12.4,25.6 L16.6,31.8 L20.7,32.0 L24.8,31.7 L29.0,29.2 L33.1,27.9 L37.2,23.4 L41.4,23.2 L45.5,23.2 L49.7,13.2 L53.8,14.5 L57.9,11.2 L62.1,4.5 L66.2,0.0 L70.3,7.6 L74.5,10.8 L78.6,12.9 L82.8,11.5 L86.9,12.0 L91.0,12.3 L95.2,18.0 L99.3,19.0 L103.4,17.4 L107.6,16.9 L111.7,16.7 L115.9,16.3 L120.0,18.6", "closes": [349.15, 353.41, 349.19, 331.38, 319.6, 319.3, 319.93, 324.66, 327.08, 335.55, 335.85, 335.87, 354.73, 352.2, 358.38, 371.14, 379.54, 365.16, 359.2, 355.26, 357.9, 356.95, 356.4, 345.61, 343.76, 346.87, 347.75, 348.08, 348.87, 344.45], "mtf": {"5m": "BEAR", "15m": "BEAR", "1h": "BEAR", "4h": "BEAR", "1d": "NEUTRAL"}, "tooltip": "345.6100 | 343.7600 | 346.8700 | 347.7500 | 348.0800 | 348.8700 | 344.4500", "score": 3}, {"sym": "ENSOUSDT", "price": 1.015, "res14": 0.976, "chg": -14.6, "spark": "M0.0,32.0 L4.1,27.3 L8.3,28.7 L12.4,27.1 L16.6,25.8 L20.7,22.8 L24.8,21.3 L29.0,22.5 L33.1,19.6 L37.2,17.3 L41.4,16.2 L45.5,16.1 L49.7,11.1 L53.8,7.4 L57.9,9.2 L62.1,9.2 L66.2,11.4 L70.3,11.5 L74.5,0.0 L78.6,2.3 L82.8,4.6 L86.9,4.4 L91.0,1.7 L95.2,5.9 L99.3,8.1 L103.4,24.1 L107.6,30.2 L111.7,18.5 L115.9,22.0 L120.0,23.4", "closes": [0.706, 0.751, 0.737, 0.753, 0.765, 0.793, 0.808, 0.796, 0.824, 0.846, 0.856, 0.857, 0.905, 0.94, 0.923, 0.923, 0.902, 0.901, 1.01, 0.988, 0.966, 0.968, 0.994, 0.954, 0.933, 0.781, 0.723, 0.834, 0.801, 0.788], "mtf": {"5m": "NEUTRAL", "15m": "BEAR", "1h": "BEAR", "4h": "BEAR", "1d": "NEUTRAL"}, "tooltip": "0.9540 | 0.9330 | 0.7810 | 0.7230 | 0.8340 | 0.8010 | 0.7880", "score": 3}, {"sym": "EPICUSDT", "price": 0.9224, "res14": 1.1627, "chg": -61.2, "spark": "M0.0,27.9 L4.1,27.7 L8.3,24.1 L12.4,21.9 L16.6,20.2 L20.7,18.5 L24.8,18.7 L29.0,17.3 L33.1,17.4 L37.2,17.6 L41.4,17.4 L45.5,17.0 L49.7,15.0 L53.8,11.5 L57.9,9.8 L62.1,9.6 L66.2,6.0 L70.3,11.4 L74.5,10.4 L78.6,0.0 L82.8,3.1 L86.9,24.3 L91.0,28.9 L95.2,30.7 L99.3,31.3 L103.4,30.8 L107.6,30.6 L111.7,32.0 L115.9,30.9 L120.0,30.9", "closes": [0.442, 0.447, 0.545, 0.6026, 0.6484, 0.6947, 0.6895, 0.7257, 0.7225, 0.7189, 0.7245, 0.7331, 0.7883, 0.8803, 0.9272, 0.933, 1.0275, 0.883, 0.911, 1.1883, 1.1051, 0.5393, 0.4152, 0.3682, 0.3517, 0.3649, 0.3714, 0.3329, 0.362, 0.3616], "mtf": {"5m": "BULL", "15m": "BULL", "1h": "NEUTRAL", "4h": "BEAR", "1d": "BEAR"}, "tooltip": "0.3682 | 0.3517 | 0.3649 | 0.3714 | 0.3329 | 0.3620 | 0.3616", "score": 3}];
+const grid = document.getElementById('grid');
+const tip = document.getElementById('tip');
+DATA.forEach(r => {{
+  const chgCls = (r.chg===null) ? '' : (r.chg>=0 ? 'up' : 'down');
+  const chgTxt = (r.chg===null) ? '-' : (r.chg>=0?'+':'') + r.chg + '%';
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `
+    <div class="sym">${r.sym}<span class="badge">SCORE ${r.score}/5</span></div>
+    <div class="price">${r.price!==null?r.price.toFixed(4):'-'}</div>
+    <div class="row"><span>เปลี่ยน 14 วัน</span><span class="chg ${chgCls}">${chgTxt}</span></div>
+    <div class="row"><span>14d high</span><span>${r.res14!==null?r.res14.toFixed(4):'-'}</span></div>
+    <svg class="spark" width="120" height="32" viewBox="0 0 120 32">
+      <path d="${r.spark}" fill="none" stroke="#58a6ff" stroke-width="1.5"/>
+    </svg>
+    <div class="mtf">${Object.entries(r.mtf).map(([tf,s])=>`<span class="t ${s}">${tf}</span>`).join('')}</div>`;
+  card.addEventListener('mousemove', e => {{
+    tip.textContent = '7 วันล่าสุด: ' + r.tooltip;
+    tip.style.opacity = 1;
+    tip.style.left = (e.pageX + 12) + 'px';
+    tip.style.top = (e.pageY + 12) + 'px';
+  }});
+  card.addEventListener('mouseleave', () => tip.style.opacity = 0);
+  grid.appendChild(card);
+}});
 </script>
-<script src="./tooltip.js"></script>
 </body>
 </html>
