@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signal Validator — ผลลัพธ์จริงของสัญญาณ</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0A0C10;
+    --panel:#12151C;
+    --panel2:#181C25;
+    --line:#242A36;
+    --text:#E6E9EF;
+    --dim:#7C8496;
+    --bull:#17E3A8;
+    --bear:#FF5C7A;
+    --warn:#FFB454;
+    --accent:#6C8CFF;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:radial-gradient(ellipse at top,#12151E 0%,#0A0C10 60%);
+    color:var(--text);
+    font-family:'Noto Sans Thai','JetBrains Mono',monospace;
+    min-height:100vh;
+    padding:18px 16px 60px;
+  }
+  .mono{font-family:'JetBrains Mono',monospace;}
+  .wordmark{font-family:'Space Grotesk',sans-serif;}
+
+  /* shared nav */
+  .xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;
+    border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;
+    font-family:"Segoe UI",Tahoma,sans-serif;font-size:13px;margin:-18px -16px 18px}
+  .xnav .b{font-weight:800;letter-spacing:.5px;color:#38bdf8;margin-right:12px;font-size:15px}
+  .xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;border:1px solid transparent}
+  .xnav a:hover{background:#1a2130;color:#e8eef7}
+  .xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
+
+  header{
+    max-width:1280px;margin:0 auto 18px;
+    display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;
+    border-bottom:1px solid var(--line);
+    padding-bottom:16px;
+  }
+  .brand{display:flex;align-items:center;gap:10px;}
+  .brand .dot{width:9px;height:9px;border-radius:50%;background:var(--bull);box-shadow:0 0 10px var(--bull);animation:pulse 1.6s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .brand h1{font-family:'Space Grotesk',sans-serif;font-size:19px;letter-spacing:.5px;font-weight:700;}
+  .brand span.sub{display:block;font-size:11px;color:var(--dim);font-weight:400;margin-top:1px;}
+
+  .stats-row{
+    max-width:1280px;margin:0 auto 18px;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;
+  }
+  .stat-card{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+    text-align:center;
+  }
+  .stat-card .label{font-size:11px;color:var(--dim);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;}
+  .stat-card .value{font-family:'JetBrains Mono',monospace;font-size:24px;font-weight:700;}
+  .stat-card .sub{font-size:10.5px;color:var(--dim);margin-top:4px;}
+
+  .grid{
+    max-width:1280px;margin:0 auto;
+    display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:12px;
+  }
+  .card{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;
+    transition:border-color .2s;
+  }
+  .card.win{border-color:rgba(23,227,168,.3);}
+  .card.loss{border-color:rgba(255,92,122,.3);}
+  .card.pending{border-color:rgba(255,180,84,.2);}
+  .card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .sym{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:14px;}
+  .sym .quote{color:var(--dim);font-weight:500;font-size:10px;}
+  .outcome-badge{
+    font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.4px;
+  }
+  .outcome-badge.WIN{background:rgba(23,227,168,.15);color:var(--bull);}
+  .outcome-badge.LOSS{background:rgba(255,92,122,.15);color:var(--bear);}
+  .outcome-badge.PENDING{background:rgba(255,180,84,.15);color:var(--warn);}
+  .outcome-badge.EXPIRED{background:rgba(139,147,167,.15);color:var(--dim);}
+
+  .details{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;font-size:11px;color:var(--dim);margin-top:8px;}
+  .details div b{color:var(--text);font-family:'JetBrains Mono',monospace;font-weight:600;}
+  .detail-bar{height:3px;border-radius:2px;background:var(--line);margin-top:3px;overflow:hidden;}
+  .detail-bar i{display:block;height:100%;border-radius:2px;}
+
+  .r-display{
+    margin-top:10px;padding:8px 10px;border-radius:8px;
+    background:rgba(24,28,37,.4);border:1px solid rgba(36,42,54,.4);
+    font-size:11px;color:var(--dim);
+  }
+  .r-display b{color:var(--text);font-family:'JetBrains Mono',monospace;}
+
+  .empty-note{max-width:1280px;margin:40px auto;text-align:center;color:var(--dim);font-size:13px;}
+
+  footer{max-width:1280px;margin:26px auto 0;font-size:11px;color:var(--dim);line-height:1.6;border-top:1px solid var(--line);padding-top:14px;}
+
+  .toolbar{
+    max-width:1280px;margin:0 auto 16px;
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;
+  }
+  .tabs{display:flex;gap:6px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:4px;}
+  .tab{padding:7px 14px;border-radius:7px;font-size:12.5px;color:var(--dim);cursor:pointer;user-select:none;transition:.15s;}
+  .tab.active{background:var(--panel2);color:var(--text);box-shadow:inset 0 0 0 1px var(--line);}
+  .btn{
+    background:var(--panel2);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:8px 13px;font-size:12.5px;cursor:pointer;font-family:'Noto Sans Thai';
+    transition:.15s;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent);}
+
+  @media(max-width:560px){
+    .grid{grid-template-columns:1fr;}
+    .stats-row{grid-template-columns:repeat(2,1fr);}
+  }
+</style>
+</head>
+<body>
+
+<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html">Accumulation</a><a href="./dipbuy.html">Dip-Buy</a><a href="./entry.html">Entry Planner</a><a href="./scan.html">Market Scan</a><a href="./trend.html">Trend Rider</a><a href="./top100.html">Top 100</a><a href="./fav.html">สแกนเร็ว</a><a href="./liqwatch.html">Liquidation Watch</a><a href="./radar.html">Futures Radar 15M</a><a href="./accum.html">Accum (live)</a><a href="./validator.html" class="cur">Signal Validator</a></nav>
+
+<header>
+  <div class="brand">
+    <span class="dot"></span>
+    <div>
+      <h1 class="wordmark">SIGNAL VALIDATOR</h1>
+      <span class="sub">ผลลัพธ์จริงของสัญญาณที่ออกมา — ชนะ/แพ้/รอผล</span>
+    </div>
+  </div>
+</header>
+
+<div class="stats-row" id="statsRow">
+  <div class="stat-card">
+    <div class="label">Win Rate (30 วัน)</div>
+    <div class="value" id="winRate" style="color:var(--bull)">—</div>
+    <div class="sub" id="winRateSub">— สัญญาณ</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">Expectancy (R)</div>
+    <div class="value" id="expectancy">—</div>
+    <div class="sub">R multiple เฉลี่ย</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">ชนะ</div>
+    <div class="value" id="winCount" style="color:var(--bull)">0</div>
+    <div class="sub">สัญญาณ</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">แพ้</div>
+    <div class="value" id="lossCount" style="color:var(--bear)">0</div>
+    <div class="sub">สัญญาณ</div>
+  </div>
+  <div class="stat-card">
+    <div class="label">รอผล</div>
+    <div class="value" id="pendingCount" style="color:var(--warn)">0</div>
+    <div class="sub">PENDING</div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <div class="tabs">
+    <div class="tab active" data-filter="all">ทั้งหมด</div>
+    <div class="tab" data-filter="WIN">✓ ชนะ</div>
+    <div class="tab" data-filter="LOSS">✗ แพ้</div>
+    <div class="tab" data-filter="PENDING">⏳ รอผล</div>
+  </div>
+  <div>
+    <button class="btn" id="refreshBtn">↻ รีเฟรช</button>
+  </div>
+</div>
+
+<div class="grid" id="grid"></div>
+<div class="empty-note" id="emptyNote" style="display:none">ยังไม่มีข้อมูลสัญญาณ — รอ scanner สแกนและ outcome checker ทำงาน</div>
+
+<footer>
+  ข้อมูลจาก signal_log.json (เก็บในเครื่อง) · อัปเดตเมื่อ outcome checker ทำงาน<br>
+  สัญญาณที่ไม่ชนะ/แพ้ภายใน 12 ชม. = EXPIRED
+</footer>
+
+<script>
+const FUTURES_BASE = 'https://fapi.binance.com';
+const SIGNAL_LOG_URL = './signal_log.json';
+const OUTCOME_CHECKER = './outcome_checker.py';
+
+let state = {
+  log: [],
+  filter: 'all',
+};
+
+async function loadLog(){
+  try{
+    const r = await fetch(SIGNAL_LOG_URL + '?t=' + Date.now());
+    if(r.ok) state.log = await r.json();
+  }catch(e){
+    console.error('Cannot load log:', e);
+  }
+}
+
+function formatPrice(p){
+  if(p==null||!isFinite(p)) return '—';
+  if(p>=1000) return p.toLocaleString('en-US',{maximumFractionDigits:2});
+  if(p>=1) return p.toFixed(3);
+  return p.toFixed(6);
+}
+
+function renderStats(){
+  const now = new Date();
+  const thirtyDays = new Date(now.getTime() - 30*24*60*60*1000);
+  
+  const recent = state.log.filter(e => {
+    const t = new Date(e.timestamp);
+    return t > thirtyDays;
+  });
+  
+  const wins = recent.filter(e => e.outcome === 'WIN').length;
+  const losses = recent.filter(e => e.outcome === 'LOSS').length;
+  const pending = recent.filter(e => e.outcome === 'PENDING').length;
+  const total = wins + losses;
+  
+  const winRate = total > 0 ? (wins / total * 100).toFixed(1) : '—';
+  
+  // Expectancy
+  const rVals = recent.filter(e => e.r_multiple != null).map(e => e.r_multiple);
+  const exp = rVals.length > 0 ? (rVals.reduce((a,b)=>a+b,0) / rVals.length).toFixed(2) : '—';
+  
+  document.getElementById('winRate').textContent = winRate + '%';
+  document.getElementById('winRateSub').textContent = `${total} สัญญาณ (ชนะ ${wins} / แพ้ ${losses})`;
+  document.getElementById('expectancy').textContent = exp + 'R';
+  document.getElementById('winCount').textContent = wins;
+  document.getElementById('lossCount').textContent = losses;
+  document.getElementById('pendingCount').textContent = pending;
+}
+
+function renderGrid(){
+  let entries = state.log;
+  
+  if(state.filter !== 'all'){
+    entries = entries.filter(e => e.outcome === state.filter);
+  }
+  
+  // Sort: PENDING first, then by timestamp desc
+  entries.sort((a,b)=>{
+    if(a.outcome === 'PENDING' && b.outcome !== 'PENDING') return -1;
+    if(a.outcome !== 'PENDING' && b.outcome === 'PENDING') return 1;
+    return new Date(b.timestamp) - new Date(a.timestamp);
+  });
+  
+  const grid = document.getElementById('grid');
+  const empty = document.getElementById('emptyNote');
+  
+  if(!entries.length){
+    grid.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  
+  grid.innerHTML = entries.map(e => {
+    const cardCls = e.outcome === 'WIN' ? 'win' : e.outcome === 'LOSS' ? 'loss' : e.outcome === 'PENDING' ? 'pending' : '';
+    const symName = e.pair.replace('USDT','');
+    const time = new Date(e.timestamp).toLocaleString('th-TH',{hour12:false});
+    
+    let rHtml = '';
+    if(e.r_multiple != null){
+      const rCls = e.r_multiple >= 0 ? 'var(--bull)' : 'var(--bear)';
+      rHtml = `<div class="r-display"><b style="color:${rCls}">${e.r_multiple >= 0 ? '+' : ''}${e.r_multiple}R</b> — Entry ${formatPrice(e.entry)} → Outcome ${formatPrice(e.outcome_price)}</div>`;
+    }
+    
+    return `
+    <div class="card ${cardCls}">
+      <div class="card-top">
+        <div class="sym">${symName} <span class="quote">/USDT</span></div>
+        <span class="outcome-badge ${e.outcome}">${e.outcome}</span>
+      </div>
+      <div class="details">
+        <div>Signal: <b>${e.signal_type}</b></div>
+        <div>TF: <b>${e.timeframe}</b></div>
+        <div>Entry: <b>${formatPrice(e.entry)}</b></div>
+        <div>SL: <b>${formatPrice(e.sl)}</b></div>
+        <div>TP1: <b>${formatPrice(e.tp1)}</b></div>
+        <div>Confidence: <b>${e.confidence}</b></div>
+        <div>ADX: <b>${e.adx?.toFixed(1) || '—'}</b></div>
+        <div>RSI: <b>${e.rsi?.toFixed(1) || '—'}</b></div>
+      </div>
+      ${rHtml}
+      <div style="margin-top:6px;font-size:10px;color:var(--dim)">${time}</div>
+    </div>`;
+  }).join('');
+}
+
+async function refresh(){
+  await loadLog();
+  renderStats();
+  renderGrid();
+}
+
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    state.filter = tab.dataset.filter;
+    renderGrid();
+  });
+});
+
+document.getElementById('refreshBtn').addEventListener('click', refresh);
+
+// Auto refresh every 60s
+setInterval(refresh, 60000);
+
+// Initial load
+refresh();
+</script>
+</body>
+</html>
