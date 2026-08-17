@@ -241,6 +241,15 @@
   #tipBox p{margin:4px 0;color:#9aa6b6;}
   #tipBox b{color:#d6dde8;font-weight:600;}
 
+  #validatorTable{border-collapse:collapse;}
+  #validatorTable th{text-align:left;padding:8px 10px;color:var(--dim);font-weight:600;border-bottom:1px solid var(--line);font-size:11px;}
+  #validatorTable td{padding:8px 10px;}
+  #validatorTable tr:hover td{background:rgba(255,255,255,.02);}
+  .wr-good{color:var(--bull);font-weight:700;}
+  .wr-bad{color:var(--bear);font-weight:700;}
+  .wr-mid{color:var(--warn);font-weight:700;}
+  .wr-n{color:var(--dim);font-size:11px;}
+
   @media(max-width:560px){
     .head-stats{gap:14px;}
     .toolbar{flex-direction:column;align-items:stretch;}
@@ -292,6 +301,7 @@
     <div class="tab active" data-tab="signals">🔥 สัญญาณ ≥ 3 ดาว</div>
     <div class="tab" data-tab="watch">👁️ เฝ้าดู</div>
     <div class="tab" data-tab="volume">📊 วอลุ่มสูงสุด</div>
+    <div class="tab" data-tab="validator">✅ Signal Validator</div>
   </div>
   <div class="addbar">
     <input id="symInput" placeholder="เช่น OPUSDT" maxlength="15">
@@ -303,6 +313,21 @@
 
 <div class="grid" id="grid"></div>
 <div class="empty-note" id="emptyNote" style="display:none">ไม่มีสัญญาณ ≥ 3 ดาวตอนนี้ — เพิ่มเหรียญหรือรอรอบถัดไป</div>
+
+<div id="validatorView" style="display:none;max-width:1280px;margin:0 auto;">
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap;">
+    <div class="tabs" style="padding:3px;">
+      <div class="tab active" data-group="symbol">แยกตาม Symbol</div>
+      <div class="tab" data-group="signal">แยกตาม LONG/SHORT</div>
+    </div>
+    <span style="font-size:11px;color:var(--dim)">นับเฉพาะสัญญาณที่ปิดแล้ว (ถึง TP หรือโดน SL) — ไม่นับที่ยัง open</span>
+  </div>
+  <div id="validatorSummary" style="margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--dim);"></div>
+  <table class="sig-table" id="validatorTable" style="width:100%;font-size:12.5px;">
+    <thead><tr id="validatorHead"></tr></thead>
+    <tbody id="validatorBody"></tbody>
+  </table>
+</div>
 
 <!-- Alert banner -->
 <div class="alert-banner" id="alertBanner">
@@ -434,6 +459,89 @@ const KEY = 'futures_radar_15m_v2';
 const SETTINGS_KEY = 'futures_radar_settings_v2';
 const ALERTED_KEY = 'futures_radar_alerted_v1';
 
+// Worker URL ที่ deploy เรียบร้อยแล้ว
+const WORKER_API = 'https://futures-radar-worker.futures-radar-worker.workers.dev';
+
+async function fetchWinRate(groupBy){
+  try{
+    const res = await fetch(`${WORKER_API}/api/winrate?group=${groupBy}`);
+    if(!res.ok) throw new Error('winrate fetch fail');
+    return await res.json();
+  }catch(e){
+    console.error('fetchWinRate error', e);
+    return null;
+  }
+}
+async function fetchTop10(){
+  try{
+    const res = await fetch(`${WORKER_API}/api/top10`);
+    if(!res.ok) throw new Error('top10 fetch fail');
+    return await res.json();
+  }catch(e){
+    console.error('fetchTop10 error', e);
+    return null;
+  }
+}
+
+// ---------- Signal Validator ----------
+let validatorGroupBy = 'symbol'; // 'symbol' | 'signal'
+
+function winRateClass(pct){
+  if(pct >= 60) return 'wr-good';
+  if(pct >= 45) return 'wr-mid';
+  return 'wr-bad';
+}
+
+async function renderValidator(){
+  document.getElementById('validatorSummary').innerHTML = `<span style="color:var(--dim)">กำลังโหลดจาก Worker...</span>`;
+  const data = await fetchWinRate(validatorGroupBy);
+
+  if(!data){
+    document.getElementById('validatorSummary').innerHTML =
+      `<span style="color:var(--bear)">โหลดข้อมูลไม่ได้ — เช็คว่า WORKER_API URL ถูกต้องและ Worker deploy แล้วหรือยัง</span>`;
+    document.getElementById('validatorHead').innerHTML = '';
+    document.getElementById('validatorBody').innerHTML = '';
+    return;
+  }
+
+  const overall = data.overall;
+  document.getElementById('validatorSummary').innerHTML =
+    `รวม: <b style="color:var(--text)">${overall.n}</b> สัญญาณที่ปิดแล้ว · `+
+    `ชนะ <b style="color:var(--bull)">${overall.wins}</b> · แพ้ <b style="color:var(--bear)">${overall.losses}</b> · `+
+    `Win Rate <b class="${winRateClass(overall.ratePct)}">${overall.ratePct}%</b> `+
+    `(95% CI: ${overall.lowPct}–${overall.highPct}%) · `+
+    `<span style="color:var(--dim)">ยังเปิดอยู่ ${data.openCount} สัญญาณ</span>`;
+
+  const head = document.getElementById('validatorHead');
+  const body = document.getElementById('validatorBody');
+
+  if(validatorGroupBy === 'symbol'){
+    head.innerHTML = `<th>Symbol</th><th>n</th><th>Win</th><th>Loss</th><th>Win Rate</th><th>95% CI</th>`;
+    const rows = data.rows.map(r=>({...r, label: symToTh(r.label)}));
+    body.innerHTML = rows.length ? rows.map(r=>`
+      <tr>
+        <td><b>${r.label}</b></td>
+        <td class="wr-n">${r.n}</td>
+        <td style="color:var(--bull)">${r.wins}</td>
+        <td style="color:var(--bear)">${r.losses}</td>
+        <td class="${winRateClass(r.ratePct)}">${r.ratePct}%</td>
+        <td class="wr-n">${r.lowPct}–${r.highPct}%</td>
+      </tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:var(--dim);padding:20px;">ยังไม่มีสัญญาณที่ปิดครบ</td></tr>`;
+
+  } else {
+    head.innerHTML = `<th>ทิศทาง</th><th>n</th><th>Win</th><th>Loss</th><th>Win Rate</th><th>95% CI</th>`;
+    body.innerHTML = data.rows.map(r=>`
+      <tr>
+        <td><b style="color:${r.label==='LONG'?'var(--bull)':'var(--bear)'}">${r.label}</b></td>
+        <td class="wr-n">${r.n}</td>
+        <td style="color:var(--bull)">${r.wins}</td>
+        <td style="color:var(--bear)">${r.losses}</td>
+        <td class="${r.n>0?winRateClass(r.ratePct):'wr-n'}">${r.n>0?r.ratePct+'%':'—'}</td>
+        <td class="wr-n">${r.n>0?r.lowPct+'–'+r.highPct+'%':'—'}</td>
+      </tr>`).join('');
+  }
+}
+
 const TOOL_DATA = {
   confidence: { t:"Confidence % — ความมั่นใจ", use:"ระดับความน่าเชื่อถือ", ben:"≥70% น่าสนใจ, ≥85% แรงมาก", d:"รวม RSI + MACD + BB + Vol + แนวโน้ม 4H" },
   entry: { t:"Entry — ราคาเข้า", use:"จุดสั่งซื้อ/ขาย", d:"ราคาปัจจุบันตามสัญญาณ" },
@@ -564,9 +672,9 @@ function checkNewSignals(){
     const prev = state.prevSignals[sym];
     
     if(!prev || prev.signal !== sig.signal || prev.stars !== sig.stars){
-      // NEW SIGNAL!
+      // NEW SIGNAL! (logging ตอนนี้ทำโดย Worker ฝั่ง backend แล้ว — ฝั่งนี้แค่แจ้งเตือนสด)
       state.prevSignals[sym] = { signal: sig.signal, stars: sig.stars, time: Date.now() };
-      
+
       const symName = sym.replace('USDT','');
       const title = `🔔 ${sig.signal} ${symName} ${sig.stars}ดาว | ${sig.confidence}%`;
       const detail = `Entry ${sig.entry} | SL ${sig.sl} | TP1 ${sig.tp1} | ${sig.reason}`;
@@ -999,13 +1107,24 @@ async function refreshAll(){
     }
 
     const activeList = getCurrentList();
-    const results = await Promise.allSettled(activeList.map(sym=>computeSymbol(sym, ticker24h)));
+    // ดึง top10 จาก Worker (Bybit-based, ไม่ถูกบล็อก WAF เหมือน Binance client-side)
+    const workerData = await fetchTop10();
+    let fromWorker = {};
+    if(workerData && workerData.coins && workerData.coins.length > 0){
+      workerData.coins.forEach(c => { fromWorker[c.symbol] = c; });
+    }
+    // ใช้ข้อมูล Worker เป็นหลัก บวกกับ Binance สำหรับเหรียญที่ Worker ไม่มี
+    const results = await Promise.allSettled(activeList.map(sym=>{
+      if(fromWorker[sym]) return Promise.resolve(fromWorker[sym]);
+      return computeSymbol(sym, ticker24h);
+    }));
     results.forEach((r)=>{
       if(r.status==='fulfilled') state.data[r.value.symbol]=r.value;
     });
     await fetchThbRate();
     renderGrid();
     checkNewSignals();
+    if(state.tab === 'validator') renderValidator();
     document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('th-TH',{hour12:false});
     setConn(true);
   }catch(e){
@@ -1180,14 +1299,33 @@ function initAlertBanner(){
 }
 
 // ---------- Events ----------
-document.querySelectorAll('.tab').forEach(tab=>{
+document.querySelectorAll('.tabs > .tab[data-tab]').forEach(tab=>{
   tab.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    document.querySelectorAll('.tabs > .tab[data-tab]').forEach(t=>t.classList.remove('active'));
     tab.classList.add('active');
     state.tab = tab.getAttribute('data-tab');
-    renderGrid();
-    refreshAll();
-    connectWS();
+
+    const isValidator = state.tab === 'validator';
+    document.getElementById('grid').style.display = isValidator ? 'none' : '';
+    document.getElementById('emptyNote').style.display = 'none';
+    document.getElementById('validatorView').style.display = isValidator ? 'block' : 'none';
+
+    if(isValidator){
+      renderValidator();
+    } else {
+      renderGrid();
+      refreshAll();
+      connectWS();
+    }
+  });
+});
+
+document.querySelectorAll('#validatorView .tab[data-group]').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('#validatorView .tab[data-group]').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    validatorGroupBy = t.getAttribute('data-group');
+    renderValidator();
   });
 });
 document.getElementById('addBtn').addEventListener('click', ()=>{
