@@ -2,12 +2,9 @@ name = "futures-radar-worker"
 main = "src/index.js"
 compatibility_date = "2025-08-01"
 
-# Cron: รันทุก 1 นาที
-[triggers]
-crons = ["* * * * *"]
+# NOTE: Cron ปิดการใช้งาน — Binance บล็อก Cloudflare edge IP
+# radar.html สแกนจากเบราว์เซอร์โดยตรงแทน (ข้อมูลสด 100%)
 
-# KV Namespace — สร้างก่อนด้วย: wrangler kv namespace create SIGNAL_KV
-# แล้ววาง ID ที่ได้ลงที่นี่
 [[kv_namespaces]]
 binding = "SIGNAL_KV"
-id = "REPLACE_WITH_YOUR_KV_NAMESPACE_ID"
+id = "daa5f58e90f04dd4b01e528eb1a7cbab"
