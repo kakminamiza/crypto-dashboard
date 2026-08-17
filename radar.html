@@ -421,7 +421,7 @@
 </div>
 
 <footer>
-  ข้อมูลจาก Binance Futures · อัตรา USDT/THB อ้างอิง CoinGecko · คำนวณ RSI/MACD/BB/ATR จากแท่ง 15 นาที + แนวโน้ม 4H<br>
+  ข้อมูลจาก Binance Futures · อัตรา USDT/THB อ้างอิง CoinGecko · คำนวณ RSI/MACD/BB/ATR จากแท่งเทียน 5 นาที 15 นาที และ 30 นาที + แนวโน้ม 4H<br>
   สัญญาณจากโปรแกรมวิเคราะห์เทคนิค · ไม่ใช่คำแนะนำการลงทุน · บริหารความเสี่ยงด้วยดุลยพินิจ
 </footer>
 
@@ -729,6 +729,16 @@ function computeSignal(d){
   
   // Reason
   const reasons = [];
+  
+  // Multi-timeframe alignment
+  if(d.scores){
+    const aligned = [];
+    if((dir==='LONG' && d.scores.m5>=35) || (dir==='SHORT' && d.scores.m5<=-35)) aligned.push('5m');
+    if((dir==='LONG' && d.scores.m15>=35) || (dir==='SHORT' && d.scores.m15<=-35)) aligned.push('15m');
+    if((dir==='LONG' && d.scores.m30>=35) || (dir==='SHORT' && d.scores.m30<=-35)) aligned.push('30m');
+    if(aligned.length >= 2) reasons.push(aligned.join('+') + ' ใจเดียวกัน');
+  }
+  
   if(dir === 'LONG'){
     if(d.rsi < 35) reasons.push('RSI oversold');
     else if(d.rsi < 50) reasons.push('RSI ต่ำ');
@@ -776,17 +786,45 @@ async function fetchThbRate(){
 }
 
 async function computeSymbol(symbol, ticker24h){
-  const [m15, h4] = await Promise.all([
+  const [m5, m15, m30, h4] = await Promise.all([
+    fetchKlines(symbol,'5m',100),
     fetchKlines(symbol,'15m',100),
+    fetchKlines(symbol,'30m',100),
     fetchKlines(symbol,'4h',210),
   ]);
+  
+  const score5 = computeScore({
+    rsiVal: rsi(m5.closes,14),
+    macdHist: macd(m5.closes).hist,
+    price: m5.closes[m5.closes.length-1],
+    bb: bollinger(m5.closes,20,2),
+    vRatio: volRatio(m5.volumes,20)
+  });
+  const score15 = computeScore({
+    rsiVal: rsi(m15.closes,14),
+    macdHist: macd(m15.closes).hist,
+    price: m15.closes[m15.closes.length-1],
+    bb: bollinger(m15.closes,20,2),
+    vRatio: volRatio(m15.volumes,20)
+  });
+  const score30 = computeScore({
+    rsiVal: rsi(m30.closes,14),
+    macdHist: macd(m30.closes).hist,
+    price: m30.closes[m30.closes.length-1],
+    bb: bollinger(m30.closes,20,2),
+    vRatio: volRatio(m30.volumes,20)
+  });
+  
+  // Weighted: 15m 50%, 5m 25%, 30m 25%
+  const score = Math.round(score5 * 0.25 + score15 * 0.5 + score30 * 0.25);
+  
+  // Primary indicators from 15m
   const rsiVal = rsi(m15.closes,14);
   const macdRes = macd(m15.closes);
   const bb = bollinger(m15.closes,20,2);
   const vR = volRatio(m15.volumes,20);
   const atr = atr14(m15.highs, m15.lows, m15.closes);
   const price = m15.closes[m15.closes.length-1];
-  const score = computeScore({rsiVal, macdHist: macdRes.hist, price, bb, vRatio: vR});
   const trend = swingTrend(h4.closes);
   const t = ticker24h ? ticker24h[symbol] : null;
   const bbPos = (price-bb.lower)/(bb.upper-bb.lower);
@@ -796,6 +834,7 @@ async function computeSymbol(symbol, ticker24h){
     changePct: t ? parseFloat(t.priceChangePercent) : 0,
     rsi: rsiVal, macdHist: macdRes.hist, bb, bbPos,
     volRatio: vR, score, trend, atr14: atr,
+    scores: { m5: score5, m15: score15, m30: score30 },
   };
   
   d.signal = computeSignal(d);
