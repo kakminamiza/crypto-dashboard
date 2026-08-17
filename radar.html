@@ -847,7 +847,8 @@ function computeScore(d){
   let s = 0;
   s += (d.rsi-50) * 1.3;
   s += Math.max(-25, Math.min(25, d.macdHist * 4000));
-  const bbPos = (d.price - d.bb.lower) / (d.bb.upper - d.bb.lower);
+  const bbRange = (d.bb.upper - d.bb.lower);
+  const bbPos = bbRange > 0 ? (d.price - d.bb.lower) / bbRange : 0.5;
   s += (bbPos - 0.5) * 40;
   if(d.vRatio > 1.4) s *= Math.min(1.4, 1 + (d.vRatio-1.4)*0.2);
   return Math.max(-100, Math.min(100, Math.round(s)));
@@ -1015,7 +1016,8 @@ async function computeSymbol(symbol, ticker24h){
   const price = m15.closes[m15.closes.length-1];
   const trend = swingTrend(h4.closes);
   const t = ticker24h ? ticker24h[symbol] : null;
-  const bbPos = (price-bb.lower)/(bb.upper-bb.lower);
+  const bbRange = (bb.upper - bb.lower);
+  const bbPos = bbRange > 0 ? (price-bb.lower)/bbRange : 0.5;
   
   const d = {
     symbol, price,
