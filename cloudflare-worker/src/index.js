@@ -42,16 +42,56 @@ function computeSignal(sym, price, rsiV, macdV, bb, vR, atrV, trend, scores) {
   else { sl = price + risk; tp1 = price - risk * 1.5; tp2 = price - risk * 3; }
   let conf = Math.min(100, Math.abs(score));
   if ((dir === "LONG" && trend === "up") || (dir === "SHORT" && trend === "down")) conf = Math.min(100, conf + 10);
+<<<<<<< HEAD
   const reasons = [];
   if (dir === "LONG") { if (rsiV < 35) reasons.push("RSI oversold"); else if (rsiV < 50) reasons.push("RSI ต่ำ"); }
   else { if (rsiV > 65) reasons.push("RSI overbought"); else if (rsiV > 50) reasons.push("RSI สูง"); }
   if (vR > 1.4) reasons.push("Vol เพิ่ม");
   if (trend === "up" && dir === "LONG") reasons.push("4H ขาขึ้น");
   if (trend === "down" && dir === "SHORT") reasons.push("4H ขาลง");
+=======
+  if (vR < 1.0) conf -= 10;
+  if (dir === "LONG" && rsiV < 35) conf += 5;
+  if (dir === "SHORT" && rsiV > 65) conf += 5;
+  conf = Math.max(0, Math.min(100, conf));
+  
+  const reasons = [];
+  if (dir === "LONG") {
+    if (rsiV < 35) reasons.push("RSI oversold");
+    else if (rsiV < 50) reasons.push("RSI ต่ำ");
+    if (macdV > 0) reasons.push("MACD +");
+    const bbPos = (price - bb.lower) / (bb.upper - bb.lower);
+    if (bbPos < 0.25) reasons.push("BB ล่าง");
+    if (trend === "up") reasons.push("4H ขาขึ้น");
+    if (vR > 1.4) reasons.push("Vol เพิ่ม");
+  } else {
+    if (rsiV > 65) reasons.push("RSI overbought");
+    else if (rsiV > 50) reasons.push("RSI สูง");
+    if (macdV < 0) reasons.push("MACD -");
+    const bbPos = (price - bb.lower) / (bb.upper - bb.lower);
+    if (bbPos > 0.75) reasons.push("BB บน");
+    if (trend === "down") reasons.push("4H ขาลง");
+    if (vR > 1.4) reasons.push("Vol เพิ่ม");
+  }
+  
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
   const stars = Math.min(5, Math.max(1, Math.floor(Math.abs(score) / 16) + 1));
   return { signal: dir, stars, confidence: conf, entry: price, sl, tp1, tp2, reason: reasons.length ? reasons.join(" · ") : "โมเมนตัมรวม" };
 }
 
+<<<<<<< HEAD
+=======
+// Wilson confidence interval for win rate
+function wilsonCI(wins, n) {
+  if (n === 0) return { rate: 0, low: 0, high: 0 };
+  const z = 1.96, p = wins / n;
+  const denom = 1 + z * z / n;
+  const center = (p + z * z / (2 * n)) / denom;
+  const spread = z * Math.sqrt((p * (1 - p) + z * z / (4 * n)) / n) / denom;
+  return { rate: Math.round(p * 100), low: Math.round(Math.max(0, center - spread) * 100), high: Math.round(Math.min(1, center + spread) * 100) };
+}
+
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
 // Main scan
 async function scanAll(env) {
   const tickers = await fetchJSON(`${FAPI}/fapi/v1/ticker/24hr`);
@@ -62,9 +102,17 @@ async function scanAll(env) {
     .filter(t => t.symbol.endsWith("USDT") && !/_/.test(t.symbol) && parseFloat(t.quoteVolume) > 3e7)
     .map(t => ({ sym: t.symbol, chg: parseFloat(t.priceChangePercent), vol: parseFloat(t.quoteVolume), last: parseFloat(t.lastPrice) }));
 
+<<<<<<< HEAD
   const maxVol = Math.max(...filtered.map(t => t.vol));
   filtered.forEach(t => { t.score = Math.abs(t.chg) * 0.6 + (t.vol / maxVol) * 40; });
   filtered.sort((a, b) => b.score - a.score);
+=======
+  if (!filtered.length) return { error: "no filtered coins" };
+
+  const maxVol = Math.max(...filtered.map(t => t.vol));
+  filtered.forEach(t => { t.momentumScore = Math.abs(t.chg) * 0.6 + (t.vol / maxVol) * 40; });
+  filtered.sort((a, b) => b.momentumScore - a.momentumScore);
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
 
   const top10 = filtered.slice(0, 10);
   const results = [];
@@ -88,6 +136,7 @@ async function scanAll(env) {
       const avgV = v20.reduce((a, b) => a + b, 0) / v20.length;
       const vRatio = avgV > 0 ? vols[vols.length - 1] / avgV : 1;
 
+<<<<<<< HEAD
       const sig = computeSignal(coin.sym, price, rsi(closes), macd(closes).hist, bollinger(closes), vRatio, atr(highs, lows, closes), swing4h(h4closes), { m15: computeScore({ rsi: rsi(closes), macdHist: macd(closes).hist, price, bb: bollinger(closes), vRatio }) });
       results.push({ symbol: coin.sym, price, change24h: coin.chg, volume24h: coin.vol, signal: sig.signal, stars: sig.stars, confidence: sig.confidence, entry: sig.entry, sl: sig.sl, tp1: sig.tp1, tp2: sig.tp2, reason: sig.reason, timestamp: new Date().toISOString() });
     } catch (e) { console.log("skip", coin.sym, e.message); }
@@ -96,6 +145,31 @@ async function scanAll(env) {
   // Check open signals from KV
   const logRaw = await env.SIGNAL_KV.get("signal_log");
   const log = logRaw ? JSON.parse(logRaw) : [];
+=======
+      const rsiV = rsi(closes);
+      const macdV = macd(closes).hist;
+      const bb = bollinger(closes);
+      const atrV = atr(highs, lows, closes);
+      const trend = swing4h(h4closes);
+      const scores = { m15: computeScore({ rsi: rsiV, macdHist: macdV, price, bb, vRatio }) };
+      
+      const sig = computeSignal(coin.sym, price, rsiV, macdV, bb, vRatio, atrV, trend, scores);
+      results.push({
+        symbol: coin.sym, price, change24h: coin.chg, volume24h: coin.vol,
+        signal: sig.signal, stars: sig.stars, confidence: sig.confidence,
+        entry: sig.entry, sl: sig.sl, tp1: sig.tp1, tp2: sig.tp2, reason: sig.reason,
+        timestamp: new Date().toISOString()
+      });
+    } catch (e) { console.log("skip", coin.sym, e.message); }
+  }
+
+  // Load signal log from KV
+  const logRaw = await env.SIGNAL_KV.get("signal_log");
+  const log = logRaw ? JSON.parse(logRaw) : [];
+  const now = new Date().toISOString();
+
+  // Check open signals for outcome
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
   const open = log.filter(e => e.outcome === "PENDING");
   const stillOpen = [];
 
@@ -111,10 +185,16 @@ async function scanAll(env) {
       if (outcome) {
         sig.outcome = outcome;
         sig.outcomePrice = p;
+<<<<<<< HEAD
         sig.outcomeTime = new Date().toISOString();
         const risk = Math.abs(sig.entry - sig.sl);
         sig.rMultiple = outcome === "WIN" ? Math.round((Math.abs(p - sig.entry) / risk) * 100) / 100 : -1;
         console.log("closed", sig.symbol, outcome, sig.rMultiple + "R");
+=======
+        sig.outcomeTime = now;
+        const risk = Math.abs(sig.entry - sig.sl);
+        sig.rMultiple = outcome === "WIN" ? Math.round((Math.abs(p - sig.entry) / risk) * 100) / 100 : -1;
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
       } else {
         stillOpen.push(sig);
       }
@@ -122,12 +202,22 @@ async function scanAll(env) {
   }
 
   // Log new signals
+<<<<<<< HEAD
   const now = new Date().toISOString();
+=======
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
   for (const r of results) {
     if (r.signal === "WAIT") continue;
     const exists = log.find(e => e.symbol === r.symbol && e.outcome === "PENDING" && e.signal === r.signal);
     if (!exists) {
+<<<<<<< HEAD
       log.push({ symbol: r.symbol, signal: r.signal, entry: r.price, sl: r.sl, tp1: r.tp1, tp2: r.tp2, timestamp: now, outcome: "PENDING", confidence: r.confidence, rMultiple: null });
+=======
+      log.push({
+        symbol: r.symbol, signal: r.signal, entry: r.price, sl: r.sl, tp1: r.tp1, tp2: r.tp2,
+        timestamp: now, outcome: "PENDING", confidence: r.confidence, rMultiple: null
+      });
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
     }
   }
 
@@ -139,6 +229,7 @@ async function scanAll(env) {
   return { ok: true, timestamp: now, top10: results, closed: open.length - stillOpen.length, open: stillOpen.length };
 }
 
+<<<<<<< HEAD
 function wilsonCI(wins, n) {
   if (n === 0) return { rate: 0, low: 0, high: 0 };
   const z = 1.96, p = wins / n;
@@ -153,6 +244,29 @@ async function getWinRate(groupBy) {
   const log = raw ? JSON.parse(raw) : [];
   const closed = log.filter(e => e.outcome === "WIN" || e.outcome === "LOSS");
   if (!closed.length) return { overall: { n: 0, wins: 0, losses: 0, ratePct: 0, lowPct: 0, highPct: 0 }, openCount: log.filter(e => e.outcome === "PENDING").length, rows: [] };
+=======
+// API: GET /api/top10 — latest scan results
+async function handleTop10(env) {
+  const raw = await env.SIGNAL_KV.get("last_scan");
+  if (!raw) return new Response(JSON.stringify({ error: "no data yet" }), { headers: { "Content-Type": "application/json" } });
+  return new Response(raw, { headers: { "Content-Type": "application/json" } });
+}
+
+// API: GET /api/winrate?group=symbol|signal
+async function handleWinRate(url, env) {
+  const group = url.searchParams.get("group") || "symbol";
+  const raw = await env.SIGNAL_KV.get("signal_log");
+  const log = raw ? JSON.parse(raw) : [];
+  const closed = log.filter(e => e.outcome === "WIN" || e.outcome === "LOSS");
+  
+  if (!closed.length) {
+    return new Response(JSON.stringify({
+      overall: { n: 0, wins: 0, losses: 0, ratePct: 0, lowPct: 0, highPct: 0 },
+      openCount: log.filter(e => e.outcome === "PENDING").length,
+      rows: []
+    }), { headers: { "Content-Type": "application/json" } });
+  }
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
 
   const overall = wilsonCI(closed.filter(e => e.outcome === "WIN").length, closed.length);
   overall.wins = closed.filter(e => e.outcome === "WIN").length;
@@ -161,7 +275,11 @@ async function getWinRate(groupBy) {
 
   const groups = {};
   for (const e of closed) {
+<<<<<<< HEAD
     const key = groupBy === "symbol" ? e.symbol : e.signal;
+=======
+    const key = group === "symbol" ? e.symbol : e.signal;
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
     if (!groups[key]) groups[key] = { n: 0, wins: 0, losses: 0 };
     groups[key].n++;
     if (e.outcome === "WIN") groups[key].wins++;
@@ -173,12 +291,21 @@ async function getWinRate(groupBy) {
     return { label, n: d.n, wins: d.wins, losses: d.losses, ratePct: ci.rate, lowPct: ci.low, highPct: ci.high };
   }).sort((a, b) => b.n - a.n);
 
+<<<<<<< HEAD
   return { overall, openCount: log.filter(e => e.outcome === "PENDING").length, rows };
+=======
+  return new Response(JSON.stringify({
+    overall,
+    openCount: log.filter(e => e.outcome === "PENDING").length,
+    rows
+  }), { headers: { "Content-Type": "application/json" } });
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
 }
 
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+<<<<<<< HEAD
     if (url.pathname === "/api/top10") {
       const raw = await env.SIGNAL_KV.get("last_scan");
       return new Response(raw || JSON.stringify({ error: "no data yet" }), { headers: { "Content-Type": "application/json" } });
@@ -189,6 +316,14 @@ export default {
       return new Response(JSON.stringify(data), { headers: { "Content-Type": "application/json" } });
     }
     return new Response("Futures Radar Worker OK");
+=======
+    if (url.pathname === "/api/top10") return handleTop10(env);
+    if (url.pathname === "/api/winrate") return handleWinRate(url, env);
+    return new Response(JSON.stringify({
+      status: "ok",
+      endpoints: ["/api/top10", "/api/winrate?group=symbol|signal"]
+    }), { headers: { "Content-Type": "application/json" } });
+>>>>>>> 7405a217cf0682459ed449b9e0fd0555a573d9b8
   },
 
   async scheduled(event, env, ctx) {

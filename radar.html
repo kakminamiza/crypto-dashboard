@@ -154,7 +154,6 @@
     #manualPanel .grid2{grid-template-columns:1fr;}
   }
 </style>
-<link rel="stylesheet" href="./tooltip.css">
 </head>
 <body>
 
@@ -269,10 +268,9 @@
 
 <script>
 // ============================================================
-// CONFIG
+// CONFIG — แก้ URL นี้หลัง deploy Worker แล้ว
 // ============================================================
-// NOTE: ไม่ใช้ Cloudflare Worker แล้ว (Binance บล็อก CF edge)
-// สแกนสดจากเบราว์เซอร์โดยตรงผ่าน FUTURES_BASE
+const WORKER_API = 'https://futures-radar-worker.futures-radar-worker.workers.dev';
 
 const FUTURES_BASE = 'https://fapi.binance.com';
 const WS_BASE = 'wss://fstream.binance.com/stream?streams=';
@@ -384,110 +382,53 @@ let validatorGroupBy = 'symbol';
 function winRateClass(pct){ return pct>=60?'wr-good':pct>=45?'wr-mid':'wr-bad'; }
 
 async function renderValidator(){
+  document.getElementById('validatorSummary').innerHTML = '<span style="color:var(--dim)">กำลังโหลด...</span>';
   try{
-    const log = loadSignalLog();
-    const closed = log.filter(e=> e.status==='win' || e.status==='loss');
-    const openCount = log.filter(e=>e.status==='open').length;
+    const res = await fetch(`${WORKER_API}/api/winrate?group=${validatorGroupBy}`);
+    if(!res.ok) throw new Error('API error');
+    const data = await res.json();
 
-    if(!closed.length){
-      document.getElementById('validatorSummary').innerHTML = '<span style="color:var(--dim)">ยังไม่มีสัญญาณที่ปิดครบ</span>';
-      document.getElementById('validatorHead').innerHTML = '<th>Symbol</th><th>n</th><th>Win</th><th>Loss</th><th>Win Rate</th>';
-      document.getElementById('validatorBody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--dim);padding:20px;">ยังไม่มีข้อมูล</td></tr>';
+    if(!data.overall){
+      document.getElementById('validatorSummary').innerHTML = '<span style="color:var(--bear)">ไม่มีข้อมูล</span>';
       return;
     }
 
-    const o = getWinRateStats();
+    const o = data.overall;
     document.getElementById('validatorSummary').innerHTML =
       `รวม: <b style="color:var(--text)">${o.n}</b> สัญญาณ · ชนะ <b style="color:var(--bull)">${o.wins}</b> · แพ้ <b style="color:var(--bear)">${o.losses}</b> · `+
-      `Win Rate <b class="${winRateClass(o.ratePct)}">${o.ratePct}%</b> · <span style="color:var(--dim)">เปิดอยู่ ${openCount}</span>`;
+      `Win Rate <b class="${winRateClass(o.ratePct)}">${o.ratePct}%</b> · <span style="color:var(--dim)">เปิดอยู่ ${data.openCount}</span>`;
 
     const head = document.getElementById('validatorHead');
     const body = document.getElementById('validatorBody');
 
-    let rows = [];
     if(validatorGroupBy === 'symbol'){
       head.innerHTML = '<th>Symbol</th><th>n</th><th>Win</th><th>Loss</th><th>Win Rate</th>';
-      const symbols = [...new Set(closed.map(e=>e.symbol))];
-      rows = symbols.map(sym=>{
-        const s = getWinRateStats(sym, null);
-        return { label: symToTh(sym), ...s };
-      }).sort((a,b)=> b.n - a.n);
-      body.innerHTML = rows.length ? rows.map(r=>`<tr><td><b>${r.label}</b></td><td class="wr-n">${r.n}</td><td style="color:var(--bull)">${r.wins}</td><td style="color:var(--bear)">${r.losses}</td><td class="${winRateClass(r.ratePct)}">${r.ratePct}%</td></tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--dim)">ยังไม่มีข้อมูล</td></tr>';
+      body.innerHTML = data.rows.map(r=>`<tr><td><b>${symToTh(r.label)}</b></td><td class="wr-n">${r.n}</td><td style="color:var(--bull)">${r.wins}</td><td style="color:var(--bear)">${r.losses}</td><td class="${winRateClass(r.ratePct)}">${r.ratePct}%</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--dim)">ยังไม่มีข้อมูล</td></tr>';
     } else {
       head.innerHTML = '<th>ทิศทาง</th><th>n</th><th>Win</th><th>Loss</th><th>Win Rate</th>';
-      rows = ['LONG','SHORT'].map(sig=>{
-        const s = getWinRateStats(null, sig);
-        return { label: sig, ...s };
-      });
-      body.innerHTML = rows.map(r=>`<tr><td><b style="color:${r.label==='LONG'?'var(--bull)':'var(--bear)'}">${r.label}</b></td><td class="wr-n">${r.n}</td><td style="color:var(--bull)">${r.wins}</td><td style="color:var(--bear)">${r.losses}</td><td class="${r.n>0?winRateClass(r.ratePct):'wr-n'}">${r.n>0?r.ratePct+'%':'—'}</td></tr>`).join('');
+      body.innerHTML = data.rows.map(r=>`<tr><td><b style="color:${r.label==='LONG'?'var(--bull)':'var(--bear)'}">${r.label}</b></td><td class="wr-n">${r.n}</td><td style="color:var(--bull)">${r.wins}</td><td style="color:var(--bear)">${r.losses}</td><td class="${r.n>0?winRateClass(r.ratePct):'wr-n'}">${r.n>0?r.ratePct+'%':'—'}</td></tr>`).join('');
     }
   }catch(e){
     document.getElementById('validatorSummary').innerHTML = `<span style="color:var(--bear)">โหลดไม่ได้ — ${e.message}</span>`;
   }
 }
 
-// ---------- Refresh (client-side scan from Binance) ----------
-async function fetchAllTicker24h(){
-  const res = await fetch(`${FUTURES_BASE}/fapi/v1/ticker/24hr`);
-  return res.json();
-}
-async function fetchKlines(symbol, interval, limit){
-  const res = await fetch(`${FUTURES_BASE}/fapi/v1/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
-  const raw = await res.json();
-  return {
-    closes: raw.map(k=>parseFloat(k[4])),
-    highs: raw.map(k=>parseFloat(k[2])),
-    lows: raw.map(k=>parseFloat(k[3])),
-    volumes: raw.map(k=>parseFloat(k[5])),
-  };
-}
-function scoreFromCloses(closes, highs, lows, vols){
-  const rsiV = rsi(closes,14);
-  const macdV = macd(closes).hist;
-  const bb = bollinger(closes,20,2);
-  const bbPos = (closes[closes.length-1]-bb.lower)/(bb.upper-bb.lower);
-  const v20 = vols.slice(-21,-1);
-  const avgV = v20.reduce((a,b)=>a+b,0)/v20.length || 1;
-  const vRatio = vols[vols.length-1]/avgV;
-  const atrV = atr14(highs,lows,closes);
-  return { rsiV, macdV, bb, bbPos, vRatio, atrV, score: computeScore({
-    rsiVal:rsiV, macdHist:macdV, price:closes[closes.length-1], bb, vRatio
-  }) };
-}
+// ---------- Refresh (fetch from Worker) ----------
 async function refreshAll(){
   document.getElementById('refreshBtn').textContent = '↻ กำลังโหลด...';
   try{
-    const ticker = await fetchAllTicker24h();
-    const tmap = {};
-    ticker.forEach(t=> tmap[t.symbol]=t);
-    const usdt = ticker.filter(t=>t.symbol.endsWith('USDT') && !t.symbol.includes('_'))
-      .sort((a,b)=>parseFloat(b.quoteVolume)-parseFloat(a.quoteVolume)).slice(0,30);
-    const list = [...new Set([...state.watchlist, ...usdt.map(t=>t.symbol)])].slice(0,40);
+    // Fetch top10 from Worker
+    const res = await fetch(`${WORKER_API}/api/top10`);
+    if(res.ok){
+      const j = await res.json();
+      if(j.top10){
+        j.top10.forEach(c => { state.data[c.symbol] = c; });
+        document.getElementById('lastUpdate').textContent = new Date(j.timestamp).toLocaleTimeString('th-TH',{hour12:false});
+        setConn(true);
+      }
+    }
 
-    const results = await Promise.allSettled(list.map(async sym=>{
-      const [m15,h4] = await Promise.all([
-        fetchKlines(sym,'15m',100),
-        fetchKlines(sym,'4h',210)
-      ]);
-      const d15 = scoreFromCloses(m15.closes, m15.highs, m15.lows, m15.volumes);
-      const trend = swingTrend(h4.closes);
-      const price = m15.closes[m15.closes.length-1];
-      const sig = computeSignal({
-        symbol:sym, price, rsi:d15.rsiV, macdHist:d15.macdV, bb:d15.bb, bbPos:d15.bbPos,
-        volRatio:d15.vRatio, score:d15.score, trend, atr14:d15.atrV,
-        scores:{ m15:d15.score }
-      });
-      const t = tmap[sym];
-      return {
-        symbol:sym, price, changePct: t?parseFloat(t.priceChangePercent):0,
-        rsi:d15.rsiV, macdHist:d15.macdV, bb:d15.bb, bbPos:d15.bbPos,
-        volRatio:d15.vRatio, score:d15.score, trend, atr14:d15.atrV,
-        signal: sig, lastUpdate:new Date().toISOString()
-      };
-    }));
-
-    results.forEach(r=>{ if(r.status==='fulfilled' && r.value) state.data[r.value.symbol]=r.value; });
-
+    // Fetch THB rate
     try{
       const thb = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=thb');
       const t = await thb.json();
@@ -495,13 +436,12 @@ async function refreshAll(){
       document.getElementById('thbRate').textContent = state.thbRate.toFixed(2);
     }catch(e){}
 
-    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('th-TH',{hour12:false});
-    setConn(true);
     renderGrid();
     if(state.tab === 'validator') renderValidator();
-    const sigs = Object.values(state.data).filter(d=>d.signal && d.signal.stars>=3);
+
+    // Count signals
+    const sigs = Object.values(state.data).filter(d => d.signal && d.signal.stars >= 3);
     document.getElementById('signalCount').textContent = sigs.length;
-    checkNewSignals();
   }catch(e){
     console.error(e);
     setConn(false);
@@ -628,6 +568,5 @@ document.getElementById('testBtn').addEventListener('click', ()=>{
   },1000);
 })();
 </script>
-<script src="./tooltip.js"></script>
 </body>
 </html>
