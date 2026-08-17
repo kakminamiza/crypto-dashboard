@@ -384,31 +384,42 @@ let validatorGroupBy = 'symbol';
 function winRateClass(pct){ return pct>=60?'wr-good':pct>=45?'wr-mid':'wr-bad'; }
 
 async function renderValidator(){
-  document.getElementById('validatorSummary').innerHTML = '<span style="color:var(--dim)">กำลังโหลด...</span>';
   try{
-    const res = await fetch(`${WORKER_API}/api/winrate?group=${validatorGroupBy}`);
-    if(!res.ok) throw new Error('API error');
-    const data = await res.json();
+    const log = loadSignalLog();
+    const closed = log.filter(e=> e.status==='win' || e.status==='loss');
+    const openCount = log.filter(e=>e.status==='open').length;
 
-    if(!data.overall){
-      document.getElementById('validatorSummary').innerHTML = '<span style="color:var(--bear)">ไม่มีข้อมูล</span>';
+    if(!closed.length){
+      document.getElementById('validatorSummary').innerHTML = '<span style="color:var(--dim)">ยังไม่มีสัญญาณที่ปิดครบ</span>';
+      document.getElementById('validatorHead').innerHTML = '<th>Symbol</th><th>n</th><th>Win</th><th>Loss</th><th>Win Rate</th>';
+      document.getElementById('validatorBody').innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--dim);padding:20px;">ยังไม่มีข้อมูล</td></tr>';
       return;
     }
 
-    const o = data.overall;
+    const o = getWinRateStats();
     document.getElementById('validatorSummary').innerHTML =
       `รวม: <b style="color:var(--text)">${o.n}</b> สัญญาณ · ชนะ <b style="color:var(--bull)">${o.wins}</b> · แพ้ <b style="color:var(--bear)">${o.losses}</b> · `+
-      `Win Rate <b class="${winRateClass(o.ratePct)}">${o.ratePct}%</b> · <span style="color:var(--dim)">เปิดอยู่ ${data.openCount}</span>`;
+      `Win Rate <b class="${winRateClass(o.ratePct)}">${o.ratePct}%</b> · <span style="color:var(--dim)">เปิดอยู่ ${openCount}</span>`;
 
     const head = document.getElementById('validatorHead');
     const body = document.getElementById('validatorBody');
 
+    let rows = [];
     if(validatorGroupBy === 'symbol'){
       head.innerHTML = '<th>Symbol</th><th>n</th><th>Win</th><th>Loss</th><th>Win Rate</th>';
-      body.innerHTML = data.rows.map(r=>`<tr><td><b>${symToTh(r.label)}</b></td><td class="wr-n">${r.n}</td><td style="color:var(--bull)">${r.wins}</td><td style="color:var(--bear)">${r.losses}</td><td class="${winRateClass(r.ratePct)}">${r.ratePct}%</td></tr>`).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--dim)">ยังไม่มีข้อมูล</td></tr>';
+      const symbols = [...new Set(closed.map(e=>e.symbol))];
+      rows = symbols.map(sym=>{
+        const s = getWinRateStats(sym, null);
+        return { label: symToTh(sym), ...s };
+      }).sort((a,b)=> b.n - a.n);
+      body.innerHTML = rows.length ? rows.map(r=>`<tr><td><b>${r.label}</b></td><td class="wr-n">${r.n}</td><td style="color:var(--bull)">${r.wins}</td><td style="color:var(--bear)">${r.losses}</td><td class="${winRateClass(r.ratePct)}">${r.ratePct}%</td></tr>`).join('') : '<tr><td colspan="5" style="text-align:center;color:var(--dim)">ยังไม่มีข้อมูล</td></tr>';
     } else {
       head.innerHTML = '<th>ทิศทาง</th><th>n</th><th>Win</th><th>Loss</th><th>Win Rate</th>';
-      body.innerHTML = data.rows.map(r=>`<tr><td><b style="color:${r.label==='LONG'?'var(--bull)':'var(--bear)'}">${r.label}</b></td><td class="wr-n">${r.n}</td><td style="color:var(--bull)">${r.wins}</td><td style="color:var(--bear)">${r.losses}</td><td class="${r.n>0?winRateClass(r.ratePct):'wr-n'}">${r.n>0?r.ratePct+'%':'—'}</td></tr>`).join('');
+      rows = ['LONG','SHORT'].map(sig=>{
+        const s = getWinRateStats(null, sig);
+        return { label: sig, ...s };
+      });
+      body.innerHTML = rows.map(r=>`<tr><td><b style="color:${r.label==='LONG'?'var(--bull)':'var(--bear)'}">${r.label}</b></td><td class="wr-n">${r.n}</td><td style="color:var(--bull)">${r.wins}</td><td style="color:var(--bear)">${r.losses}</td><td class="${r.n>0?winRateClass(r.ratePct):'wr-n'}">${r.n>0?r.ratePct+'%':'—'}</td></tr>`).join('');
     }
   }catch(e){
     document.getElementById('validatorSummary').innerHTML = `<span style="color:var(--bear)">โหลดไม่ได้ — ${e.message}</span>`;
