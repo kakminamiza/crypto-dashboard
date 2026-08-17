@@ -1,23 +1,17 @@
 // Local scanner: ดึง Binance Futures → คำนวณสัญญาณ → push ลง Cloudflare KV
 // รันบนเครื่องพี่กั๊ก (ไม่ใช่ Worker) เพราะ Binance บล็อก Cloudflare IP
-// ใช้: node local_scanner_to_kv.mjs  (รันทุก 1 นาที ผ่าน task scheduler)
+// ใช้ wrangler OAuth (ที่ล็อกอินอยู่) เขียน KV — ไม่ต้องขอ token แยก
+// รัน: node local_scanner_to_kv.mjs  (ตั้ง Task Scheduler ทุก 1 นาที)
 
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
+import fs from 'fs';
 
 const FAPI = "https://fapi.binance.com";
-const CF_ACCOUNT_ID = process.env.CF_ACCOUNT_ID;
 const CF_KV_NAMESPACE = "daa5f58e90f04dd4b01e528eb1a7cbab"; // SIGNAL_KV id
-const CF_API_TOKEN = process.env.CF_API_TOKEN; // ค่าเท่ากับ wrangler OAuth token หรือ API token ที่มีสิทธิ์ KV
-
-if (!CF_ACCOUNT_ID || !CF_API_TOKEN) {
-  console.error("❌ ต้องตั้ง CF_ACCOUNT_ID และ CF_API_TOKEN (env)");
-  process.exit(1);
-}
 
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 // กันแบน IP: Binance limit ~2400 weight/นาที สคริปต์ใช้ ~21 req/รอบ → ต่ำมาก
-// แต่ถ้าเจอ 418 (IP ban) หรือ 429 (rate limit) ให้หยุดนุ่มๆ ไม่ยิงซ้ำ
 let ipBanned = false;
 
 async function fetchJSON(url, retries = 3) {
@@ -40,9 +34,29 @@ async function fetchJSON(url, retries = 3) {
     } catch (e) {
       if (ipBanned) throw e;
       if (i === retries - 1) throw e;
-      await sleep(1500 * (i + 1)); // backoff
+      await sleep(1500 * (i + 1));
     }
   }
+}
+
+// เขียน KV ผ่าน wrangler (ใช้ OAuth ที่ล็อกอินอยู่)
+function wranglerCmd() {
+  return process.platform === "win32" ? ["cmd", ["/c", "npx", "wrangler"]] : ["npx", ["wrangler"]];
+}
+async function kvPut(key, value) {
+  const val = typeof value === "string" ? value : JSON.stringify(value);
+  const tmp = `C:\\Users\\Hello\\AppData\\Local\\Temp\\kv_${key}.json`;
+  fs.writeFileSync(tmp, val);
+  const [cmd, args] = wranglerCmd();
+  execFileSync(cmd, [...args, "kv", "key", "put", key, "--path", tmp, "--namespace-id", CF_KV_NAMESPACE], { stdio: "inherit" });
+}
+
+async function kvGet(key) {
+  try {
+    const [cmd, args] = wranglerCmd();
+    const out = execFileSync(cmd, [...args, "kv", "key", "get", key, "--namespace-id", CF_KV_NAMESPACE], { encoding: "utf8" });
+    return JSON.parse(out.trim());
+  } catch (e) { return null; }
 }
 
 function ema(v, n) { const k = 2 / (n + 1); let e = v[0], o = [e]; for (let i = 1; i < v.length; i++) { e = v[i] * k + e * (1 - k); o.push(e); } return o; }
@@ -54,9 +68,12 @@ function bollinger(c, n = 20, m = 2) { const s = c.slice(-n); const mid = s.redu
 function swing4h(closes) { if (closes.length < 50) return "flat"; const e50 = ema(closes, 50), e200 = ema(closes, Math.min(200, Math.floor(closes.length / 1.2))); const p = closes[closes.length - 1]; if (p > e50[e50.length - 1] && e50[e50.length - 1] > e200[e200.length - 1]) return "up"; if (p < e50[e50.length - 1] && e50[e50.length - 1] < e200[e200.length - 1]) return "down"; return "flat"; }
 
 function computeScore(d) {
-  let s = (d.rsi - 50) * 1.3 + Math.max(-25, Math.min(25, d.macdHist * 4000));
-  const bp = (d.price - d.bb.lower) / (d.bb.upper - d.bb.lower);
-  s += (bp - 0.5) * 40;
+  let s = 0;
+  s += (d.rsi - 50) * 1.3;
+  s += Math.max(-25, Math.min(25, d.macdHist * 4000));
+  const bbRange = (d.bb.upper - d.bb.lower);
+  const bbPos = bbRange > 0 ? (d.price - d.bb.lower) / bbRange : 0.5;
+  s += (bbPos - 0.5) * 40;
   if (d.vRatio > 1.4) s *= Math.min(1.4, 1 + (d.vRatio - 1.4) * 0.2);
   return Math.max(-100, Math.min(100, Math.round(s)));
 }
@@ -83,17 +100,8 @@ function computeSignal(price, rsiV, macdV, bb, vR, atrV, trend, score) {
   return { signal: dir, stars, confidence: conf, entry: price, sl, tp1, tp2, reason: reasons.length ? reasons.join(" · ") : "โมเมนตัมรวม" };
 }
 
-async function kvPut(key, value) {
-  const url = `https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_KV_NAMESPACE}/values/${key}`;
-  const r = await fetch(url, {
-    method: "PUT",
-    headers: { "Authorization": `Bearer ${CF_API_TOKEN}`, "Content-Type": "application/json" },
-    body: typeof value === "string" ? value : JSON.stringify(value)
-  });
-  if (!r.ok) throw new Error("KV PUT failed: " + r.status + " " + await r.text());
-}
-
 async function scanAll() {
+  console.log("🔍 เริ่มสแกน Binance Futures...");
   const tickers = await fetchJSON(`${FAPI}/fapi/v1/ticker/24hr`);
   if (!Array.isArray(tickers)) throw new Error("no tickers");
 
@@ -128,15 +136,13 @@ async function scanAll() {
       const score = computeScore({ rsi: rsiV, macdHist: macdV, price, bb, vRatio });
       const sig = computeSignal(price, rsiV, macdV, bb, vRatio, atrV, trend, score);
       results.push({ symbol: coin.sym, price, change24h: coin.chg, volume24h: coin.vol, signal: sig.signal, stars: sig.stars, confidence: sig.confidence, entry: sig.entry, sl: sig.sl, tp1: sig.tp1, tp2: sig.tp2, reason: sig.reason, timestamp: new Date().toISOString() });
+      await sleep(200); // หน่วงเล็กน้อยลดโหลด
     } catch (e) { console.log("skip", coin.sym, e.message); }
   }
 
   // Load existing log
   let log = [];
-  try {
-    const r = await fetch(`https://api.cloudflare.com/client/v4/accounts/${CF_ACCOUNT_ID}/storage/kv/namespaces/${CF_KV_NAMESPACE}/values/signal_log`, { headers: { "Authorization": `Bearer ${CF_API_TOKEN}` } });
-    if (r.ok) log = await r.json();
-  } catch (e) {}
+  try { log = await kvGet("signal_log") || []; } catch (e) {}
   const open = log.filter(e => e.outcome === "PENDING");
   const stillOpen = [];
   for (const sig of open) {
