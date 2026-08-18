@@ -1,66 +1,9 @@
-<!DOCTYPE html>
-<html lang="th">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Binance Perp Scanner v2 — Live Dashboard</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',Roboto,sans-serif;background:#0b0e14;color:#e6e6e6;padding:24px}
-.wrap{max-width:1400px;margin:0 auto}
-.head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-h1{font-size:24px;background:linear-gradient(90deg,#22c55e,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.sub{color:#8b93a7;font-size:13px;margin-top:4px}
-.stats{display:flex;gap:10px}
-.chip{background:#151a24;border:1px solid #232a38;border-radius:10px;padding:8px 14px;font-size:13px}
-.chip b{font-size:18px;display:block}
-.chip.b b{color:#22c55e}
-.chip.r b{color:#ef4444}
-table{width:100%;border-collapse:collapse;background:#111620;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.4);margin-bottom:28px;font-size:13px}
-th{background:#0f141d;color:#8b93a7;font-size:10px;text-transform:uppercase;letter-spacing:.5px;padding:10px 8px;text-align:left}
-td{padding:10px 8px;border-top:1px solid #1b2230;font-size:13px;vertical-align:middle}
-tr:hover td{background:#161d2b}
-.sym{font-weight:700;font-size:14px} .q{color:#5b6478;font-size:10px;margin-left:2px}
-.num{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
-.sl{color:#f87171} .tp{color:#34d399}
-.rr{display:block;font-size:9px;color:#5b6478;font-weight:400}
-.adx{color:#fbbf24;text-align:center}
-.foot{color:#5b6478;font-size:11px;margin-top:14px;text-align:center}
-.note{background:#151a24;border-left:3px solid #38bdf8;padding:12px 14px;border-radius:8px;font-size:13px;color:#cbd5e1;margin-bottom:24px;line-height:1.6}
-h2{font-size:18px;color:#e6e6e6;margin-bottom:12px}
-.loading{text-align:center;padding:40px;color:#8b93a7}
-</style>
-</head>
-<body>
-<div class="wrap">
-  <div class="head">
-    <div><h1>🪙 Binance Perp Scanner v2</h1><div class="sub">BASE (accumulation) + Dip-Buy (pullback) · 4 TF (5m/15m/1h/4h) · RSI16 · EMA 20/50/100/200 · MACD/BB/Vol/OI/Funding · เทคนิคแท้</div></div>
-    <div class="stats">
-      <div class="chip b"><b id="baseCount">–</b>BASE</div>
-      <div class="chip r"><b id="dipCount">–</b>DIP</div>
-      <div class="chip" style="color:#8b93a7"><b id="openCount">–</b>เปิดอยู่</div>
-    </div>
-  </div>
-
-  <div class="note">
-    📌 <b>BASE</b> = สะสมเงียบ (EMA stack เรียง + OBV up + CMF + MACD hist ≥0 + BB กลางแบนด์ + Vol ไม่พุ่ง) → มีแนวโน้มพุ่ง<br>
-    📌 <b>DIP</b> = pullback มาหา support ใน uptrend (EMA bull + ST bull + RSI16 อบอุ่น 28-60) → รอซื้อตอนย่อ<br>
-    💡 OI = Open Interest (สัญญาจะคงค้าง) · Funding = อัตราดอกเบี้ยฟิวเจอร์ · MACD/BB/Vol จาก 15m
-  </div>
-
-  <h2>🟢 BASE setups (<span id="baseN">0</span> เหรียญ — กำลังสะสม)</h2>
-  <table><thead><tr><th>เหรียญ</th><th>ราคา</th><th>Score</th><th>OBV</th><th>CMF</th><th>MACD</th><th>Vol</th><th>BB%</th><th>OI</th><th>Funding</th><th>SL</th><th>TP1</th><th>TP2</th><th>R:R</th></tr></thead>
-  <tbody id="baseBody"><tr><td colspan="14" class="loading">กำลังโหลด...</td></tr></tbody></table>
-
-  <h2>🔵 DIP setups (<span id="dipN">0</span> เหรียญ — pullback to support)</h2>
-  <table><thead><tr><th>เหรียญ</th><th>ราคา</th><th>Score</th><th>RSI16</th><th>ST</th><th>MACD</th><th>Vol</th><th>OI</th><th>Funding</th><th>SL</th><th>TP1</th><th>TP2</th><th>R:R</th><th>TF</th></tr></thead>
-  <tbody id="dipBody"><tr><td colspan="14" class="loading">กำลังโหลด...</td></tr></tbody></table>
-
-  <div class="foot" id="footer">กำลังโหลด...</div>
-</div>
-
-<script>
-const FAPI = "https://fapi.binance.com";
+const fs=require('fs');
+const p="scanner_v2_dashboard.html";
+let s=fs.readFileSync(p,encoding="utf-8");
+const start=s.indexOf("<script>\nconst FAPI");
+const end=s.indexOf("</script>\n</body>");
+const new_script=`const FAPI = "https://fapi.binance.com";
 // กันแบน IP: นับ requests ต่อรอบ + หยุดนุ่มๆ ถ้าเจอ 418/429
 let reqCount = 0;
 let ipBanned = false;
@@ -69,7 +12,7 @@ function ema(v,n){const k=2/(n+1);let e=v[0],o=[e];for(let i=1;i<v.length;i++){e
 function rma(v,n){const a=1/n;let e=v[0],o=[e];for(let i=1;i<v.length;i++){e=v[i]*a+e*(1-a);o.push(e);}return o;}
 function atr(h,l,c,n=14){const tr=[h[0]-l[0]];for(let i=1;i<c.length;i++)tr.push(Math.max(h[i]-l[i],Math.abs(h[i]-c[i-1]),Math.abs(l[i]-c[i-1])));return rma(tr,n);}
 function rsi(c,n=16){if(c.length<n+1)return 50;let g=0,lo=0;for(let i=c.length-n;i<c.length;i++){const d=c[i]-c[i-1];if(d>0)g+=d;else lo-=d;}const ag=g/n,al=lo/n;if(!al)return 100;return 100-100/(1+ag/al);}
-function macd(c){const e12=ema(c,12),e26=ema(c,26);const line=c.map((_,i)=>e12[i]-e26[i]);const sig=ema(line.slice(-Math.min(line.length,60)),9);return {hist:line[line.length-1]-sig[sig.length-1]};}
+function macd(c){const e12=ema(c,12),e26=ema(c,26);const line=c.map((_,i)=>e12[i]-e26[i]);const sig=ema(line.slice(-Math.min(line.length,60)),9);return {hist:line[line.length-1]-sig[sig.length-1], line:line[line.length-1], signal:sig[sig.length-1]};}
 function bollinger(c,n=20,m=2){const s=c.slice(-n);const mid=s.reduce((a,b)=>a+b,0)/n;const v=s.reduce((a,b)=>a+(b-mid)**2,0)/n;const sd=Math.sqrt(v);return {upper:mid+m*sd,mid,lower:mid-m*sd};}
 function cmf(h,l,c,v,n=20){let mf=0,vm=0;for(let i=c.length-n;i<c.length;i++){const cl=c[i],hl=h[i]-l[i];const flow=hl===0?0:((cl-l[i])-(h[i]-cl))/hl*v[i];mf+=flow;vm+=v[i];}return vm===0?0:mf/vm;}
 function obvTrend(c,v){let o=c[0],vals=[0];for(let i=1;i<v.length;i++){if(c[i]>c[i-1])o+=v[i];else if(c[i]<c[i-1])o-=v[i];vals.push(o);}const e=ema(vals,20);return e[e.length-1]>e[e.length-6]?'up':'down';}
@@ -81,19 +24,20 @@ function rr(e,sl,tp){const risk=Math.abs(e-sl);const rew=Math.abs(tp-e);return r
 async function getKlines(sym,tf,limit=210){
   if(ipBanned) throw new Error("IP banned");
   reqCount++;
-  const r = await fetch(`${FAPI}/fapi/v1/klines?symbol=${sym}&interval=${tf}&limit=${limit}`);
+  const r = await fetch(\`\${FAPI}/fapi/v1/klines?symbol=\${sym}&interval=\${tf}&limit=\${limit}\`);
   if(r.status===418||r.status===429){ ipBanned=true; throw new Error("HTTP "+r.status+" แบนชั่วคราว"); }
   if(!r.ok) throw new Error("HTTP "+r.status);
   return r.json();
 }
 async function getFuturesData(sym){
+  // OI + Funding จาก Futures จริง
   if(ipBanned) throw new Error("IP banned");
   reqCount+=2;
   const [oiRes,fundRes] = await Promise.all([
-    fetch(`${FAPI}/futures/data/openInterestHist?symbol=${sym}&period=5m&limit=1`),
-    fetch(`${FAPI}/fapi/v1/premiumIndex?symbol=${sym}`)
+    fetch(\`\${FAPI}/futures/data/openInterestHist?symbol=\${sym}&period=5m&limit=1\`),
+    fetch(\`\${FAPI}/fapi/v1/premiumIndex?symbol=\${sym}\`)
   ]);
-  let oi=null, fund=null;
+  let oi=null, fund=null, oiChange=null;
   if(oiRes.ok){ const oiData=await oiRes.json(); if(Array.isArray(oiData)&&oiData.length) oi=parseFloat(oiData[0].sumOpenInterest); }
   if(fundRes.ok){ const f=await fundRes.json(); fund=parseFloat(f.lastFundingRate); }
   return {oi,fund};
@@ -116,17 +60,21 @@ async function analyze(sym){
   const c5=closes(k5);
   const price=c15[c15.length-1];
   const t4=trendOf(c4), t1h=trendOf(c1h), t15=trendOf(c15), t5=trendOf(c5);
+  // EMA stack 20/50/100/200 บน 4h
   const st4=emaStack(c4);
   const emaBull = st4.p>st4.e20 && st4.e20>st4.e50 && st4.e50>st4.e100 && st4.e100>st4.e200;
+  // MACD + BB + VolSpike บน 15m
   const macd15=macd(c15);
   const bb15=bollinger(c15,20,2);
   const bbPos = (bb15.upper-bb15.lower)>0 ? (price-bb15.lower)/(bb15.upper-bb15.lower) : 0.5;
   const vs=volSpike(v15,20);
+  // OI / Funding
   let oi=null,fund=null;
   try{ const fd=await getFuturesData(sym); oi=fd.oi; fund=fd.fund; }catch(e){}
   const rng=((Math.max(...c4.slice(-30))-Math.min(...c4.slice(-30)))/price*100);
   const obv=obvTrend(c4,v4), cmfV=cmf(h4h,l4h,c4,v4);
   const hl4=c4.slice(-20).every((v,i,a)=>i===0||v>=a[i-1]);
+  // BASE score (สะสมเงียบ multi-TF + EMA stack + MACD/BB/Vol)
   let bs=0;
   if(rng<12)bs++;
   if(obv==='up')bs++;
@@ -135,9 +83,10 @@ async function analyze(sym){
   if(t4!=='down'&&t1h!=='down')bs++;
   if(emaBull)bs++;
   if(macd15.hist>=0)bs++;
-  if(bbPos>0.3&&bbPos<0.7)bs++;
-  if(vs<1.5)bs++;
+  if(bbPos>0.3&&bbPos<0.7)bs++; // กลางแบนด์ = สะสม
+  if(vs<1.5)bs++; // วอลุ่มไม่พุ่ง = เงียบ
   const basePass = bs>=5 && (t4==='up'||t4==='flat') && t1h!=='down' && emaBull;
+  // DIP (pullback ใน uptrend + RSI16 อบอุ่น + ST bull + MACD เริ่มวกกลับ)
   const r=rsi(c15,16), st=supertrend(h15,l15,c15);
   const e50=ema(c15,50)[ema(c15,50).length-1];
   const dipPass = (t4==='up'||t4==='flat') && t1h!=='down' && st==='bull' && r>=28 && r<=60 && price<=e50*1.04 && macd15.hist>=-0.5;
@@ -145,7 +94,7 @@ async function analyze(sym){
   const sl=price-a*1.5, tp1=price+a*2, tp2=price+a*4;
   return {sym,price,r:r.toFixed(0),st,obv,cmf:cmfV.toFixed(3),range:rng.toFixed(1),score:bs,
     macd:macd15.hist.toFixed(3),bb:bbPos.toFixed(2),vs:vs.toFixed(2),oi:oi?oi.toFixed(0):'-',fund:fund!==null?fund.toFixed(4):'-',
-    tf:`5m:${t5} 15m:${t15} 1h:${t1h} 4h:${t4}`,
+    tf:\`5m:\${t5} 15m:\${t15} 1h:\${t1h} 4h:\${t4}\`,
     sl,tp1,tp2,rr1:rr(price,sl,tp1),rr2:rr(price,sl,tp2),basePass,dipPass};
 }
 
@@ -171,12 +120,12 @@ async function load(){
       const cmfC=parseFloat(r.cmf)>=0?'#22c55e':'#ef4444';
       const macdC=parseFloat(r.macd)>=0?'#22c55e':'#ef4444';
       const vsC=parseFloat(r.vs)>1.8?'#ef4444':'#8b93a7';
-      return `<tr><td class="sym">${r.sym.replace('USDT','')}<span class="q">USDT</span></td><td class="num">${r.entry.toFixed(r.entry<1?6:2)}</td><td class="num adx">${r.score}</td><td class="num" style="color:${r.obv==='up'?'#22c55e':'#ef4444'}">${r.obv}</td><td class="num" style="color:${cmfC}">${r.cmf}</td><td class="num" style="color:${macdC}">${r.macd}</td><td class="num" style="color:${vsC}">${r.vs}x</td><td class="num">${r.bb}</td><td class="num" style="color:#8b93a7">${r.oi}</td><td class="num" style="color:#8b93a7">${r.fund}</td><td class="num sl">${r.sl.toFixed(r.sl<1?6:2)}</td><td class="num tp">${r.tp1.toFixed(r.tp1<1?6:2)}<span class="rr">+${((r.tp1-r.entry)/r.entry*100).toFixed(1)}%</span></td><td class="num tp">${r.tp2.toFixed(r.tp2<1?6:2)}<span class="rr">+${((r.tp2-r.entry)/r.entry*100).toFixed(1)}%</span></td><td class="num" style="text-align:center">${r.rr1}/${r.rr2}</td></tr>`;
+      return \`<tr><td class="sym">\${r.sym.replace('USDT','')}<span class="q">USDT</span></td><td class="num">\${r.entry.toFixed(r.entry<1?6:2)}</td><td class="num adx">\${r.score}</td><td class="num" style="color:\${r.obv==='up'?'#22c55e':'#ef4444'}">\${r.obv}</td><td class="num" style="color:\${cmfC}">\${r.cmf}</td><td class="num" style="color:\${macdC}">\${r.macd}</td><td class="num" style="color:\${vsC}">\${r.vs}x</td><td class="num">\${r.bb}</td><td class="num" style="color:#8b93a7">\${r.oi}</td><td class="num" style="color:#8b93a7">\${r.fund}</td><td class="num sl">\${r.sl.toFixed(r.sl<1?6:2)}</td><td class="num tp">\${r.tp1.toFixed(r.tp1<1?6:2)}<span class="rr">+\${((r.tp1-r.entry)/r.entry*100).toFixed(1)}%</span></td><td class="num tp">\${r.tp2.toFixed(r.tp2<1?6:2)}<span class="rr">+\${((r.tp2-r.entry)/r.entry*100).toFixed(1)}%</span></td><td class="num" style="text-align:center">\${r.rr1}/\${r.rr2}</td></tr>\`;
     }).join(''):'<tr><td colspan="14" style="text-align:center;color:#8b93a7;padding:20px">ไม่มี BASE setup ผ่านเกณฑ์</td></tr>';
     document.getElementById('dipBody').innerHTML=dip.length?dip.map(r=>{
       const rsiC=parseFloat(r.rsi)>=50?'#22c55e':'#ef4444';const stC=r.st==='bull'?'#22c55e':'#ef4444';const macdC=parseFloat(r.macd)>=0?'#22c55e':'#ef4444';
-      return `<tr><td class="sym">${r.sym.replace('USDT','')}<span class="q">USDT</span></td><td class="num">${r.entry.toFixed(r.entry<1?6:2)}</td><td class="num adx">${r.score}</td><td class="num" style="color:${rsiC}">RSI ${r.rsi}</td><td class="num" style="color:${stC}">${r.st}</td><td class="num" style="color:${macdC}">${r.macd}</td><td class="num" style="color:#8b93a7">${r.vs}x</td><td class="num" style="color:#8b93a7">${r.oi}</td><td class="num" style="color:#8b93a7">${r.fund}</td><td class="num sl">${r.sl.toFixed(r.sl<1?6:2)}</td><td class="num tp">${r.tp1.toFixed(r.tp1<1?6:2)}<span class="rr">+${((r.tp1-r.entry)/r.entry*100).toFixed(1)}%</span></td><td class="num tp">${r.tp2.toFixed(r.tp2<1?6:2)}<span class="rr">+${((r.tp2-r.entry)/r.entry*100).toFixed(1)}%</span></td><td class="num" style="text-align:center">${r.rr1}/${r.rr2}</td><td class="num" style="text-align:center;color:#8b93a7;font-size:9px">${r.tf}</td></tr>`;
-    }).join(''):'<tr><td colspan="14" style="text-align:center;color:#8b93a7;padding:20px">ไม่มี DIP setup ผ่านเกณฑ์</td></tr>';
+      return \`<tr><td class="sym">\${r.sym.replace('USDT','')}<span class="q">USDT</span></td><td class="num">\${r.entry.toFixed(r.entry<1?6:2)}</td><td class="num adx">\${r.score}</td><td class="num" style="color:\${rsiC}">RSI \${r.rsi}</td><td class="num" style="color:\${stC}">\${r.st}</td><td class="num" style="color:\${macdC}">\${r.macd}</td><td class="num" style="color:#8b93a7">\${r.vs}x</td><td class="num" style="color:#8b93a7">\${r.oi}</td><td class="num" style="color:#8b93a7">\${r.fund}</td><td class="num sl">\${r.sl.toFixed(r.sl<1?6:2)}</td><td class="num tp">\${r.tp1.toFixed(r.tp1<1?6:2)}<span class="rr">+\${((r.tp1-r.entry)/r.entry*100).toFixed(1)}%</span></td><td class="num tp">\${r.tp2.toFixed(r.tp2<1?6:2)}<span class="rr">+\${((r.tp2-r.entry)/r.entry*100).toFixed(1)}%</span></td><td class="num" style="text-align:center">\${r.rr1}/\${r.rr2}</td><td class="num" style="text-align:center;color:#8b93a7;font-size:9px">\${r.tf}</td></tr>\`;
+    }).join(''):'<tr><td colspan="13" style="text-align:center;color:#8b93a7;padding:20px">ไม่มี DIP setup ผ่านเกณฑ์</td></tr>';
     const ban = ipBanned ? ' ⚠️ โดนแบนชั่วคราว หยุดสแกน' : '';
     document.getElementById('footer').textContent='✓ อัปเดต '+new Date().toLocaleString('th-TH',{hour12:false})+' · 4 TF + MACD/BB/Vol/OI/Funding · RSI16/EMA20-200 · สแกน '+ok+' สำเร็จ / '+fail+' ล้มเหลว · '+reqCount+' req'+ban;
   }catch(e){
@@ -185,6 +134,6 @@ async function load(){
 }
 load();
 setInterval(load,60000);
-</script>
-</body>
-</html>
+`;
+fs.writeFileSync(p, s.slice(0,start)+new_script+s.slice(end), encoding="utf-8");
+console.log("patched, new size", s.slice(0,start).length+new_script.length+s.slice(end).length);
