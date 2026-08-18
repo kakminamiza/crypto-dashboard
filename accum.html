@@ -1,216 +1,554 @@
-<!DOCTYPE html><html lang='th'><head><meta charset='utf-8'>
-<meta name='viewport' content='width=device-width,initial-scale=1'>
-<title>Trend Rider Dashboard</title>
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Accumulation Scanner — สแกนเหรียญสะสมเงียบ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600;700&family=Noto+Sans+Thai:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Segoe UI',Roboto,sans-serif;background:#0b0e14;color:#e6e6e6;padding:24px}
-.wrap{max-width:1100px;margin:0 auto}
-.head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}
-h1{font-size:24px;background:linear-gradient(90deg,#22c55e,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.sub{color:#8b93a7;font-size:13px;margin-top:4px}
-.stats{display:flex;gap:10px}
-.chip{background:#151a24;border:1px solid #232a38;border-radius:10px;padding:8px 14px;font-size:13px}
-.chip b{font-size:18px;display:block}
-.chip.l b{color:#22c55e} .chip.s b{color:#ef4444}
-table{width:100%;border-collapse:collapse;background:#111620;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.4)}
-th{background:#0f141d;color:#8b93a7;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:12px 10px;text-align:left}
-td{padding:12px 10px;border-top:1px solid #1b2230;font-size:14px;vertical-align:middle}
-tr:hover td{background:#161d2b}
-.rank{color:#5b6478;font-weight:700;width:28px}
-.sym{font-weight:700;font-size:15px} .q{color:#5b6478;font-size:10px;margin-left:2px}
-.num{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
-.sl{color:#f87171} .tp{color:#34d399}
-.rr{display:block;font-size:9px;color:#5b6478;font-weight:400}
-.adx{color:#fbbf24;text-align:center}
-.b{padding:3px 8px;border-radius:6px;font-size:11px;font-weight:700}
-.b.long{background:rgba(34,197,94,.15);color:#22c55e}
-.b.short{background:rgba(239,68,68,.15);color:#ef4444}
-.fresh{font-size:12px}
-.r-long{border-left:3px solid #22c55e} .r-short{border-left:3px solid #ef4444}
-.dots{display:flex;gap:3px}
-.dot{font-size:8px;padding:2px 4px;border-radius:4px;color:#0b0e14;font-weight:700}
-.d-bull{background:#22c55e} .d-bear{background:#ef4444} .d-neu{background:#3b4354;color:#8b93a7}
-.ms{font-size:10px;color:#8b93a7;margin-top:3px}
-.mtf{min-width:120px}
-.empty{text-align:center;color:#5b6478;padding:30px}
-.foot{color:#5b6478;font-size:11px;margin-top:14px;text-align:center}
-</style><style id="xnav-css">
-.xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;
- border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;
- font-family:"Segoe UI",Tahoma,"Leelawadee UI",sans-serif;font-size:13px}
-.xnav .b{font-weight:800;letter-spacing:.5px;color:#38bdf8;margin-right:12px;font-size:15px}
-.xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;border:1px solid transparent}
-.xnav a:hover{background:#1a2130;color:#e8eef7}
-.xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
+  :root{
+    --bg:#0B0D12;
+    --panel:#12151C;
+    --panel2:#191D28;
+    --line:#242938;
+    --text:#EDEFF4;
+    --dim:#818A9C;
+    --gold:#D9B872;
+    --gold-dim:#4A4023;
+    --teal:#4FD1C5;
+    --red:#FF6B6B;
+    --warn:#E8A33D;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+
+  /* shared nav (minimal) */
+  .xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;
+    border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;
+    font-family:"Segoe UI",Tahoma,sans-serif;font-size:13px;margin-bottom:0}
+  .xnav .b{font-weight:800;letter-spacing:.5px;color:#38bdf8;margin-right:12px;font-size:15px}
+  .xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;border:1px solid transparent}
+  .xnav a:hover{background:#1a2130;color:#e8eef7}
+  .xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
+  .xnav .manual{margin-left:auto;background:transparent;color:#7d889c;border:1px solid #2a3340;
+    padding:5px 11px;border-radius:7px;cursor:pointer;font-size:11.5px;font-weight:600;
+    transition:color .15s,border-color .15s}
+  .xnav .manual:hover{color:#cbd5e1;border-color:#3a4452}
+
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(217,184,114,.06), transparent 60%),
+      radial-gradient(ellipse 700px 500px at 100% 0%, rgba(79,209,197,.05), transparent 55%),
+      var(--bg);
+    color:var(--text);
+    font-family:'Noto Sans Thai','IBM Plex Mono',sans-serif;
+    min-height:100vh;
+    padding:0 0 60px;
+  }
+  .serif{font-family:'Fraunces',serif;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+
+  /* ---------- header ---------- */
+  header{
+    position:relative;overflow:hidden;
+    border-bottom:1px solid var(--line);
+    padding:34px 20px 26px;
+  }
+  .radar{
+    position:absolute;top:-140px;right:-100px;width:340px;height:340px;border-radius:50%;
+    background:conic-gradient(from 0deg, rgba(217,184,114,.22), transparent 28%);
+    animation:spin 5s linear infinite;
+    filter:blur(2px);
+  }
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .head-inner{max-width:1180px;margin:0 auto;position:relative;z-index:1;}
+  .eyebrow{font-size:11px;letter-spacing:2.5px;color:var(--gold);text-transform:uppercase;margin-bottom:8px;font-weight:600;}
+  h1{font-family:'Fraunces',serif;font-weight:600;font-size:clamp(26px,4vw,38px);letter-spacing:-.5px;margin-bottom:8px;}
+  .desc{color:var(--dim);font-size:13.5px;max-width:640px;line-height:1.6;margin-bottom:20px;}
+  .criteria-legend{display:flex;flex-wrap:wrap;gap:8px;}
+  .leg{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--dim);background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:5px 12px 5px 8px;}
+  .leg .n{width:16px;height:16px;border-radius:50%;background:var(--panel2);color:var(--gold);font-size:9.5px;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';font-weight:600;cursor:help;}
+  .leg .n:hover{color:var(--teal);}
+
+  /* ---------- toolbar ---------- */
+  .toolbar{max-width:1180px;margin:22px auto 16px;padding:0 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;}
+  .stat-row{display:flex;gap:22px;flex-wrap:wrap;}
+  .stat{font-size:11px;color:var(--dim);}
+  .stat b{display:block;font-family:'IBM Plex Mono';font-size:15px;color:var(--text);font-weight:600;margin-top:1px;}
+  .controls{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  select,.btn{
+    background:var(--panel);border:1px solid var(--line);color:var(--text);
+    border-radius:8px;padding:8px 12px;font-size:12px;font-family:'Noto Sans Thai';cursor:pointer;
+  }
+  select:focus,.btn:focus{outline:none;border-color:var(--gold);}
+  .btn:hover{border-color:var(--gold);color:var(--gold);}
+  .toggle{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--dim);cursor:pointer;user-select:none;}
+  .toggle input{accent-color:var(--gold);width:14px;height:14px;}
+  .conn{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--dim);}
+  .conn .led{width:7px;height:7px;border-radius:50%;background:var(--red);}
+  .conn.on .led{background:var(--teal);box-shadow:0 0 8px var(--teal);}
+
+  /* ---------- list ---------- */
+  .list{max-width:1180px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column;gap:8px;}
+  .row{
+    background:var(--panel);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;display:grid;grid-template-columns:34px 1fr auto auto auto 90px 26px;gap:16px;align-items:center;
+    transition:border-color .2s, background .2s;
+  }
+  .row.full5{border-color:rgba(217,184,114,.5);background:linear-gradient(90deg, rgba(217,184,114,.05), var(--panel) 30%);}
+  .row.updated{animation:flash .5s;}
+  @keyframes flash{0%{border-color:var(--teal)}100%{}}
+  .rank{font-family:'IBM Plex Mono';font-size:13px;color:var(--dim);text-align:center;}
+  .row.full5 .rank{color:var(--gold);font-weight:700;}
+  .coin{min-width:0;}
+  .coin .sym{font-family:'Fraunces',serif;font-weight:600;font-size:15.5px;}
+  .coin .sym span{color:var(--dim);font-weight:400;font-size:11px;font-family:'IBM Plex Mono';}
+  .coin .price-line{display:flex;gap:8px;align-items:baseline;margin-top:2px;}
+  .coin .price{font-family:'IBM Plex Mono';font-size:12.5px;color:var(--text);}
+  .coin .chg{font-family:'IBM Plex Mono';font-size:11.5px;font-weight:600;}
+  .chg.up{color:var(--teal)} .chg.down{color:var(--red)}
+  .coin .thb{font-size:10px;color:var(--dim);font-family:'IBM Plex Mono';margin-top:1px;}
+
+  .spark{width:88px;height:30px;}
+  .spark path{fill:none;stroke-width:1.6;}
+
+  .checklist{display:flex;gap:5px;}
+  .chip{
+    width:24px;height:24px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+    font-size:11px;font-weight:700;border:1px solid var(--line);
+  }
+  .chip.pass{background:rgba(217,184,114,.14);color:var(--gold);border-color:rgba(217,184,114,.4);}
+  .chip.fail{color:var(--dim);}
+
+  .score-ring{position:relative;width:46px;height:46px;}
+  .score-ring svg{transform:rotate(-90deg);}
+  .score-ring .val{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono';font-size:13px;font-weight:700;}
+
+  .vol{font-family:'IBM Plex Mono';font-size:11px;color:var(--dim);text-align:right;}
+  .vol b{display:block;color:var(--text);font-size:12.5px;}
+
+  .pin-btn{background:none;border:none;color:var(--line);cursor:pointer;font-size:16px;transition:.15s;}
+  .pin-btn.pinned{color:var(--gold);}
+  .pin-btn:hover{color:var(--gold);}
+
+  .row.skeleton{opacity:.3;}
+  .empty{max-width:1180px;margin:60px auto;text-align:center;color:var(--dim);font-size:13px;padding:0 20px;}
+
+  .col-head{max-width:1180px;margin:0 auto 6px;padding:0 20px;display:grid;grid-template-columns:34px 1fr auto auto auto 90px 26px;gap:16px;font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.6px;}
+  .col-head span:nth-child(3){text-align:center;} .col-head span:nth-child(4){text-align:center;}
+
+  footer{max-width:1180px;margin:30px auto 0;padding:16px 20px 0;font-size:11px;color:var(--dim);line-height:1.7;border-top:1px solid var(--line);}
+
+  /* tooltip */
+  #tipBox{position:fixed;z-index:99999;max-width:290px;background:#0c1119;color:#d6dde8;border:1px solid #232c39;border-radius:10px;padding:11px 13px;font-size:12px;line-height:1.55;box-shadow:0 12px 34px rgba(0,0,0,.55);pointer-events:none;opacity:0;transform:translateY(5px);transition:opacity .12s,transform .12s;font-family:"Segoe UI",Tahoma,sans-serif;}
+  #tipBox.show{opacity:1;transform:translateY(0);}
+  #tipBox h4{margin:0 0 5px;font-size:13px;color:#9cc7e6;font-weight:700;}
+  #tipBox p{margin:4px 0;color:#9aa6b6;}
+  #tipBox b{color:#d6dde8;font-weight:600;}
+
+  #manualPanel{position:fixed;inset:0;z-index:99998;background:rgba(4,8,13,.66);display:none;align-items:flex-start;justify-content:center;padding:38px 16px;overflow:auto;}
+  #manualPanel.show{display:flex;}
+  #manualPanel .box{background:#0c1119;border:1px solid #232c39;border-radius:14px;max-width:680px;width:100%;padding:20px 24px;box-shadow:0 18px 54px rgba(0,0,0,.6);}
+  #manualPanel h2{margin:0 0 3px;color:#9cc7e6;font-size:18px;font-weight:700;}
+  #manualPanel .sub{color:#7d889c;font-size:11.5px;margin-bottom:16px;}
+  #manualPanel .close{float:right;background:#141a23;border:1px solid #2a3340;color:#aab4c2;border-radius:7px;padding:5px 11px;cursor:pointer;font-weight:600;font-size:11.5px;}
+  #manualPanel .close:hover{background:#1c232e;}
+  #manualPanel .grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:11px;}
+  #manualPanel .card{background:#11161f;border:1px solid #1f2733;border-radius:11px;padding:13px 15px;}
+  #manualPanel .card h3{margin:0 0 6px;font-size:14px;color:#a9cbe0;font-weight:700;}
+  #manualPanel .card p{margin:4px 0;font-size:12px;color:#9aa6b6;line-height:1.55;}
+  #manualPanel .card p b{color:#d6dde8;font-weight:600;}
+  @media(max-width:560px){ #manualPanel .grid2{grid-template-columns:1fr;} }
+
+  @media(max-width:820px){
+    .row,.col-head{grid-template-columns:26px 1fr auto 26px;}
+    .row .spark, .col-head span:nth-child(4){display:none;}
+    .row .vol{display:none;}
+    .col-head span:nth-child(6){display:none;}
+  }
 </style>
-<link rel="stylesheet" href="./tooltip.css">
-</head><body>
-<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="">39 เหรียญโปรด</a><a href="./liqwatch.html" class="">Liquidation Watch</a><a href="./radar.html" class="">Futures Radar</a><a href="./accum.html" class="cur">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav><div class='wrap'>
-<div class='head'>
-  <div><h1>🟢 Trend Rider Dashboard</h1>
-  <div class='sub'>EMA 20/50/200 · ADX(14)&gt;25 · MTF 5m/15m/1h/4h/1D · SL=ATR×2 · TF=15m</div></div>
-  <div class='stats'>
-    <div class='chip l'><b>6</b>LONG</div>
-    <div class='chip s'><b>1</b>SHORT</div>
+</head>
+<body>
+
+<nav class="xnav">
+  <span class="b">◈ CRYPTO TERMINAL</span>
+  <a href="./index.html">Accumulation</a>
+  <a href="./dipbuy.html">Dip-Buy</a>
+  <a href="./entry.html">Entry Planner</a>
+  <a href="./scan.html">Market Scan</a>
+  <a href="./trend.html">Trend Rider</a>
+  <a href="./top100.html">Top 100</a>
+  <a href="./fav.html">39 เหรียญโปรด</a>
+  <a href="./liqwatch.html">Liquidation Watch</a>
+  <a href="./radar.html">Futures Radar</a>
+  <a href="./accum.html" class="cur">Accum (live)</a>
+  <button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button>
+</nav>
+
+<header>
+  <div class="radar"></div>
+  <div class="head-inner">
+    <div class="eyebrow">ACCUMULATION SCANNER</div>
+    <h1 class="serif">เรดาร์จับเหรียญสะสมเงียบ</h1>
+    <p class="desc">สแกนคู่เทรด Binance Spot แบบวนรอบ ให้คะแนนเหรียญที่เข้าเกณฑ์การ "สะสม" ก่อนราคาวิ่ง — ผสมสัญญาณราคา, วอลุ่ม, พฤติกรรมการซื้อ และกระแสโซเชียลจาก CoinGecko Trending <span style="color:var(--dim)">(ชี้ตัวเลขในวงกลมแต่ละข้อเพื่อดูคำอธิบาย)</span></p>
+    <div class="criteria-legend">
+      <div class="leg"><span class="n" data-tip="c1">1</span>สะสมเงียบ (ผันผวนต่ำ)</div>
+      <div class="leg" style="border:none;padding:0;background:none"></div>
+      <div class="leg"><span class="n" data-tip="c2">2</span>วอลุ่ม 24 ชม. &gt; 1.5M</div>
+      <div class="leg"><span class="n" data-tip="c3">3</span>ทยอยซื้อ (แท่งเขียวสะสม)</div>
+      <div class="leg"><span class="n" data-tip="c4">4</span>ติดกระแส Social</div>
+      <div class="leg"><span class="n" data-tip="c5">5</span>Breakout Score &gt; 0.8</div>
+    </div>
+  </div>
+</header>
+
+<div class="toolbar">
+  <div class="stat-row">
+    <div class="conn" id="connStatus"><span class="led"></span><span>กำลังสแกน...</span></div>
+    <div class="stat">คู่เหรียญที่สแกน<b id="scanCount">—</b></div>
+    <div class="stat">ผ่านครบ 5/5<b id="fullCount">—</b></div>
+    <div class="stat">อัปเดตล่าสุด<b id="lastUpdate" class="mono">—</b></div>
+    <div class="stat">รีสแกนใน<b id="countdown" class="mono">—</b></div>
+  </div>
+  <div class="controls">
+    <label class="toggle"><input type="checkbox" id="onlyFull"> เฉพาะที่ผ่านครบ 5 ข้อ</label>
+    <select id="sortSel">
+      <option value="score">เรียงตาม: คะแนนรวม</option>
+      <option value="volume">เรียงตาม: วอลุ่ม</option>
+      <option value="breakout">เรียงตาม: Breakout Score</option>
+    </select>
+    <button class="btn" id="refreshBtn">↻ สแกนใหม่</button>
   </div>
 </div>
-<table><thead><tr>
-  <th>#</th><th>Signal</th><th>เหรียญ</th><th>Entry</th><th>SL</th>
-  <th>TP1</th><th>TP2</th><th>ADX</th><th>MTF</th>
-</tr></thead><tbody>
-        <tr class='r-long'>
-          <td class='rank'>1</td>
-          <td><span class='b long'>🟢 LONG</span> </td>
-          <td class='sym'>BZ<span class='q'>USDT</span></td>
-          <td class='num'>89.34</td>
-          <td class='num sl'>88.913</td>
-          <td class='num tp'>89.9805<span class='rr'>1.5R</span></td>
-          <td class='num tp'>90.6211<span class='rr'>3R</span></td>
-          <td class='num adx'>27.4</td>
-          <td class='num' style='color:#22c55e;text-align:center'>60.0</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bull' title='5m:BULL'>5m</span><span class='dot d-bull' title='15m:BULL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-neu' title='1d:NEUTRAL'>1d</span></div><div class='ms'>4B / 0S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(34,197,94,.15);color:#22c55e'>✓VOL</span></td>
-        </tr>
-        <tr class='r-long'>
-          <td class='rank'>2</td>
-          <td><span class='b long'>🟢 LONG</span> </td>
-          <td class='sym'>ZEC<span class='q'>USDT</span></td>
-          <td class='num'>510.66</td>
-          <td class='num sl'>505.423</td>
-          <td class='num tp'>518.516<span class='rr'>1.5R</span></td>
-          <td class='num tp'>526.371<span class='rr'>3R</span></td>
-          <td class='num adx'>27.1</td>
-          <td class='num' style='color:#fbbf24;text-align:center'>41.7</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bull' title='15m:BULL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-bull' title='1d:BULL'>1d</span></div><div class='ms'>4B / 1S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(34,197,94,.15);color:#22c55e'>✓VOL</span></td>
-        </tr>
-        <tr class='r-long'>
-          <td class='rank'>3</td>
-          <td><span class='b long'>🟢 LONG</span> </td>
-          <td class='sym'>CL<span class='q'>USDT</span></td>
-          <td class='num'>84.15</td>
-          <td class='num sl'>83.7259</td>
-          <td class='num tp'>84.7862<span class='rr'>1.5R</span></td>
-          <td class='num tp'>85.4224<span class='rr'>3R</span></td>
-          <td class='num adx'>31.3</td>
-          <td class='num' style='color:#22c55e;text-align:center'>59.6</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bull' title='5m:BULL'>5m</span><span class='dot d-bull' title='15m:BULL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-neu' title='1d:NEUTRAL'>1d</span></div><div class='ms'>4B / 0S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr>
-        <tr class='r-short'>
-          <td class='rank'>4</td>
-          <td><span class='b short'>🔴 SHORT</span> </td>
-          <td class='sym'>BEAT<span class='q'>USDT</span></td>
-          <td class='num'>0.28</td>
-          <td class='num sl'>0.306375</td>
-          <td class='num tp'>0.240437<span class='rr'>1.5R</span></td>
-          <td class='num tp'>0.200875<span class='rr'>3R</span></td>
-          <td class='num adx'>27.2</td>
-          <td class='num' style='color:#22c55e;text-align:center'>49.7</td>
-          <td class='mtf'><div class='dots'><span class='dot d-neu' title='5m:NEUTRAL'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 4S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(139,147,167,.15);color:#8b93a7'>low</span></td>
-        </tr>
-        <tr class='r-long'>
-          <td class='rank'>5</td>
-          <td><span class='b long'>🟢 LONG</span> </td>
-          <td class='sym'>CRCL<span class='q'>USDT</span></td>
-          <td class='num'>73.6</td>
-          <td class='num sl'>73.0141</td>
-          <td class='num tp'>74.4789<span class='rr'>1.5R</span></td>
-          <td class='num tp'>75.3578<span class='rr'>3R</span></td>
-          <td class='num adx'>30.8</td>
-          <td class='num' style='color:#38bdf8;text-align:center'>25.5</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bull' title='15m:BULL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>3B / 2S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(34,197,94,.15);color:#22c55e'>✓VOL</span></td>
-        </tr>
-        <tr class='r-long'>
-          <td class='rank'>6</td>
-          <td><span class='b long'>🟢 LONG</span> </td>
-          <td class='sym'>ETH<span class='q'>USDT</span></td>
-          <td class='num'>1897.08</td>
-          <td class='num sl'>1889.95</td>
-          <td class='num tp'>1907.78<span class='rr'>1.5R</span></td>
-          <td class='num tp'>1918.48<span class='rr'>3R</span></td>
-          <td class='num adx'>27.2</td>
-          <td class='num' style='color:#fbbf24;text-align:center'>33.0</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bull' title='15m:BULL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-neu' title='1d:NEUTRAL'>1d</span></div><div class='ms'>3B / 1S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(34,197,94,.15);color:#22c55e'>✓VOL</span></td>
-        </tr>
-        <tr class='r-long'>
-          <td class='rank'>7</td>
-          <td><span class='b long'>🟢 LONG</span> </td>
-          <td class='sym'>SNDK<span class='q'>USDT</span></td>
-          <td class='num'>1725.51</td>
-          <td class='num sl'>1692.71</td>
-          <td class='num tp'>1774.72<span class='rr'>1.5R</span></td>
-          <td class='num tp'>1823.92<span class='rr'>3R</span></td>
-          <td class='num adx'>26.7</td>
-          <td class='num' style='color:#38bdf8;text-align:center'>22.1</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bull' title='15m:BULL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-neu' title='1d:NEUTRAL'>1d</span></div><div class='ms'>3B / 1S</div></td>
-          <td style='text-align:center'><span class='b' style='background:rgba(34,197,94,.15);color:#22c55e'>✓VOL</span></td>
-        </tr></tbody></table>
-<div class='foot'>สแกนสดจาก Binance USD-M Futures · อัปเดต 2026-08-18 09:30:13 · MTF dot = สถานะแต่ละกรอบเวลา (เขียว=BULL แดง=BEAR เทา=NEUTRAL)</div>
-<div class='head' style='margin-top:28px'><div><h2 style='font-size:18px;color:#e6e6e6'>👁️ เหรียญเฝ้าระวัง</h2>
-<div class='sub'>โชว์เสมอแม้ไม่มีสัญญาณ · ADX เขียว=แรงพอ(>25) เหลือง=ยังอ่อน</div></div></div>
-<table><thead><tr>
-  <th>เหรียญ</th><th>ภาพรวม</th><th>ราคา</th><th>ADX</th><th>MTF</th>
-</tr></thead><tbody>
-        <tr>
-          <td class='sym'>BNB<span class='q'>USDT</span></td>
-          <td><span class='dot d-bear' style='font-size:10px;padding:3px 8px'>BEAR</span></td>
-          <td class='num'>603.11</td>
-          <td class='num adx' style='color:#fbbf24'>22.1</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-neu' title='1d:NEUTRAL'>1d</span></div><div class='ms'>1B / 3S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>KAITO<span class='q'>USDT</span></td>
-          <td><span class='dot d-bear' style='font-size:10px;padding:3px 8px'>BEAR</span></td>
-          <td class='num'>0.3279</td>
-          <td class='num adx' style='color:#34d399'>44.9</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 5S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>SOL<span class='q'>USDT</span></td>
-          <td><span class='dot d-bear' style='font-size:10px;padding:3px 8px'>BEAR</span></td>
-          <td class='num'>75.37</td>
-          <td class='num adx' style='color:#fbbf24'>18.8</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-neu' title='1h:NEUTRAL'>1h</span><span class='dot d-neu' title='4h:NEUTRAL'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 3S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>XRP<span class='q'>USDT</span></td>
-          <td><span class='dot d-bear' style='font-size:10px;padding:3px 8px'>BEAR</span></td>
-          <td class='num'>0.9937</td>
-          <td class='num adx' style='color:#fbbf24'>22.2</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 5S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>ETH<span class='q'>USDT</span></td>
-          <td><span class='dot d-neu' style='font-size:10px;padding:3px 8px'>NEUTRAL</span></td>
-          <td class='num'>1896.12</td>
-          <td class='num adx' style='color:#34d399'>27.4</td>
-          <td class='mtf'><div class='dots'><span class='dot d-bear' title='5m:BEAR'>5m</span><span class='dot d-neu' title='15m:NEUTRAL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-neu' title='1d:NEUTRAL'>1d</span></div><div class='ms'>2B / 1S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>ETHFI<span class='q'>USDT</span></td>
-          <td><span class='dot d-neu' style='font-size:10px;padding:3px 8px'>NEUTRAL</span></td>
-          <td class='num'>0.4965</td>
-          <td class='num adx' style='color:#fbbf24'>7.1</td>
-          <td class='mtf'><div class='dots'><span class='dot d-neu' title='5m:NEUTRAL'>5m</span><span class='dot d-neu' title='15m:NEUTRAL'>15m</span><span class='dot d-bull' title='1h:BULL'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-bull' title='1d:BULL'>1d</span></div><div class='ms'>3B / 0S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>BEAT<span class='q'>USDT</span></td>
-          <td><span class='dot d-bear' style='font-size:10px;padding:3px 8px'>BEAR</span></td>
-          <td class='num'>0.28</td>
-          <td class='num adx' style='color:#34d399'>27.2</td>
-          <td class='mtf'><div class='dots'><span class='dot d-neu' title='5m:NEUTRAL'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bear' title='4h:BEAR'>4h</span><span class='dot d-bear' title='1d:BEAR'>1d</span></div><div class='ms'>0B / 4S</div></td>
-        </tr>
-        <tr>
-          <td class='sym'>CRV<span class='q'>USDT</span></td>
-          <td><span class='dot d-bear' style='font-size:10px;padding:3px 8px'>BEAR</span></td>
-          <td class='num'>0.2436</td>
-          <td class='num adx' style='color:#fbbf24'>16.1</td>
-          <td class='mtf'><div class='dots'><span class='dot d-neu' title='5m:NEUTRAL'>5m</span><span class='dot d-bear' title='15m:BEAR'>15m</span><span class='dot d-bear' title='1h:BEAR'>1h</span><span class='dot d-bull' title='4h:BULL'>4h</span><span class='dot d-neu' title='1d:NEUTRAL'>1d</span></div><div class='ms'>1B / 2S</div></td>
-        </tr></tbody></table>
-<div class='foot'>Watchlist: BNB, KAITO, SOL, XRP, ETH, ETHFI, BEAT, CRV</div>
-</div><script src="./tooltip.js"></script>
-</body></html>
+
+<div class="col-head">
+  <span>#</span><span>เหรียญ</span><span>กราฟ 4H</span><span>เกณฑ์ 5 ข้อ</span><span>คะแนน</span><span>วอลุ่ม 24H</span><span></span>
+</div>
+<div class="list" id="list"></div>
+<div class="empty" id="emptyNote" style="display:none">กำลังสแกนตลาดครั้งแรก อาจใช้เวลาสักครู่...</div>
+
+<footer>
+  ข้อมูลราคา/วอลุ่ม/แท่งเทียนจาก Binance Spot API (ไม่ต้องใช้ API key) · สัญญาณ Social จาก CoinGecko Trending Search · เกณฑ์ทั้ง 5 ข้อคำนวณจากแท่งเทียน 4 ชั่วโมงย้อนหลัง ~10 วัน แล้วให้คะแนน 0–5 ตามจำนวนเกณฑ์ที่ผ่าน<br>
+  เป็นเครื่องมือคัดกรองทางเทคนิคเบื้องต้นเท่านั้น ไม่ใช่คำแนะนำการลงทุน เหรียญที่ผ่านเกณฑ์ไม่ได้แปลว่าราคาจะขึ้นเสมอไป โปรดตรวจสอบเพิ่มเติมและบริหารความเสี่ยงด้วยตนเอง
+</footer>
+
+<script>
+const SPOT_BASE = 'https://api.binance.com';
+const POLL_MS = 60000;
+const CANDIDATE_POOL = 55;   // how many top-volume symbols get full 5-criteria analysis
+const KEY = 'accum_pinned_coins_v1';
+
+const TOOL_DATA = {
+  c1:{t:"เกณฑ์ 1 — สะสมเงียบ (ผันผวนต่ำ)",d:"ช่วง 30 แท่งล่าสุด (4H) ราคาแกว่งแคบ (<12%) และวอลุ่มไม่หดตัว — สัญญาณว่ามีคนเงียบๆ ซึมซับของไม่กระชากราคา"},
+  c2:{t:"เกณฑ์ 2 — วอลุ่ม 24 ชม. > 1.5M",d:"คัดกรองเฉพาะเหรียญที่มีสภาพคล่องพอ เล่นแล้วเข้าออกได้ง่าย ไม่ติดสเปรดกว้าง"},
+  c3:{t:"เกณฑ์ 3 — ทยอยซื้อ (แท่งเขียวสะสม)",d:"แท่งเขียว ≥55% ใน 20 แท่งล่าสุด + OBV เอียงขึ้น — แสดงว่ามีแรงซื้อสะสมต่อเนื่องไม่ใช่แค่ spikes"},
+  c4:{t:"เกณฑ์ 4 — ติดกระแส Social",d:"ชื่อเหรียญอยู่ใน CoinGecko Trending Search — มีความสนใจจากคนทั่วไป เพิ่มโอกาสที่จะมีคนตามเข้ามา"},
+  c5:{t:"เกณฑ์ 5 — Breakout Score > 0.8",d:"ราคาปิดอยู่สูงกว่า 80% ของกรอบ 30 แท่งล่าสุด — ใกล้ทะลุกรอบสะสมแล้ว พร้อมวิ่ง"}
+};
+
+let state = {
+  results: [],
+  pinned: new Set(),
+  trendingSet: new Set(),
+  sort: 'score',
+  onlyFull: false,
+  secondsLeft: 60,
+};
+
+// ---------- storage (localStorage) ----------
+function loadPinned(){
+  try{
+    const v = localStorage.getItem(KEY);
+    if(v) state.pinned = new Set(JSON.parse(v));
+  }catch(e){}
+}
+function savePinned(){
+  try{ localStorage.setItem(KEY, JSON.stringify([...state.pinned])); }catch(e){}
+}
+
+// ---------- helpers ----------
+function formatPrice(p){
+  if(p>=1000) return p.toLocaleString('en-US',{maximumFractionDigits:2});
+  if(p>=1) return p.toFixed(3);
+  return p.toFixed(6);
+}
+function formatVol(v){
+  if(v>=1e9) return (v/1e9).toFixed(2)+'B';
+  if(v>=1e6) return (v/1e6).toFixed(2)+'M';
+  if(v>=1e3) return (v/1e3).toFixed(1)+'K';
+  return v.toFixed(0);
+}
+function symToTh(s){ return s.replace('USDT',''); }
+
+// ---------- data fetch ----------
+async function fetchTicker24h(){
+  const res = await fetch(`${SPOT_BASE}/api/v3/ticker/24hr`);
+  return res.json();
+}
+async function fetchKlines(symbol, interval='4h', limit=60){
+  const res = await fetch(`${SPOT_BASE}/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
+  if(!res.ok) throw new Error('klines fail');
+  const raw = await res.json();
+  return raw.map(k=>({open:+k[1],high:+k[2],low:+k[3],close:+k[4],volume:+k[5]}));
+}
+async function fetchTrending(){
+  try{
+    const res = await fetch('https://api.coingecko.com/api/v3/search/trending');
+    const j = await res.json();
+    state.trendingSet = new Set((j.coins||[]).map(c=>c.item.symbol.toUpperCase()));
+  }catch(e){ /* keep previous set */ }
+}
+async function fetchThbRate(){
+  try{
+    const res = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tether&vs_currencies=thb');
+    const j = await res.json();
+    return j.tether.thb;
+  }catch(e){ return null; }
+}
+
+// ---------- 5-criteria engine ----------
+function evaluateCandle(candles, ticker, trendingSet){
+  const closes = candles.map(c=>c.close);
+  const highs = candles.map(c=>c.high);
+  const lows = candles.map(c=>c.low);
+  const vols = candles.map(c=>c.volume);
+  const recent = candles.slice(-30);
+  const recentHigh = Math.max(...recent.map(c=>c.high));
+  const recentLow = Math.min(...recent.map(c=>c.low));
+  const lastClose = closes[closes.length-1];
+
+  // 1. silent accumulation: tight range over recent 30 candles + volume not collapsing
+  const rangePct = (recentHigh-recentLow)/recentLow;
+  const olderVolAvg = vols.slice(-40,-20).reduce((a,b)=>a+b,0)/20;
+  const recentVolAvg = vols.slice(-20).reduce((a,b)=>a+b,0)/20;
+  const c1 = rangePct < 0.12 && recentVolAvg >= olderVolAvg*0.85;
+
+  // 2. volume > 1.5M USD (24h quote volume from ticker)
+  const quoteVol = parseFloat(ticker.quoteVolume);
+  const c2 = quoteVol > 1_500_000;
+
+  // 3. gradual buying: green-candle ratio in last 20 + OBV slope
+  const last20 = candles.slice(-20);
+  const greenRatio = last20.filter(c=>c.close>=c.open).length/last20.length;
+  let obv=0, obvSeries=[0];
+  for(let i=1;i<candles.length;i++){
+    obv += candles[i].close>candles[i-1].close ? candles[i].volume : (candles[i].close<candles[i-1].close ? -candles[i].volume : 0);
+    obvSeries.push(obv);
+  }
+  const obvSlopeUp = obvSeries[obvSeries.length-1] > obvSeries[Math.max(0,obvSeries.length-15)];
+  const c3 = greenRatio >= 0.55 && obvSlopeUp;
+
+  // 4. social trending (CoinGecko)
+  const base = ticker.symbol.replace('USDT','');
+  const c4 = trendingSet.has(base);
+
+  // 5. breakout proximity score
+  const breakoutScore = recentHigh>recentLow ? (lastClose-recentLow)/(recentHigh-recentLow) : 0;
+  const c5 = breakoutScore > 0.8;
+
+  const passCount = [c1,c2,c3,c4,c5].filter(Boolean).length;
+
+  return {
+    symbol: ticker.symbol,
+    price: lastClose,
+    changePct: parseFloat(ticker.priceChangePercent),
+    quoteVol,
+    checks: {c1,c2,c3,c4,c5},
+    score: passCount,
+    breakoutScore,
+    sparkCloses: closes.slice(-24),
+  };
+}
+
+function sparkSvg(closes, up){
+  const min = Math.min(...closes), max = Math.max(...closes);
+  const range = (max-min)||1;
+  const w=88,h=30;
+  const pts = closes.map((c,i)=>{
+    const x = (i/(closes.length-1))*w;
+    const y = h - ((c-min)/range)*h;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  }).join(' ');
+  const color = up ? 'var(--teal)' : 'var(--red)';
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}"><path d="M ${pts}" stroke="${color}"/></svg>`;
+}
+function scoreRing(score){
+  const pct = score/5;
+  const r=19, c=2*Math.PI*r;
+  const color = score===5?'var(--gold)':score>=3?'var(--teal)':'var(--dim)';
+  return `<div class="score-ring">
+    <svg width="46" height="46"><circle cx="23" cy="23" r="${r}" fill="none" stroke="var(--line)" stroke-width="4"/>
+    <circle cx="23" cy="23" r="${r}" fill="none" stroke="${color}" stroke-width="4" stroke-linecap="round"
+      stroke-dasharray="${c}" stroke-dashoffset="${c*(1-pct)}"/></svg>
+    <div class="val">${score}/5</div>
+  </div>`;
+}
+
+// ---------- render ----------
+function renderRow(d, rank, thbRate){
+  const chgCls = d.changePct>=0?'up':'down';
+  const priceThb = thbRate ? d.price*thbRate : null;
+  const chipLabels = ['1','2','3','4','5'];
+  const chipVals = [d.checks.c1,d.checks.c2,d.checks.c3,d.checks.c4,d.checks.c5];
+  const chips = chipVals.map((v,i)=>`<div class="chip ${v?'pass':'fail'}">${v?'✓':chipLabels[i]}</div>`).join('');
+  const pinned = state.pinned.has(d.symbol);
+
+  return `
+  <div class="row ${d.score===5?'full5':''} updated" data-symbol="${d.symbol}">
+    <div class="rank mono">${rank}</div>
+    <div class="coin">
+      <div class="sym">${symToTh(d.symbol)} <span>/USDT</span></div>
+      <div class="price-line">
+        <span class="price">${formatPrice(d.price)}</span>
+        <span class="chg ${chgCls}">${d.changePct>=0?'+':''}${d.changePct.toFixed(2)}%</span>
+      </div>
+      <div class="thb">${priceThb?'≈ ฿'+formatPrice(priceThb):''}</div>
+    </div>
+    ${sparkSvg(d.sparkCloses, d.changePct>=0)}
+    <div class="checklist">${chips}</div>
+    ${scoreRing(d.score)}
+    <div class="vol">24H<b>$${formatVol(d.quoteVol)}</b></div>
+    <button class="pin-btn ${pinned?'pinned':''}" data-pin="${d.symbol}" title="ปักหมุด">★</button>
+  </div>`;
+}
+
+function renderList(){
+  const list = document.getElementById('list');
+  const empty = document.getElementById('emptyNote');
+  let items = [...state.results];
+  if(state.onlyFull) items = items.filter(d=>d.score===5);
+  items.sort((a,b)=>{
+    const aPinned = state.pinned.has(a.symbol), bPinned = state.pinned.has(b.symbol);
+    if(aPinned!==bPinned) return aPinned? -1:1;
+    if(state.sort==='volume') return b.quoteVol-a.quoteVol;
+    if(state.sort==='breakout') return b.breakoutScore-a.breakoutScore;
+    return b.score-a.score || b.quoteVol-a.quoteVol;
+  });
+  if(!items.length){
+    list.innerHTML='';
+    empty.style.display='block';
+    empty.textContent = state.onlyFull ? 'ยังไม่มีเหรียญที่ผ่านเกณฑ์ครบ 5 ข้อในรอบนี้' : 'ไม่พบข้อมูล';
+    return;
+  }
+  empty.style.display='none';
+  list.innerHTML = items.map((d,i)=>renderRow(d,i+1,state.thbRate)).join('');
+
+  list.querySelectorAll('[data-pin]').forEach(btn=>{
+    btn.addEventListener('click', (e)=>{
+      const sym = e.currentTarget.getAttribute('data-pin');
+      if(state.pinned.has(sym)) state.pinned.delete(sym); else state.pinned.add(sym);
+      savePinned();
+      renderList();
+    });
+  });
+}
+
+// ---------- scan cycle ----------
+async function runScan(){
+  setConn(false, 'กำลังสแกน...');
+  document.getElementById('refreshBtn').textContent = '↻ กำลังสแกน...';
+  try{
+    const [allTickers, thbRate] = await Promise.all([fetchTicker24h(), fetchThbRate()]);
+    await fetchTrending();
+    state.thbRate = thbRate;
+
+    const candidates = allTickers
+      .filter(t=> t.symbol.endsWith('USDT')
+        && !/(UP|DOWN|BULL|BEAR)USDT$/.test(t.symbol)
+        && parseFloat(t.quoteVolume) > 1_500_000
+        && Math.abs(parseFloat(t.priceChangePercent)) < 25)
+      .sort((a,b)=> parseFloat(b.quoteVolume)-parseFloat(a.quoteVolume))
+      .slice(0, CANDIDATE_POOL);
+
+    document.getElementById('scanCount').textContent = candidates.length;
+
+    const results = [];
+    for(const t of candidates){
+      try{
+        const candles = await fetchKlines(t.symbol,'4h',60);
+        if(candles.length < 40) continue;
+        results.push(evaluateCandle(candles, t, state.trendingSet));
+      }catch(e){ /* skip symbol on error */ }
+    }
+    state.results = results;
+    document.getElementById('fullCount').textContent = results.filter(r=>r.score===5).length;
+    document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('th-TH',{hour12:false});
+    renderList();
+    setConn(true, 'สแกนล่าสุดสำเร็จ');
+  }catch(e){
+    console.error(e);
+    setConn(false, 'เชื่อมต่อไม่สำเร็จ');
+  }
+  document.getElementById('refreshBtn').textContent = '↻ สแกนใหม่';
+  state.secondsLeft = POLL_MS/1000;
+}
+function setConn(ok,label){
+  const el = document.getElementById('connStatus');
+  el.classList.toggle('on', ok);
+  el.querySelector('span:last-child').textContent = label;
+}
+
+// ---------- tooltip + manual ----------
+function tipInit(){
+  const box=document.createElement("div"); box.id="tipBox"; document.body.appendChild(box);
+  let hideT=null;
+  function show(key,x,y){
+    const d=TOOL_DATA[key]; if(!d)return;
+    box.innerHTML=`<h4>${d.t}</h4><p>${d.d}</p>`;
+    box.classList.add("show");
+    const r=box.getBoundingClientRect();
+    let px=x+14, py=y+14;
+    if(px+r.width>innerWidth-10) px=x-r.width-14;
+    if(py+r.height>innerHeight-10) py=y-r.height-14;
+    box.style.left=px+"px"; box.style.top=py+"px";
+  }
+  function hide(){ box.classList.remove("show"); }
+  document.addEventListener("mouseover",e=>{
+    const el=e.target.closest(".n[data-tip]"); if(!el)return;
+    clearTimeout(hideT); show(el.dataset.tip, e.clientX, e.clientY);
+  });
+  document.addEventListener("mousemove",e=>{
+    if(box.classList.contains("show") && e.target.closest(".n[data-tip]")){
+      const r=box.getBoundingClientRect();
+      let px=e.clientX+14, py=e.clientY+14;
+      if(px+r.width>innerWidth-10) px=e.clientX-r.width-14;
+      if(py+r.height>innerHeight-10) py=e.clientY-r.height-14;
+      box.style.left=px+"px"; box.style.top=py+"px";
+    }
+  });
+  document.addEventListener("mouseout",e=>{ if(e.target.closest(".n[data-tip]")) hideT=setTimeout(hide,120); });
+}
+function manualInit(){
+  const p=document.createElement("div"); p.id="manualPanel";
+  const cards=Object.entries(TOOL_DATA).map(([k,d])=>`
+    <div class="card"><h3>${d.t}</h3><p>${d.d}</p></div>`).join("");
+  p.innerHTML=`<div class="box">
+    <button class="close" onclick="document.getElementById('manualPanel').classList.remove('show')">✕ ปิด</button>
+    <h2>📖 คู่มือเกณฑ์การสะสม</h2>
+    <div class="sub">Accumulation Scanner — จับเหรียญที่กำลังถูกสะสมเงียบก่อนราคาวิ่ง</div>
+    <div class="grid2">${cards}</div>
+  </div>`;
+  document.body.appendChild(p);
+  p.addEventListener("click",e=>{ if(e.target===p) p.classList.remove("show"); });
+  document.addEventListener("click",e=>{ const b=e.target.closest(".manual"); if(b) p.classList.add("show"); });
+}
+
+// ---------- events ----------
+document.getElementById('onlyFull').addEventListener('change', (e)=>{ state.onlyFull = e.target.checked; renderList(); });
+document.getElementById('sortSel').addEventListener('change', (e)=>{ state.sort = e.target.value; renderList(); });
+document.getElementById('refreshBtn').addEventListener('click', runScan);
+
+// ---------- boot ----------
+(async function init(){
+  tipInit(); manualInit();
+  loadPinned();
+  await runScan();
+  setInterval(()=>{
+    state.secondsLeft--;
+    if(state.secondsLeft<=0) runScan();
+    else document.getElementById('countdown').textContent = state.secondsLeft+'s';
+  },1000);
+})();
+</script>
+</body>
+</html>
