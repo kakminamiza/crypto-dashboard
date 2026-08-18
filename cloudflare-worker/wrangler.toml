@@ -2,12 +2,13 @@ name = "futures-radar-worker"
 main = "src/index.js"
 compatibility_date = "2025-08-01"
 
-# Cron: รันทุก 1 นาที
+# Cron: รันสแกนอัตโนมัติทุก 10 นาที (Worker อยู่บน Cloudflare edge ไม่ใช่ IP ไทย
+# จึงไม่โดน Bybit บล็อกแบบเรียกจากเบราว์เซอร์ โดยรัน 10 นาที/รอบ กันการถูกแบน)
+# หน้าเว็บดึง /api/radar (มี cache ใน-worker 2 นาที) → ไม่เรียก Bybit ซ้ำจากฝั่ง client เลย
 [triggers]
-crons = ["* * * * *"]
+crons = ["*/10 * * * *"]
 
-# KV Namespace — สร้างก่อนด้วย: wrangler kv namespace create SIGNAL_KV
-# แล้ววาง ID ที่ได้ลงที่นี่
+# KV Namespace — เก็บผลสแกนล่าสุด
 [[kv_namespaces]]
 binding = "SIGNAL_KV"
 id = "daa5f58e90f04dd4b01e528eb1a7cbab"

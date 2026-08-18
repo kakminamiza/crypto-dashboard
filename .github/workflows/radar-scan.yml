@@ -1,0 +1,41 @@
+name: radar-scan
+on:
+  schedule:
+    - cron: "*/10 * * * *"   # ทุก 10 นาที สแกน Bybit ทั้งกระดานผ่าน Cloudflare Worker
+  workflow_dispatch: {}       # กดรันมือได้
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Scan via Cloudflare Worker (refresh) + fetch result
+        run: |
+          set -e
+          WORKER="https://futures-radar-worker.futures-radar-worker.workers.dev"
+          echo "Triggering worker scan..."
+          # บังคับ Worker สแกนใหม่ (Worker รันบน edge ไม่ใช่ IP ไทย จึงไม่โดน Bybit แบน)
+          curl -s -m 90 "$WORKER/api/radar/refresh" -o radar_scan_raw.json || true
+          # ดึงผลที่ cache ไว้
+          curl -s -m 30 "$WORKER/api/radar" -o radar_scan.json || cp radar_scan_raw.json radar_scan.json
+          echo "Result size: $(wc -c < radar_scan.json) bytes"
+          echo "Symbols found: $(grep -o '"symbol"' radar_scan.json | wc -l)"
+
+      - name: Commit scan result
+        run: |
+          git config user.name "radar-bot"
+          git config user.email "bot@noreply.github.com"
+          # เขียนทับไฟล์เดิม (ไม่สน history) → commit เฉพาะไฟล์ข้อมูล
+          git add radar_scan.json
+          if git diff --cached --quiet; then
+            echo "no change, skip commit"
+          else
+            git commit -m "auto: radar scan $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            git push
+          fi

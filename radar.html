@@ -465,7 +465,7 @@ const SCAN_GAP_MS = 70;            // หน่วงระหว่างกล
 const SCAN_MAX_SYMBOLS = 400;      // จำกัดจำนวนคู่สูงสุด (เรียงตามวอลุ่ม) เพื่อไม่ให้เบราเซอร์ค้าง
 const SCAN_MIN_TURNOVER = 500000;  // กรองหุ้น/stock-token ที่เทรดบาง (turnover 24h ต่ำ)
 const SCAN_MIN_VOL_RATIO = 0.5;    // ตัดตัวที่วอลุ่มแห้งจัด (<0.5 เท่านั้น) — ช่วงตลาดนิ่งวอลุ่มมัก ~0.3-0.8 ไม่ควรตัด
-const POLL_MS = 30000;
+const POLL_MS = 60000;            // รีเฟรชผลจาก Worker ทุก 60 วิ (Worker proxy Bybit ให้ หน้าเว็บไม่เรียก Bybit ตรงเลย → ไม่โดน IP แบน)
 const KEY = 'futures_radar_15m_v2';
 const SETTINGS_KEY = 'futures_radar_settings_v2';
 const ALERTED_KEY = 'futures_radar_alerted_v1';
@@ -617,15 +617,6 @@ async function renderValidator(){
     document.getElementById('validatorSummary').innerHTML = `<span style="color:var(--bear)">โหลดไม่ได้ — ${e.message}</span>`;
   }
 }
-
-const TOOL_DATA = {
-  confidence: { t:"Confidence % — ความมั่นใจ", use:"ระดับความน่าเชื่อถือ", ben:"≥70% น่าสนใจ, ≥85% แรงมาก", d:"รวม RSI + MACD + BB + Vol + แนวโน้ม 4H" },
-  entry: { t:"Entry — ราคาเข้า", use:"จุดสั่งซื้อ/ขาย", d:"ราคาปัจจุบันตามสัญญาณ" },
-  sl: { t:"SL — Stop Loss (ATR×2)", use:"ตัดขาดทุน", d:"เคาะ = โมเมนตัมกลับทาง" },
-  tp1: { t:"TP1 — Take Profit (1.5R)", use:"กำไรเป้าหมายแรก", d:"Risk × 1.5" },
-  tp2: { t:"TP2 — Take Profit (3R)", use:"กำไรสูงสุด", d:"Risk × 3" },
-  invalidation: { t:"Invalidation — จุดเพ้", use:"ทำลายสัญญาณ", d:"ทะลุ = โมเดลพัง" },
-};
 
 let state = {
   tab: 'signals',
@@ -970,22 +961,18 @@ async function fetchKlines(symbol, interval, limit){
   };
 }
 // ---------- Scan All Market (batched, rate-limit safe) ----------
-async function fetchKlineOnce(symbol, interval, limit){
-  // Bybit v5 interval format: 1,5,15,30,60,240,720,D,M  (NOT 15m/4h)
-  const IMAP = {'1m':'1','5m':'5','15m':'15','30m':'30','1h':'60','4h':'240','1d':'D'};
-  const bybitIv = IMAP[interval] || interval;
-  const url = `${FUTURES_KLINE}&symbol=${symbol}&interval=${bybitIv}&limit=${limit}`;
-  const res = await fetch(url);
-  if(!res.ok) throw new Error('klines fail');
+// โหลดผลสแกนจากไฟล์ static บน GitHub Pages (อัปเดตโดย GitHub Actions ทุก 10 นาที)
+// → หน้าเว็บไม่เรียก Bybit/Worker ตรง → ไม่โดน IP แบน + โหลดเร็ว
+const SCAN_JSON_URL = './radar_scan.json';   // เส้นทางสัมพันธ์กับ radar.html (root repo)
+async function workerGet(path){
+  const res = await fetch(SCAN_JSON_URL + '?t=' + Date.now());
+  if(!res.ok) throw new Error('scan json ' + res.status);
   const j = await res.json();
-  if(j.retCode !== 0) throw new Error('klines retCode ' + j.retCode);
-  const raw = j.result.list.slice().reverse();   // oldest→newest
-  return {
-    closes: raw.map(k=>parseFloat(k[4])),
-    highs:  raw.map(k=>parseFloat(k[2])),
-    lows:   raw.map(k=>parseFloat(k[3])),
-    volumes:raw.map(k=>parseFloat(k[5])),
-  };
+  return Array.isArray(j) ? j : (j && Array.isArray(j.data) ? j.data : []);
+}
+
+async function fetchKlineOnce(symbol, interval, limit){
+  return { closes:[], highs:[], lows:[], volumes:[] };
 }
 function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
 
@@ -1011,50 +998,11 @@ function prescreen15(symbol, k15, ticker24h){
   }catch(e){ return null; }
 }
 
-// สแกนทั้งกระดาน: คืนค่า array ของ d (พร้อมสัญญาณ) เรียงดาวลง
+// สแกนทั้งกระดาน: โหลดผลจาก radar_scan.json (GitHub Actions สแกนให้ผ่าน Worker ทุก 10 นาที)
 async function scanAllMarket(){
-  const all = await fetchAllTicker24h();
-  const usdt = all.filter(t=> t.symbol.endsWith('USDT') && !t.symbol.includes('_') && (parseFloat(t.quoteVolume)||0) >= SCAN_MIN_TURNOVER);
-  // เรียงตามวอลุ่ม ตัดจำกัดจำนวน
-  usdt.sort((a,b)=> parseFloat(b.quoteVolume)-parseFloat(a.quoteVolume));
-  const symbols = usdt.slice(0, SCAN_MAX_SYMBOLS).map(t=>t.symbol);
-
-  const ticker24h = {};
-  all.forEach(t=> ticker24h[t.symbol]=t);
-
-  const passed = [];   // symbols ที่ผ่าน pre-screen >=3 ดาว
-  // Batched pre-screen (15m เดียว)
-  for(let i=0;i<symbols.length;i+=SCAN_BATCH){
-    const batch = symbols.slice(i, i+SCAN_BATCH);
-    const res = await Promise.allSettled(batch.map(async sym=>{
-      const k15 = await fetchKlineOnce(sym,'15m',200);
-      const ps = prescreen15(sym, k15, ticker24h);
-      if(ps && ps.pass) return { sym, k15, ps };
-      return null;
-    }));
-    res.forEach(r=>{ if(r.status==='fulfilled' && r.value) passed.push(r.value); });
-    if(i+SCAN_BATCH < symbols.length) await sleep(SCAN_GAP_MS);
-  }
-
-  // ดึง 4h เฉพาะตัวที่ผ่าน → คำนวณสัญญาณสมบูรณ์ (เหมือนเดิมแต่ลด calls 75%)
-  const out = [];
-  for(let i=0;i<passed.length;i+=SCAN_BATCH){
-    const batch = passed.slice(i, i+SCAN_BATCH);
-    const res = await Promise.allSettled(batch.map(async ({sym,k15,ps})=>{
-      try{
-        const h4 = await fetchKlineOnce(sym,'4h',210);
-        // ต่อ kline ให้ computeSymbol แบบเดิม: 5m/30m ตัดจาก 15m, 4h แยก
-        const d = await computeSymbolFull(sym, k15, h4, ticker24h);
-        if(d && d.signal && d.signal.stars >= SCAN_MIN_STARS) return d;
-      }catch(e){}
-      return null;
-    }));
-    res.forEach(r=>{ if(r.status==='fulfilled' && r.value) out.push(r.value); });
-    if(i+SCAN_BATCH < passed.length) await sleep(SCAN_GAP_MS);
-  }
-
-  out.sort((a,b)=> b.signal.stars - a.signal.stars || b.signal.confidence - a.signal.confidence);
-  return out;
+  const data = await workerGet('/api/radar');
+  if(!Array.isArray(data)) throw new Error('scan data not array');
+  return data;   // เรียงดาวลงแล้วจาก Worker
 }
 
 // computeSymbol รุ่นรับ kline ที่ดึงมาแล้ว (ไม่ดึงซ้ำ) — ใช้กับสแกนทั้งกระดาน
