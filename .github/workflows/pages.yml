@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [main, feat/trading-tools]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -12,11 +12,7 @@ permissions:
 
 concurrency:
   group: pages
-<<<<<<< HEAD
-  cancel-in-progress: false
-=======
   cancel-in-progress: true
->>>>>>> feat/trading-tools
 
 jobs:
   build:
@@ -31,24 +27,12 @@ jobs:
         with:
           path: .
   deploy:
-<<<<<<< HEAD
-    needs: build
-    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
-=======
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
->>>>>>> feat/trading-tools

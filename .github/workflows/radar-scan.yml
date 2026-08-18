@@ -14,28 +14,29 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Scan via Cloudflare Worker (refresh) + fetch result
         run: |
           set -e
           WORKER="https://futures-radar-worker.futures-radar-worker.workers.dev"
           echo "Triggering worker scan..."
-          # บังคับ Worker สแกนใหม่ (Worker รันบน edge ไม่ใช่ IP ไทย จึงไม่โดน Bybit แบน)
           curl -s -m 90 "$WORKER/api/radar/refresh" -o radar_scan_raw.json || true
-          # ดึงผลที่ cache ไว้
           curl -s -m 30 "$WORKER/api/radar" -o radar_scan.json || cp radar_scan_raw.json radar_scan.json
           echo "Result size: $(wc -c < radar_scan.json) bytes"
           echo "Symbols found: $(grep -o '"symbol"' radar_scan.json | wc -l)"
 
       - name: Commit scan result
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "radar-bot"
           git config user.email "bot@noreply.github.com"
-          # เขียนทับไฟล์เดิม (ไม่สน history) → commit เฉพาะไฟล์ข้อมูล
           git add radar_scan.json
           if git diff --cached --quiet; then
             echo "no change, skip commit"
           else
             git commit -m "auto: radar scan $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-            git push
+            git push https://x-access-token:${GITHUB_TOKEN}@github.com/kakminamiza/crypto-dashboard.git HEAD:main
           fi
