@@ -35,8 +35,19 @@
             background:var(--bd); color:var(--fg); margin-left:6px; }}
   footer {{ padding:12px 20px; color:var(--mut); font-size:11px; border-top:1px solid var(--bd); }}
 </style>
+<style id="xnav-css">
+.xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;
+ border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;
+ font-family:"Segoe UI",Tahoma,"Leelawadee UI",sans-serif;font-size:13px}
+.xnav .b{font-weight:800;letter-spacing:.5px;color:#38bdf8;margin-right:12px;font-size:15px}
+.xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;border:1px solid transparent}
+.xnav a:hover{background:#1a2130;color:#e8eef7}
+.xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
+</style>
+<link rel="stylesheet" href="./tooltip.css">
 </head>
 <body>
+<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="cur">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="">39 เหรียญโปรด</a><a href="./liqwatch.html" class="">Liquidation Watch</a><a href="./radar.html" class="">Futures Radar</a><a href="./accum.html" class="">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav>
 <header>
   <h1>📊 Crypto Accumulation Scanner</h1>
   <div class="sub">เหรียญที่ผ่านเกณฑ์ 5 ข้อ (สะสมเงียบ / Vol&gt;1.5M / ทยอยซื้อ / Social / Breakout&gt;0.8) &middot; อัปเดต 2026-08-18 09:33</div>
@@ -74,5 +85,6 @@ DATA.forEach(r => {{
   grid.appendChild(card);
 }});
 </script>
+<script src="./tooltip.js"></script>
 </body>
 </html>
