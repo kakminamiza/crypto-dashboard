@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Binance Perp Scanner v2 — Live Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',Roboto,sans-serif;background:#0b0e14;color:#e6e6e6;padding:24px}
+.wrap{max-width:1200px;margin:0 auto}
+.head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+h1{font-size:24px;background:linear-gradient(90deg,#22c55e,#38bdf8);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{color:#8b93a7;font-size:13px;margin-top:4px}
+.stats{display:flex;gap:10px}
+.chip{background:#151a24;border:1px solid #232a38;border-radius:10px;padding:8px 14px;font-size:13px}
+.chip b{font-size:18px;display:block}
+.chip.b b{color:#22c55e}
+.chip.r b{color:#ef4444}
+table{width:100%;border-collapse:collapse;background:#111620;border-radius:14px;overflow:hidden;box-shadow:0 10px 40px rgba(0,0,0,.4);margin-bottom:28px}
+th{background:#0f141d;color:#8b93a7;font-size:11px;text-transform:uppercase;letter-spacing:.5px;padding:12px 10px;text-align:left}
+td{padding:12px 10px;border-top:1px solid #1b2230;font-size:14px;vertical-align:middle}
+tr:hover td{background:#161d2b}
+.sym{font-weight:700;font-size:15px} .q{color:#5b6478;font-size:10px;margin-left:2px}
+.num{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
+.sl{color:#f87171} .tp{color:#34d399}
+.rr{display:block;font-size:9px;color:#5b6478;font-weight:400}
+.adx{color:#fbbf24;text-align:center}
+.foot{color:#5b6478;font-size:11px;margin-top:14px;text-align:center}
+.note{background:#151a24;border-left:3px solid #38bdf8;padding:12px 14px;border-radius:8px;font-size:13px;color:#cbd5e1;margin-bottom:24px;line-height:1.6}
+h2{font-size:18px;color:#e6e6e6;margin-bottom:12px}
+.loading{text-align:center;padding:40px;color:#8b93a7}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="head">
+    <div><h1>🪙 Binance Perp Scanner v2</h1><div class="sub">BASE (accumulation) + Dip-Buy (pullback) · 4H TF · เทคนิคแท้ · อัปเดตอัตโนมัติทุก 1 นาที</div></div>
+    <div class="stats">
+      <div class="chip b"><b id="baseCount">–</b>BASE</div>
+      <div class="chip r"><b id="dipCount">–</b>DIP</div>
+      <div class="chip" style="color:#8b93a7"><b id="openCount">–</b>เปิดอยู่</div>
+    </div>
+  </div>
+
+  <div class="note">
+    📌 <b>BASE</b> = สะสมเงียบ (range แคบ + OBV up + higher lows) → มีแนวโน้มพุ่ง<br>
+    📌 <b>DIP</b> = pullback มาหา support ใน uptrend → รอซื้อตอนย่อ (ไม่ chase)<br>
+    💡 ซื้อตอนสะสมเงียบ รอลงหา Entry zone อย่าไล่ราคา สไตล์ dip-buyer
+  </div>
+
+  <h2>🟢 BASE setups (<span id="baseN">0</span> เหรียญ — กำลังสะสม)</h2>
+  <table><thead><tr><th>เหรียญ</th><th>ราคา</th><th>Score</th><th>OBV</th><th>CMF</th><th>Range</th><th>SL</th><th>TP1</th><th>TP2</th><th>R:R</th></tr></thead>
+  <tbody id="baseBody"><tr><td colspan="10" class="loading">กำลังโหลด...</td></tr></tbody></table>
+
+  <h2>🔵 DIP setups (<span id="dipN">0</span> เหรียญ — pullback to support)</h2>
+  <table><thead><tr><th>เหรียญ</th><th>ราคา</th><th>Score</th><th>RSI</th><th>ST</th><th>SL</th><th>TP1</th><th>TP2</th><th>R:R</th><th>TF</th></tr></thead>
+  <tbody id="dipBody"><tr><td colspan="9" class="loading">กำลังโหลด...</td></tr></tbody></table>
+
+  <div class="foot" id="footer">กำลังเชื่อมต่อ Cloudflare Worker...</div>
+</div>
+
+<script>
+const WORKER = 'https://futures-radar-worker.futures-radar-worker.workers.dev';
+
+async function load(){
+  try{
+    const r = await fetch(WORKER + '/api/result');
+    if(!r.ok) throw new Error('API error');
+    const d = await r.json();
+
+    if(d.error){
+      document.getElementById('footer').textContent = '❌ ' + d.error;
+      return;
+    }
+
+    // Stats
+    const base = d.base || [];
+    const dip = d.dip || [];
+    document.getElementById('baseCount').textContent = base.length;
+    document.getElementById('dipCount').textContent = dip.length;
+    document.getElementById('openCount').textContent = d.openCount || 0;
+    document.getElementById('baseN').textContent = base.length;
+    document.getElementById('dipN').textContent = dip.length;
+
+    // Base rows
+    document.getElementById('baseBody').innerHTML = base.length ? base.map(r=>{
+      const cmfC = parseFloat(r.cmf) >= 0 ? '#22c55e' : '#ef4444';
+      return `<tr>
+        <td class="sym">${r.sym.replace('USDT','')}<span class="q">USDT</span></td>
+        <td class="num">${r.entry.toFixed(r.entry<1?6:2)}</td>
+        <td class="num adx">${r.score}</td>
+        <td class="num" style="color:${r.obv==='up'?'#22c55e':'#ef4444'}">${r.obv}</td>
+        <td class="num" style="color:${cmfC}">${r.cmf}</td>
+        <td class="num">${r.range}%</td>
+        <td class="num sl">${r.sl.toFixed(r.sl<1?6:2)}</td>
+        <td class="num tp">${r.tp1.toFixed(r.tp1<1?6:2)}<span class="rr">+${((r.tp1-r.entry)/r.entry*100).toFixed(1)}%</span></td>
+        <td class="num tp">${r.tp2.toFixed(r.tp2<1?6:2)}<span class="rr">+${((r.tp2-r.entry)/r.entry*100).toFixed(1)}%</span></td>
+        <td class="num" style="text-align:center">${r.rr1}/${r.rr2}</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="10" style="text-align:center;color:#8b93a7;padding:20px">ไม่มี BASE setup ผ่านเกณฑ์</td></tr>';
+
+    // Dip rows
+    document.getElementById('dipBody').innerHTML = dip.length ? dip.map(r=>{
+      const rsiC = parseFloat(r.rsi) >= 50 ? '#22c55e' : '#ef4444';
+      const stC = r.st === 'bull' ? '#22c55e' : '#ef4444';
+      return `<tr>
+        <td class="sym">${r.sym.replace('USDT','')}<span class="q">USDT</span></td>
+        <td class="num">${r.entry.toFixed(r.entry<1?6:2)}</td>
+        <td class="num adx">${r.score}</td>
+        <td class="num" style="color:${rsiC}">RSI ${r.rsi}</td>
+        <td class="num" style="color:${stC}">${r.st}</td>
+        <td class="num sl">${r.sl.toFixed(r.sl<1?6:2)}</td>
+        <td class="num tp">${r.tp1.toFixed(r.tp1<1?6:2)}<span class="rr">+${((r.tp1-r.entry)/r.entry*100).toFixed(1)}%</span></td>
+        <td class="num tp">${r.tp2.toFixed(r.tp2<1?6:2)}<span class="rr">+${((r.tp2-r.entry)/r.entry*100).toFixed(1)}%</span></td>
+        <td class="num" style="text-align:center">${r.rr1}/${r.rr2}</td>
+        <td class="num" style="text-align:center;color:#8b93a7">4h</td>
+      </tr>`;
+    }).join('') : '<tr><td colspan="9" style="text-align:center;color:#8b93a7;padding:20px">ไม่มี DIP setup ผ่านเกณฑ์</td></tr>';
+
+    const ts = d.timestamp ? new Date(d.timestamp).toLocaleString('th-TH',{hour12:false}) : '—';
+    document.getElementById('footer').textContent = `✓ อัปเดต ${ts} · ข้อมูลจาก Cloudflare Worker`;
+  }catch(e){
+    document.getElementById('footer').textContent = '❌ โหลดไม่ได้: ' + e.message;
+  }
+}
+
+// Initial + refresh every 30s
+load();
+setInterval(load, 30000);
+</script>
+</body>
+</html>

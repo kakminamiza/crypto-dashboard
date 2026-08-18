@@ -1,0 +1,13 @@
+name = "futures-radar-worker"
+main = "src/index.js"
+compatibility_date = "2025-08-01"
+
+# Cron: รันทุก 1 นาที
+[triggers]
+crons = ["* * * * *"]
+
+# KV Namespace — สร้างก่อนด้วย: wrangler kv namespace create SIGNAL_KV
+# แล้ววาง ID ที่ได้ลงที่นี่
+[[kv_namespaces]]
+binding = "SIGNAL_KV"
+id = "daa5f58e90f04dd4b01e528eb1a7cbab"

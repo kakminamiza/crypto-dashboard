@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Liquidation Watch</title>
+<style id="xnav-css">
+.xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;
+ border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;
+ font-family:"Segoe UI",Tahoma,"Leelawadee UI",sans-serif;font-size:13px}
+.xnav .b{font-weight:800;letter-spacing:.5px;color:#38bdf8;margin-right:12px;font-size:15px}
+.xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;border:1px solid transparent}
+.xnav a:hover{background:#1a2130;color:#e8eef7}
+.xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
+</style>
+<style>
+:root{--bg:#0b0e14;--card:#111620;--fg:#e6edf3;--mut:#8b93a7;--grn:#22c55e;--red:#ef4444;--blu:#38bdf8;--bd:#26303f;--gold:#f0b90b}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:"Segoe UI",Tahoma,Roboto,sans-serif}
+header{padding:18px 22px;border-bottom:1px solid var(--bd)}
+h1{margin:0;font-size:22px;background:linear-gradient(90deg,#ef4444,#f0b90b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;display:inline-block}
+.sub{color:var(--mut);font-size:12px;margin-top:6px}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 22px;background:#0f141d;border-bottom:1px solid var(--bd)}
+.controls input,.controls select{background:#1a2130;border:1px solid #2a3444;color:#cbd3e1;padding:7px 9px;border-radius:8px;font-size:13px}
+.controls label{font-size:11px;color:var(--mut);text-transform:uppercase}
+.btn{background:#1a2130;border:1px solid #2a3444;color:#cbd3e1;padding:7px 14px;border-radius:8px;font-size:13px;cursor:pointer;font-weight:600}
+.btn:hover{background:#232d40}
+.btn.add{background:linear-gradient(90deg,#ef4444,#dc2626);color:#fff;border-color:#ef4444}
+.status{font-size:12px;color:var(--mut);padding:8px 22px;min-height:16px}
+#banner{position:fixed;top:60px;left:50%;transform:translateX(-50%);z-index:300;background:linear-gradient(90deg,#ef4444,#dc2626);color:#fff;font-weight:800;font-size:14px;padding:10px 20px;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.5);display:none;max-width:90%}
+#banner.show{display:block;animation:bpop .3s}
+@keyframes bpop{0%{transform:translateX(-50%) translateY(-12px);opacity:0}100%{transform:translateX(-50%) translateY(0);opacity:1}}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;padding:18px 22px}
+@keyframes danger{0%{box-shadow:0 0 0 0 rgba(239,68,68,0)}30%{box-shadow:0 0 0 4px rgba(239,68,68,.8)}60%{box-shadow:0 0 18px 6px rgba(239,68,68,.9)}100%{box-shadow:0 0 0 0 rgba(239,68,68,0)}}
+@keyframes warn{0%{box-shadow:0 0 0 0 rgba(240,185,11,0)}30%{box-shadow:0 0 0 3px rgba(240,185,11,.7)}100%{box-shadow:0 0 0 0 rgba(240,185,11,0)}}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:16px;position:relative}
+.card.danger{animation:danger 1s ease-out infinite;border-color:#ef4444}
+.card.warn{animation:warn 1.2s ease-out infinite;border-color:var(--gold)}
+.card .sym{font-size:17px;font-weight:800;color:var(--blu);display:flex;align-items:center;gap:8px}
+.card .dir{margin-left:auto;font-size:11px;font-weight:800;padding:3px 9px;border-radius:7px}
+.card .dir.long{background:rgba(34,197,94,.16);color:var(--grn)}
+.card .dir.short{background:rgba(239,68,68,.16);color:var(--red)}
+.card .price{font-size:20px;font-weight:800;margin:8px 0 4px}
+.card .row{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin:3px 0}
+.card .row b{color:var(--fg)}
+.card .bar{height:8px;border-radius:5px;background:#1a2130;margin-top:10px;overflow:hidden;position:relative}
+.card .bar i{position:absolute;top:0;bottom:0;width:3px;background:var(--grn)}
+.card .bar .liqmark{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--red)}
+.card .dist{font-size:11px;font-weight:700;margin-top:6px}
+.card .dist.danger{color:var(--red)}.card .dist.warn{color:var(--gold)}.card .dist.ok{color:var(--grn)}
+.card .del{position:absolute;bottom:10px;right:12px;cursor:pointer;color:var(--red);font-size:12px}
+.empty{text-align:center;color:var(--mut);padding:40px;font-size:14px}
+footer{padding:14px 22px;color:var(--mut);font-size:11px;border-top:1px solid var(--bd)}
+.hint{font-size:11px;color:var(--mut);padding:0 22px 10px}
+</style>
+<link rel="stylesheet" href="./tooltip.css">
+</head>
+<body>
+<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="">39 เหรียญโปรด</a><a href="./liqwatch.html" class="">Liquidation Watch</a><a href="./radar.html" class="">Futures Radar</a><a href="./accum.html" class="">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav>
+<div id="banner"></div>
+<header>
+  <h1>⚠️ Liquidation Watch</h1>
+  <div class="sub">เฝ้าระวังล้างพอร์ต · กรอกโพซชัน → เครื่องมือเตือนเมื่อราคาเข้าใกล้จุดล้าง · ดึงราคาสด Binance · เก็บในเครื่อง</div>
+</header>
+<div class="controls">
+  <div><label>เหรียญ</label><input id="wSym" placeholder="เช่น AIOUSDT" style="text-transform:uppercase;min-width:120px"></div>
+  <div><label>ทิศทาง</label><select id="wDir"><option value="long">Long</option><option value="short">Short</option></select></div>
+  <div><label>ราคาเข้า</label><input id="wEntry" type="number" step="any" style="width:110px"></div>
+  <div><label>Leverage</label><input id="wLev" type="number" value="5" min="1" max="100" style="width:60px"></div>
+  <div><label>Margin ($)</label><input id="wMargin" type="number" value="100" min="1" style="width:80px"></div>
+  <button class="btn add" id="wAdd">+ เพิ่มเฝ้าระวัง</button>
+  <label style="font-size:12px;color:var(--mut)"><input type="checkbox" id="wAuto" checked> อัปเดตอัตโนมัติ 15 วิ</label>
+</div>
+<div class="hint">💡 ใส่โพซชันที่เปิดอยู่ → เครื่องมือคำนวณราคาล้างพอร์ต (Maintenance 0.4%) แล้วเด้งแดงเมื่อราคาเหลือระยะอันตราย (⚠️ เหลือ 10% / 🔴 เหลือ 5%)</div>
+<div class="status" id="status"></div>
+<div class="grid" id="grid"></div>
+<footer>Liquidation Watch · ดึงราคาสด Binance Futures · ไม่ใช้ API key · ไม่ใช่คำแนะนำลงทุน</footer>
+
+<script>
+const FAPI="https://fapi.binance.com";
+const MMR=0.004;
+const KEY="liqwatch_v1";
+let positions=load();
+let lastPrices={};
+
+function load(){try{return JSON.parse(localStorage.getItem(KEY))||[];}catch(e){return[]}}
+function save(){localStorage.setItem(KEY,JSON.stringify(positions));}
+
+function liqPrice(entry,lev,dir){
+  return dir==="long" ? entry*(1-1/lev+MMR) : entry*(1+1/lev-MMR);
+}
+
+async function fetchPrice(sym){
+  try{
+    const r=await fetch(`${FAPI}/fapi/v1/ticker/price?symbol=${sym}`);
+    const d=await r.json();
+    return +d.price;
+  }catch(e){return null}
+}
+
+function render(){
+  const grid=document.getElementById("grid");
+  if(!positions.length){grid.innerHTML='<div class="empty">ยังไม่มีโพซชันในเฝ้าระวัง — กรอกด้านบนแล้วกด + เพิ่ม</div>';return;}
+  const cards=positions.map(p=>{
+    const liq=liqPrice(p.entry,p.lev,p.dir);
+    const cur=lastPrices[p.sym];
+    if(cur==null) return `<div class="card" data-sym="${p.sym}"><div class="sym">${p.sym.replace("USDT","")}</div><div class="price">โหลดราคา...</div></div>`;
+    // distance to liq
+    let distPct, danger=false, warn=false;
+    if(p.dir==="long"){ distPct=(cur-liq)/cur*100; }
+    else { distPct=(liq-cur)/cur*100; }
+    if(distPct<=5){danger=true;} else if(distPct<=10){warn=true;}
+    const cls=danger?"danger":warn?"warn":"";
+    const distCls=danger?"danger":warn?"warn":"ok";
+    // bar: show position of current price between entry and liq
+    let pos;
+    if(p.dir==="long"){ pos=Math.max(0,Math.min(100,(cur-liq)/(p.entry-liq)*100)); }
+    else { pos=Math.max(0,Math.min(100,(liq-cur)/(liq-p.entry)*100)); }
+    const tag=danger?`🔴 เหลือ ${distPct.toFixed(1)}% ถึงล้างพอร์ต!`:warn?`⚠️ เหลือ ${distPct.toFixed(1)}% ถึงล้างพอร์ต`:`เขียวอยู่ ห่างล้างพอร์ต ${distPct.toFixed(1)}%`;
+    return `<div class="card ${cls}" data-sym="${p.sym}">
+      <div class="sym">${p.sym.replace("USDT","")}<span class="dir ${p.dir}">${p.dir==="long"?"LONG":"SHORT"}</span></div>
+      <div class="price">${cur.toFixed(cur<1?5:2)}</div>
+      <div class="row"><span>ราคาเข้า</span><b>${p.entry.toFixed(p.entry<1?5:2)}</b></div>
+      <div class="row"><span>Leverage</span><b>${p.lev}x</b></div>
+      <div class="row"><span>จุดล้างพอร์ต</span><b style="color:var(--red)">${liq.toFixed(liq<1?5:2)}</b></div>
+      <div class="row"><span>Margin</span><b>$${p.margin}</b></div>
+      <div class="bar"><i style="left:${pos}%"></i><span class="liqmark" style="left:0%"></span></div>
+      <div class="dist ${distCls}">${tag}</div>
+      <span class="del" data-del="${p.sym}">✕ ลบ</span>
+    </div>`;
+  }).join("");
+  grid.innerHTML=cards;
+  grid.querySelectorAll("[data-del]").forEach(x=>x.onclick=()=>{positions=positions.filter(p=>p.sym!==x.dataset.del);save();render();});
+}
+
+async function update(){
+  const st=document.getElementById("status");
+  let dangerList=[];
+  for(const p of positions){
+    const cur=await fetchPrice(p.sym);
+    if(cur!=null){
+      lastPrices[p.sym]=cur;
+      const liq=liqPrice(p.entry,p.lev,p.dir);
+      let distPct = p.dir==="long" ? (cur-liq)/cur*100 : (liq-cur)/cur*100;
+      if(distPct<=10) dangerList.push({sym:p.sym,dist:distPct,dir:p.dir});
+    }
+  }
+  render();
+  if(dangerList.length){
+    dangerList.sort((a,b)=>a.dist-b.dist);
+    const bar=document.getElementById("banner");
+    const top=dangerList[0];
+    bar.innerHTML=`🔴 เตือนล้างพอร์ต! ${top.sym.replace("USDT","")} (${top.dir==="long"?"LONG":"SHORT"}) เหลือ ${top.dist.toFixed(1)}% ถึงจุดล้างพอร์ต`;
+    bar.classList.add("show");
+  }else{
+    document.getElementById("banner").classList.remove("show");
+  }
+  st.textContent=`✅ อัปเดต ${positions.length} โพซชัน · ${new Date().toLocaleTimeString('th-TH')}`;
+}
+
+document.getElementById("wAdd").onclick=()=>{
+  const sym=document.getElementById("wSym").value.trim().toUpperCase();
+  if(!sym)return;
+  const s=sym.includes("USDT")?sym:sym+"USDT";
+  const entry=+document.getElementById("wEntry").value;
+  const lev=+document.getElementById("wLev").value||1;
+  const margin=+document.getElementById("wMargin").value||0;
+  const dir=document.getElementById("wDir").value;
+  if(!entry)return;
+  positions=positions.filter(p=>p.sym!==s);
+  positions.push({sym:s,entry,lev,dir,margin});
+  save();
+  document.getElementById("wSym").value="";document.getElementById("wEntry").value="";
+  update();
+};
+let autoT=null;
+document.getElementById("wAuto").onchange=function(){
+  if(autoT)clearInterval(autoT);
+  if(this.checked)autoT=setInterval(update,15000);
+};
+
+// init
+render();
+update();
+if(document.getElementById("wAuto").checked) autoT=setInterval(update,15000);
+</script>
+<script src="./tooltip.js"></script>
+</body>
+</html>

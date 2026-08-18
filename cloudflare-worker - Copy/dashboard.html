@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Futures Radar Dashboard</title>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --fg:#e6edf3; --mut:#8b949e;
+          --grn:#3fb950; --red:#f85149; --blu:#58a6ff; --bd:#30363d; --ylw:#d29922; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+          font-family:"Segoe UI",Tahoma,Roboto,sans-serif; }
+  header { padding:16px 20px; border-bottom:1px solid var(--bd); }
+  h1 { margin:0; font-size:18px; font-weight:600; }
+  .sub { color:var(--mut); font-size:12px; margin-top:4px; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr));
+           gap:12px; padding:16px 20px; }
+  .card { background:var(--card); border:1px solid var(--bd); border-radius:10px;
+           padding:14px; position:relative; }
+  .card.long { border-left:3px solid var(--grn); }
+  .card.short { border-left:3px solid var(--red); }
+  .card.wait { border-left:3px solid var(--mut); }
+  .sym { font-size:15px; font-weight:700; color:var(--blu); }
+  .sig { font-size:12px; padding:2px 7px; border-radius:4px; margin-left:6px;
+          font-weight:600; }
+  .sig.LONG { background:var(--grn); color:#000; }
+  .sig.SHORT { background:var(--red); color:#000; }
+  .sig.WAIT { background:var(--bd); color:var(--mut); }
+  .price { font-size:20px; font-weight:700; margin:6px 0 2px; }
+  .row { display:flex; justify-content:space-between; font-size:12px;
+          color:var(--mut); margin:3px 0; }
+  .up { color:var(--grn); } .down { color:var(--red); } .mid { color:var(--ylw); }
+  .levels { font-size:11px; color:var(--mut); margin-top:6px; line-height:1.6; }
+  .levels b { color:var(--fg); }
+  .stars { letter-spacing:1px; color:var(--ylw); }
+  footer { padding:12px 20px; color:var(--mut); font-size:11px; border-top:1px solid var(--bd); }
+  #status { color:var(--mut); font-size:12px; padding:0 20px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>📡 Futures Radar</h1>
+  <div class="sub">Binance Futures Top 10 มomentum+volume &middot; ฟิลเตอร์ RSI สุดขั่ว / ADX&lt;20 &middot; รีเฟรชอัตโนมัติ 60s</div>
+</header>
+<div id="status">กำลังโหลด...</div>
+<div class="grid" id="grid"></div>
+<footer>Minimal muted &middot; ไม่มีเสียง &middot; เปิดได้โดยไม่ต้อง server</footer>
+<script>
+const API = "https://futures-radar-worker.futures-radar-worker.workers.dev/api/top10";
+async function load() {
+  try {
+    const r = await fetch(API);
+    const d = await r.json();
+    const ts = d.timestamp ? new Date(d.timestamp).toLocaleString('th-TH') : '';
+    document.getElementById('status').textContent = 'อัปเดต: ' + ts + ' | ' + (d.top10 ? d.top10.length : 0) + ' เหรียญ';
+    const grid = document.getElementById('grid');
+    grid.innerHTML = '';
+    (d.top10 || []).forEach(r => {
+      const card = document.createElement('div');
+      card.className = 'card ' + (r.signal || 'wait').toLowerCase();
+      const cls = (r.adx!==null && r.adx>=20) ? (r.adx>=25?'up':'mid') : '';
+      const rsiCls = (r.rsi!==null && r.rsi>30 && r.rsi<70) ? 'up' : (r.rsi!==null && (r.rsi>=70||r.rsi<=30)) ? 'down' : '';
+      const stars = '★'.repeat(r.stars||0) + '☆'.repeat(Math.max(0,5-(r.stars||0)));
+      card.innerHTML = `
+        <div><span class="sym">${r.symbol}</span><span class="sig ${r.signal}">${r.signal}</span></div>
+        <div class="price">${r.price!==null?r.price.toFixed(r.price<0.1?5:2):'-'}</div>
+        <div class="row"><span>เปลี่ยน 24h</span><span class="${r.change24h>=0?'up':'down'}">${r.change24h>=0?'+':''}${r.change24h}%</span></div>
+        <div class="row"><span>ADX(14)</span><span class="${cls}">${r.adx!==null?r.adx:'-'}</span></div>
+        <div class="row"><span>RSI(14)</span><span class="${rsiCls}">${r.rsi!==null?r.rsi:'-'}</span></div>
+        <div class="row"><span>ความมั่นใจ</span><span>${r.confidence}%</span></div>
+        <div class="row"><span>⭐</span><span class="stars">${stars}</span></div>
+        ${r.signal!=='WAIT' ? `
+        <div class="levels">
+          <b>Entry</b> ${r.entry!==null?r.entry.toFixed(r.entry<0.1?5:2):'-'} &middot;
+          <b>SL</b> ${r.sl!==null?r.sl.toFixed(r.sl<0.1?5:2):'-'} &middot;
+          <b>TP1</b> ${r.tp1!==null?r.tp1.toFixed(r.tp1<0.1?5:2):'-'} &middot;
+          <b>TP2</b> ${r.tp2!==null?r.tp2.toFixed(r.tp2<0.1?5:2):'-'}
+        </div>` : ''}
+        <div class="levels">${r.reason||''}</div>`;
+      grid.appendChild(card);
+    });
+  } catch (e) {
+    document.getElementById('status').textContent = 'โหลดไม่ได้: ' + e.message;
+  }
+}
+load();
+setInterval(load, 60000);
+</script>
+</body>
+</html>
