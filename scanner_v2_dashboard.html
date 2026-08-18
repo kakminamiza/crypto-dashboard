@@ -93,7 +93,7 @@ async function analyze(sym){
   const basePass=baseScore>=3 && trend4!=='down';
   // DIP: pullback to support in uptrend
   const e50=ema(c15,50)[ema(c15,50).length-1];
-  const dipPass = trend4==='up' && st==='bull' && r>=35 && r<=58 && price<=e50*1.01;
+  const dipPass = trend4==='up' && st==='bull' && r>=30 && r<=62 && price<=e50*1.03;
   const a=atr(h15,l15,c15);
   const sl=price-a*1.5, tp1=price+a*2, tp2=price+a*4;
   return {sym,price,r:r.toFixed(0),st,obv,cmf:cmfV,range:rng.toFixed(1),score:baseScore,
@@ -103,10 +103,12 @@ async function analyze(sym){
 async function load(){
   try{
     const out=[];
+    let ok=0,fail=0;
     for(let i=0;i<PAIRS.length;i+=4){
       const batch=PAIRS.slice(i,i+4);
-      const res=await Promise.all(batch.map(s=>analyze(s).catch(()=>null)));
+      const res=await Promise.all(batch.map(s=>analyze(s).catch(e=>{fail++;return null;})));
       out.push(...res.filter(Boolean));
+      ok+=res.filter(Boolean).length;
       await new Promise(r=>setTimeout(r,120));
     }
     const base=out.filter(r=>r.basePass).map(r=>({sym:r.sym,entry:r.price,score:r.score,obv:r.obv,cmf:r.cmf,range:r.range,sl:r.sl,tp1:r.tp1,tp2:r.tp2,rr1:r.rr1,rr2:r.rr2}));
@@ -124,7 +126,7 @@ async function load(){
       const rsiC=parseFloat(r.rsi)>=50?'#22c55e':'#ef4444';const stC=r.st==='bull'?'#22c55e':'#ef4444';
       return `<tr><td class="sym">${r.sym.replace('USDT','')}<span class="q">USDT</span></td><td class="num">${r.entry.toFixed(r.entry<1?6:2)}</td><td class="num adx">${r.score}</td><td class="num" style="color:${rsiC}">RSI ${r.rsi}</td><td class="num" style="color:${stC}">${r.st}</td><td class="num sl">${r.sl.toFixed(r.sl<1?6:2)}</td><td class="num tp">${r.tp1.toFixed(r.tp1<1?6:2)}<span class="rr">+${((r.tp1-r.entry)/r.entry*100).toFixed(1)}%</span></td><td class="num tp">${r.tp2.toFixed(r.tp2<1?6:2)}<span class="rr">+${((r.tp2-r.entry)/r.entry*100).toFixed(1)}%</span></td><td class="num" style="text-align:center">${r.rr1}/${r.rr2}</td><td class="num" style="text-align:center;color:#8b93a7">4h</td></tr>`;
     }).join(''):'<tr><td colspan="9" style="text-align:center;color:#8b93a7;padding:20px">ไม่มี DIP setup ผ่านเกณฑ์</td></tr>';
-    document.getElementById('footer').textContent='✓ อัปเดต '+new Date().toLocaleString('th-TH',{hour12:false})+' · ข้อมูลสดจาก Binance (เบราว์เซอร์)';
+    document.getElementById('footer').textContent='✓ อัปเดต '+new Date().toLocaleString('th-TH',{hour12:false})+' · สดจาก Binance · สแกนสำเร็จ '+ok+' / ล้มเหลว '+fail+' (จาก '+PAIRS.length+')';
   }catch(e){
     document.getElementById('footer').textContent='❌ โหลดไม่ได้: '+e.message;
   }
