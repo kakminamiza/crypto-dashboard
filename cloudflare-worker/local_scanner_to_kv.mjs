@@ -62,6 +62,25 @@ async function kvGet(key) {
 function ema(v, n) { const k = 2 / (n + 1); let e = v[0], o = [e]; for (let i = 1; i < v.length; i++) { e = v[i] * k + e * (1 - k); o.push(e); } return o; }
 function rma(v, n) { const a = 1 / n; let e = v[0], o = [e]; for (let i = 1; i < v.length; i++) { e = v[i] * a + e * (1 - a); o.push(e); } return o; }
 function atr(h, l, c, n = 14) { const tr = [h[0] - l[0]]; for (let i = 1; i < c.length; i++) tr.push(Math.max(h[i] - l[i], Math.abs(h[i] - c[i - 1]), Math.abs(l[i] - c[i - 1]))); const r = rma(tr, n); return r[r.length - 1]; }
+function adx(h, l, c, n = 14) {
+  if (c.length < n + 1) return 50;
+  const tr = [], pDM = [], mDM = [];
+  for (let i = 1; i < c.length; i++) {
+    tr.push(Math.max(h[i] - l[i], Math.abs(h[i] - c[i - 1]), Math.abs(l[i] - c[i - 1])));
+    const up = h[i] - h[i - 1], dn = l[i - 1] - l[i];
+    pDM.push(up > dn && up > 0 ? up : 0);
+    mDM.push(dn > up && dn > 0 ? dn : 0);
+  }
+  const atrW = rma(tr, n), pdiW = rma(pDM, n), mdiW = rma(mDM, n);
+  const dx = [];
+  for (let i = 0; i < atrW.length; i++) {
+    const a = atrW[i];
+    const pdi = a ? pdiW[i] / a * 100 : 0, mdi = a ? mdiW[i] / a * 100 : 0;
+    dx.push((pdi + mdi) ? Math.abs(pdi - mdi) / (pdi + mdi) * 100 : 0);
+  }
+  const w = rma(dx, n);
+  return w[w.length - 1];
+}
 function rsi(c, n = 14) { if (c.length < n + 1) return 50; let g = 0, lo = 0; for (let i = c.length - n; i < c.length; i++) { const d = c[i] - c[i - 1]; if (d > 0) g += d; else lo -= d; } const ag = g / n, al = lo / n; if (!al) return 100; return 100 - 100 / (1 + ag / al); }
 function macd(c) { const e12 = ema(c, 12), e26 = ema(c, 26); const line = c.map((_, i) => e12[i] - e26[i]); const sig = ema(line.slice(-Math.min(line.length, 60)), 9); return { hist: line[line.length - 1] - sig[sig.length - 1] }; }
 function bollinger(c, n = 20, m = 2) { const s = c.slice(-n); const mid = s.reduce((a, b) => a + b, 0) / n; const v = s.reduce((a, b) => a + (b - mid) ** 2, 0) / n; const sd = Math.sqrt(v); return { upper: mid + m * sd, mid, lower: mid - m * sd }; }
@@ -133,9 +152,19 @@ async function scanAll() {
       const avgV = v20.reduce((a, b) => a + b, 0) / v20.length;
       const vRatio = avgV > 0 ? vols[vols.length - 1] / avgV : 1;
       const rsiV = rsi(closes), macdV = macd(closes).hist, bb = bollinger(closes), atrV = atr(highs, lows, closes), trend = swing4h(h4.map(k => parseFloat(k[4])));
+      const adxV = adx(highs, lows, closes);
+      // ฟิลเตอร์สไตล์พี่กั๊ก: ตัด RSI สุดขั้ว (>=70 / <=30) + เทา ADX ต่ำ (<20)
+      const extRSI = rsiV >= 70 || rsiV <= 30;
+      const lowADX = adxV < 20;
       const score = computeScore({ rsi: rsiV, macdHist: macdV, price, bb, vRatio });
       const sig = computeSignal(price, rsiV, macdV, bb, vRatio, atrV, trend, score);
-      results.push({ symbol: coin.sym, price, change24h: coin.chg, volume24h: coin.vol, signal: sig.signal, stars: sig.stars, confidence: sig.confidence, entry: sig.entry, sl: sig.sl, tp1: sig.tp1, tp2: sig.tp2, reason: sig.reason, timestamp: new Date().toISOString() });
+      // ถ้ารับ extreme RSI หรือ ADX ต่ำ -> ลงเป็น WAIT + เหตุผล
+      let finalSig = sig;
+      if (extRSI || lowADX) {
+        finalSig = { ...sig, signal: "WAIT", stars: Math.min(sig.stars, 1), confidence: Math.min(sig.confidence, 15),
+          reason: (extRSI ? "RSI สุดขั้ว " : "") + (lowADX ? "ADX ต่ำ(<20)" : "") + (sig.reason ? " · " + sig.reason : "") };
+      }
+      results.push({ symbol: coin.sym, price, change24h: coin.chg, volume24h: coin.vol, signal: finalSig.signal, stars: finalSig.stars, confidence: finalSig.confidence, entry: finalSig.entry, sl: finalSig.sl, tp1: finalSig.tp1, tp2: finalSig.tp2, reason: finalSig.reason, adx: Math.round(adxV), rsi: Math.round(rsiV), timestamp: new Date().toISOString() });
       await sleep(200); // หน่วงเล็กน้อยลดโหลด
     } catch (e) { console.log("skip", coin.sym, e.message); }
   }
