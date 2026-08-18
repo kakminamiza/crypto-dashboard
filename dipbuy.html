@@ -103,12 +103,36 @@ svg{width:100%;height:auto;display:block}
  margin-right:6px;animation:bl 1.6s infinite}
 @keyframes bl{0%,100%{opacity:1}50%{opacity:.25}}
 footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
+
+/* ═══ SHARED NAV (injected) ═══ */
+.xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
+.xnav .b{font-weight:800;font-size:15px;background:linear-gradient(90deg,#3fb950,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px}
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+.xnav .manual{margin-left:auto;background:#1b2230;border:1px solid #30363d;color:#8b949e;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+.xnav .manual:hover{color:#e6edf3}
 </style>
 <link rel="stylesheet" href="./tooltip.css">
 </head>
 <body>
+<nav class="xnav">
+  <span class="b">◈ CRYPTO TERMINAL</span>
+  <a href="./index.html">🏠 หน้าแรก</a>
+  <a href="./dipbuy.html" class="cur">Dip-Buy</a>
+  <a href="./entry.html">Entry Planner</a>
+  <a href="./scan.html">Market Scan</a>
+  <a href="./trend.html">Trend Rider</a>
+  <a href="./top100.html">Top 100</a>
+  <a href="./fav.html">⭐ โปรด</a>
+  <a href="./liqwatch.html">Liquidation</a>
+  <a href="./radar.html">Radar</a>
+  <a href="./accum.html">Accum</a>
+  <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
+</nav>
 
-<nav class="xnav"><span class="b">◈ CRYPTO TERMINAL</span><a href="./index.html" class="">Accumulation</a><a href="./dipbuy.html" class="">Dip-Buy</a><a href="./entry.html" class="">Entry Planner</a><a href="./scan.html" class="">Market Scan</a><a href="./trend.html" class="">Trend Rider</a><a href="./top100.html" class="">Top 100</a><a href="./fav.html" class="">39 เหรียญโปรด</a><a href="./liqwatch.html" class="">Liquidation Watch</a><a href="./radar.html" class="">Futures Radar</a><a href="./accum.html" class="">Accum (live)</a><button class="manual" title="คู่มือเครื่องมือ">ℹ️ คู่มือ</button></nav>
+
+
 
 <header>
   <h1>📊 Dip-Buy Terminal</h1>

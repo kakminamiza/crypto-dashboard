@@ -50,15 +50,34 @@ def nav_for(fname):
 
 
 def has_new_nav(s):
-    """A page already has the correct, working nav."""
-    return 'class="xnav"' in s and '◈ CRYPTO TERMINAL' in s and 'xnav-css' not in s
+    """A page already has the correct, working nav.
+
+    Working nav = the new-style markup: class=xnav, the brand span, AND a
+    correctly-spaced <a class="cur"> label matching the page. We deliberately do
+    NOT accept the OLD broken nav (links mashed together with no whitespace,
+    wrong labels like 'Accumulation'/'Liquidation Watch', no real .cur) even
+    though it also carries class=xnav — that's the bug we are fixing.
+    """
+    if 'class="xnav"' not in s or '◈ CRYPTO TERMINAL' not in s:
+        return False
+    if 'xnav-css' in s:
+        return False
+    # broken nav has <a> tags concatenated with no whitespace between them
+    # (e.g. </a><a ...>). A correct nav has whitespace/newline between tags.
+    if re.search(r'</a><a ', s):
+        return False
+    # must carry at least one .cur link (correct per-page highlight)
+    if 'class="cur"' not in s:
+        return False
+    return True
 
 
 def strip_old_nav(s):
     """Remove any previously-injected nav + its separate css block so we can
-    re-inject cleanly."""
+    re-inject cleanly. Handles both old broken markup and new markup."""
     s = re.sub(r'<style id="xnav-css">.*?</style>', '', s, flags=re.S)
     s = re.sub(r'<nav class="xnav">.*?</nav>', '', s, flags=re.S)
+    s = re.sub(r'<nav class="nav">.*?</nav>', '', s, flags=re.S)
     return s
 
 
