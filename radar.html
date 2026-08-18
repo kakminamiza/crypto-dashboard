@@ -290,7 +290,7 @@
   <div class="head-stats">
     <div class="conn" id="connStatus"><span class="led"></span><span>เชื่อมต่อ...</span></div>
     <div class="head-stat">USDT/THB<b id="thbRate">—</b></div>
-    <div class="head-stat">สัญญาณ<b id="signalCount" class="mono">0</b></div>
+    <div class="head-stat">สแกนทั้งกระดาน<b id="signalCount" class="mono">0</b></div>
     <div class="head-stat">อัปเดตล่าสุด<b id="lastUpdate" class="mono">—</b></div>
     <div class="head-stat">รีเฟรชใน<b id="countdown" class="mono">—</b></div>
   </div>
@@ -457,6 +457,14 @@ const FUTURES_KLINE = `${FUTURES_BASE}/v5/market/kline?category=linear`;
 const FUTURES_TICKER = `${FUTURES_BASE}/v5/market/tickers?category=linear&limit=1000`;
 const WS_BASE = 'wss://stream.bybit.com/v5/public/linear';
 const DEFAULT_WATCHLIST = ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','LINKUSDT','SUIUSDT','OPUSDT','ARBUSDT','PEPEUSDT','SHIBUSDT','WIFUSDT'];
+// สแกนทั้งกระดาน: เปิดโหมดนี้เพื่อหาสัญญาณจาก USDT perp ทุกคู่ (ไม่พึ่ง watchlist เดี่ยว)
+const SCAN_ALL_MARKET = true;
+const SCAN_MIN_STARS = 3;          // คัดเฉพาะ >= 3 ดาว (พี่กั๊ก: ดาวต้องขึ้น)
+const SCAN_BATCH = 18;             // สแกนพร้อมกันทีละกลุ่ม (กัน rate-limit)
+const SCAN_GAP_MS = 70;            // หน่วงระหว่างกลุ่ม
+const SCAN_MAX_SYMBOLS = 400;      // จำกัดจำนวนคู่สูงสุด (เรียงตามวอลุ่ม) เพื่อไม่ให้เบราเซอร์ค้าง
+const SCAN_MIN_TURNOVER = 500000;  // กรองหุ้น/stock-token ที่เทรดบาง (turnover 24h ต่ำ)
+const SCAN_MIN_VOL_RATIO = 0.5;    // ตัดตัวที่วอลุ่มแห้งจัด (<0.5 เท่านั้น) — ช่วงตลาดนิ่งวอลุ่มมัก ~0.3-0.8 ไม่ควรตัด
 const POLL_MS = 30000;
 const KEY = 'futures_radar_15m_v2';
 const SETTINGS_KEY = 'futures_radar_settings_v2';
@@ -844,8 +852,10 @@ function swingTrend(closes4h){
 
 // ---------- Compute Signal ----------
 function computeScore(d){
+  const rsiVal = (d.rsi !== undefined) ? d.rsi : d.rsiVal;
+  if(rsiVal === undefined || !isFinite(rsiVal)) return 0;
   let s = 0;
-  s += (d.rsi-50) * 1.3;
+  s += (rsiVal-50) * 1.3;
   s += Math.max(-25, Math.min(25, d.macdHist * 4000));
   const bbRange = (d.bb.upper - d.bb.lower);
   const bbPos = bbRange > 0 ? (d.price - d.bb.lower) / bbRange : 0.5;
@@ -860,13 +870,20 @@ function scoreToStars(score){
   if(abs >= 65) return 4;
   if(abs >= 50) return 3;
   if(abs >= 35) return 2;
-  return 1;
+  if(abs >= 20) return 1;
+  return 0;
 }
 
 function computeSignal(d){
-  const dir = d.score >= 50 ? 'LONG' : d.score <= -50 ? 'SHORT' : 
-              d.score >= 35 ? 'LONG' : d.score <= -35 ? 'SHORT' : 'WAIT';
-  
+  // กฎของพี่กั๊ก: ตัดโซน extreme — ไม่ไล่ของแพง (overbought) และไม่จับมีดตก (oversold)
+  if(d.rsi >= 70 || d.rsi <= 30){
+    return { signal:'WAIT', stars:0, confidence:0, entry:null, sl:null, tp1:null, tp2:null, invalidation:null,
+             reason: d.rsi>=70 ? 'RSI overbought (≥70) — ไม่ไล่ของแพง' : 'RSI oversold (≤30) — ไม่จับมีดตก', rr1:0, rr2:0 };
+  }
+  // ต้องการโมเมนตัมชัดเจน (ลดจาก 35 → 25) + alignment 2 timeframe (ดูด้านล่าง)
+  const dir = d.score >= 50 ? 'LONG' : d.score <= -50 ? 'SHORT' :
+              d.score >= 25 ? 'LONG' : d.score <= -25 ? 'SHORT' : 'WAIT';
+
   if(dir === 'WAIT'){
     return { signal:'WAIT', stars:scoreToStars(d.score), confidence:Math.abs(d.score), 
              entry:null, sl:null, tp1:null, tp2:null, invalidation:null, 
@@ -952,6 +969,118 @@ async function fetchKlines(symbol, interval, limit){
     volumes: raw.map(k=>parseFloat(k[5])),
   };
 }
+// ---------- Scan All Market (batched, rate-limit safe) ----------
+async function fetchKlineOnce(symbol, interval, limit){
+  // Bybit v5 interval format: 1,5,15,30,60,240,720,D,M  (NOT 15m/4h)
+  const IMAP = {'1m':'1','5m':'5','15m':'15','30m':'30','1h':'60','4h':'240','1d':'D'};
+  const bybitIv = IMAP[interval] || interval;
+  const url = `${FUTURES_KLINE}&symbol=${symbol}&interval=${bybitIv}&limit=${limit}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('klines fail');
+  const j = await res.json();
+  if(j.retCode !== 0) throw new Error('klines retCode ' + j.retCode);
+  const raw = j.result.list.slice().reverse();   // oldest→newest
+  return {
+    closes: raw.map(k=>parseFloat(k[4])),
+    highs:  raw.map(k=>parseFloat(k[2])),
+    lows:   raw.map(k=>parseFloat(k[3])),
+    volumes:raw.map(k=>parseFloat(k[5])),
+  };
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// หาสัญญาณจากแท่ง 15m 200 แท่ง (ครอบคลุม 5m/15m/30m) — ใช้คัดกรองรวดเร็ว
+// คืนค่า { pass, score, rsi, vRatio, d15 } หรือ null
+function prescreen15(symbol, k15, ticker24h){
+  try{
+    const {closes, volumes} = k15;
+    if(closes.length < 100) return null;
+    const score5  = computeScore({ rsiVal: rsi(closes.slice(-20),14), macdHist: macd(closes.slice(-20)).hist, price: closes[closes.length-1], bb: bollinger(closes.slice(-20),20,2), vRatio: volRatio(volumes.slice(-20),20) });
+    const score15 = computeScore({ rsiVal: rsi(closes,14), macdHist: macd(closes).hist, price: closes[closes.length-1], bb: bollinger(closes,20,2), vRatio: volRatio(volumes,20) });
+    // 30m proxy: ตัดแท่งสุดท้ายออก (ให้ช่วงย้อนหลังกว้างขึ้นเล็กน้อย)
+    const c30 = closes.slice(0, -1);
+    const v30 = volumes.slice(0, -1);
+    const score30 = computeScore({ rsiVal: rsi(c30,14), macdHist: macd(c30).hist, price: closes[closes.length-1], bb: bollinger(c30,20,2), vRatio: volRatio(v30,20) });
+    const score = Math.round(score5*0.25 + score15*0.5 + score30*0.25);
+    const stars = scoreToStars(score);
+    const rsiVal = rsi(closes,14);
+    const vR = volRatio(volumes,20);
+    if(stars < SCAN_MIN_STARS) return null;
+    if(vR < SCAN_MIN_VOL_RATIO) return null;   // ตัดวอลุ่มแห้ง
+    return { pass:true, score, stars, rsi:rsiVal, vRatio:vR };
+  }catch(e){ return null; }
+}
+
+// สแกนทั้งกระดาน: คืนค่า array ของ d (พร้อมสัญญาณ) เรียงดาวลง
+async function scanAllMarket(){
+  const all = await fetchAllTicker24h();
+  const usdt = all.filter(t=> t.symbol.endsWith('USDT') && !t.symbol.includes('_') && (parseFloat(t.quoteVolume)||0) >= SCAN_MIN_TURNOVER);
+  // เรียงตามวอลุ่ม ตัดจำกัดจำนวน
+  usdt.sort((a,b)=> parseFloat(b.quoteVolume)-parseFloat(a.quoteVolume));
+  const symbols = usdt.slice(0, SCAN_MAX_SYMBOLS).map(t=>t.symbol);
+
+  const ticker24h = {};
+  all.forEach(t=> ticker24h[t.symbol]=t);
+
+  const passed = [];   // symbols ที่ผ่าน pre-screen >=3 ดาว
+  // Batched pre-screen (15m เดียว)
+  for(let i=0;i<symbols.length;i+=SCAN_BATCH){
+    const batch = symbols.slice(i, i+SCAN_BATCH);
+    const res = await Promise.allSettled(batch.map(async sym=>{
+      const k15 = await fetchKlineOnce(sym,'15m',200);
+      const ps = prescreen15(sym, k15, ticker24h);
+      if(ps && ps.pass) return { sym, k15, ps };
+      return null;
+    }));
+    res.forEach(r=>{ if(r.status==='fulfilled' && r.value) passed.push(r.value); });
+    if(i+SCAN_BATCH < symbols.length) await sleep(SCAN_GAP_MS);
+  }
+
+  // ดึง 4h เฉพาะตัวที่ผ่าน → คำนวณสัญญาณสมบูรณ์ (เหมือนเดิมแต่ลด calls 75%)
+  const out = [];
+  for(let i=0;i<passed.length;i+=SCAN_BATCH){
+    const batch = passed.slice(i, i+SCAN_BATCH);
+    const res = await Promise.allSettled(batch.map(async ({sym,k15,ps})=>{
+      try{
+        const h4 = await fetchKlineOnce(sym,'4h',210);
+        // ต่อ kline ให้ computeSymbol แบบเดิม: 5m/30m ตัดจาก 15m, 4h แยก
+        const d = await computeSymbolFull(sym, k15, h4, ticker24h);
+        if(d && d.signal && d.signal.stars >= SCAN_MIN_STARS) return d;
+      }catch(e){}
+      return null;
+    }));
+    res.forEach(r=>{ if(r.status==='fulfilled' && r.value) out.push(r.value); });
+    if(i+SCAN_BATCH < passed.length) await sleep(SCAN_GAP_MS);
+  }
+
+  out.sort((a,b)=> b.signal.stars - a.signal.stars || b.signal.confidence - a.signal.confidence);
+  return out;
+}
+
+// computeSymbol รุ่นรับ kline ที่ดึงมาแล้ว (ไม่ดึงซ้ำ) — ใช้กับสแกนทั้งกระดาน
+async function computeSymbolFull(symbol, k15, h4, ticker24h){
+  const m5 = { closes:k15.closes.slice(-20), highs:k15.highs.slice(-20), lows:k15.lows.slice(-20), volumes:k15.volumes.slice(-20) };
+  const m15 = k15;
+  const m30 = { closes:k15.closes.slice(0, k15.closes.length-1), highs:k15.highs.slice(0,-1), lows:k15.lows.slice(0,-1), volumes:k15.volumes.slice(0,-1) };
+  const [score5, score15, score30] = [computeScore({rsiVal:rsi(m5.closes,14),macdHist:macd(m5.closes).hist,price:m5.closes[m5.closes.length-1],bb:bollinger(m5.closes,20,2),vRatio:volRatio(m5.volumes,20)}),
+    computeScore({rsiVal:rsi(m15.closes,14),macdHist:macd(m15.closes).hist,price:m15.closes[m15.closes.length-1],bb:bollinger(m15.closes,20,2),vRatio:volRatio(m15.volumes,20)}),
+    computeScore({rsiVal:rsi(m30.closes,14),macdHist:macd(m30.closes).hist,price:m30.closes[m30.closes.length-1],bb:bollinger(m30.closes,20,2),vRatio:volRatio(m30.volumes,20)})];
+  const score = Math.round(score5*0.25 + score15*0.5 + score30*0.25);
+  const rsiVal = rsi(m15.closes,14);
+  const macdRes = macd(m15.closes);
+  const bb = bollinger(m15.closes,20,2);
+  const vR = volRatio(m15.volumes,20);
+  const atr = atr14(m15.highs, m15.lows, m15.closes);
+  const price = m15.closes[m15.closes.length-1];
+  const trend = swingTrend(h4.closes);
+  const t = ticker24h ? ticker24h[symbol] : null;
+  const bbRange = (bb.upper - bb.lower);
+  const bbPos = bbRange > 0 ? (price-bb.lower)/bbRange : 0.5;
+  const d = { symbol, price, changePct: t?parseFloat(t.priceChangePercent):0, rsi:rsiVal, macdHist:macdRes.hist, bb, bbPos, volRatio:vR, score, trend, atr14:atr, scores:{m5:score5,m15:score15,m30:score30} };
+  d.signal = computeSignal(d);
+  return d;
+}
+
 async function fetchAllTicker24h(){
   const res = await fetch(FUTURES_TICKER);
   if(!res.ok) throw new Error('ticker fail');
@@ -1140,13 +1269,15 @@ function renderGrid(){
   // Filter for signals tab
   let displayList = list;
   if(state.tab === 'signals'){
+    // สแกนทั้งกระดาน: แสดงทุกตัวที่มีสัญญาณ (ดาว >= SCAN_MIN_STARS แล้วใน scanAllMarket)
     displayList = list.filter(sym=>{
       const d = state.data[sym];
-      return d && d.signal && d.signal.stars >= 3;
+      return d && d.signal && d.signal.signal !== 'WAIT';
     });
     // Sort by stars desc, then confidence desc
     displayList.sort((a,b)=>{
       const da = state.data[a], db = state.data[b];
+      if(!da || !db || !da.signal || !db.signal) return 0;
       if(db.signal.stars !== da.signal.stars) return db.signal.stars - da.signal.stars;
       return db.signal.confidence - da.signal.confidence;
     });
@@ -1174,32 +1305,22 @@ function renderGrid(){
   });
 }
 
-// ---------- Refresh ----------
+// ---------- Refresh (Scan All Market) ----------
 async function refreshAll(){
-  document.getElementById('refreshBtn').textContent = '↻ กำลังโหลด...';
+  document.getElementById('refreshBtn').textContent = '↻ กำลังสแกนทั้งกระดาน...';
   try{
-    const ticker24h = {};
-    const all = await fetchAllTicker24h();
-    all.forEach(t=> ticker24h[t.symbol]=t);
-
-    if(state.tab==='volume' || !state.volumeTop.length){
-      const usdtPerp = all.filter(t=>t.symbol.endsWith('USDT') && !t.symbol.includes('_'));
-      usdtPerp.sort((a,b)=> parseFloat(b.quoteVolume)-parseFloat(a.quoteVolume));
-      state.volumeTop = usdtPerp.slice(0,15).map(t=>t.symbol);
-    }
-
-    const activeList = getCurrentList();
-    // สแกนจาก client โดยตรง (Binance Futures API) — ไม่ผ่าน Worker
-    const results = await Promise.allSettled(activeList.map(sym=> computeSymbol(sym, ticker24h)));
-    results.forEach((r)=>{
-      if(r.status==='fulfilled' && r.value) state.data[r.value.symbol]=r.value;
-    });
     await fetchThbRate();
+    const results = await scanAllMarket();   // เรียงดาวลงแล้ว
+    const allSyms = new Set();
+    results.forEach(d=>{ state.data[d.symbol]=d; allSyms.add(d.symbol); });
+    state.allSymbols = [...allSyms];
+    state.scanCount = results.length;
     renderGrid();
     checkNewSignals();
     updateSignalOutcomes();
     if(state.tab === 'validator') renderValidator();
     document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('th-TH',{hour12:false});
+    document.getElementById('signalCount').textContent = results.length;
     setConn(true);
   }catch(e){
     console.error(e);
@@ -1207,6 +1328,14 @@ async function refreshAll(){
   }
   document.getElementById('refreshBtn').textContent = '↻ รีเฟรช';
   resetCountdown();
+}
+
+// getCurrentList: สำหรับสแกนทั้งกระดาน ให้คืนรายการที่สแกนได้ (เพื่อ WS + grid)
+function getCurrentList(){
+  if(state.tab === 'watch') return state.watchlist;
+  if(state.tab === 'volume') return state.volumeTop.length ? state.volumeTop : (state.allSymbols||[]);
+  // signals tab: คืน everything scanned (all market) + watchlist เดิม
+  return [...new Set([...(state.allSymbols||[]), ...state.watchlist])];
 }
 
 function resetCountdown(){
