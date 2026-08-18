@@ -1,4 +1,51 @@
-<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Trend Rider</title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0b0e11;color:#e6edf3;font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:10px}header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}h1{font-size:18px}.stat{color:#f0b90b;font-size:13px}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.tab{padding:8px 12px;background:#1c2128;border:1px solid #2a2e35;border-radius:8px;cursor:pointer;font-size:14px}.tab.on{background:#f0b90b;color:#000;font-weight:700}.sec{display:none}.sec.on{display:block}.card{background:#11161d;border:1px solid #2a2e35;border-radius:12px;padding:14px;margin-bottom:12px}.h2{font-size:16px;margin-bottom:8px}.p{color:#9aa4b2;font-size:13px;margin-bottom:8px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}label{font-size:13px;color:#9aa4b2}input,select{padding:7px 9px;background:#0b0e11;border:1px solid #2a2e35;border-radius:8px;color:#e6edf3;font-size:14px}button{padding:8px 14px;background:#f0b90b;color:#000;border:0;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px}table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}th,td{padding:7px 8px;border-bottom:1px solid #1c2128;text-align:left}.th{background:#161b22;color:#9aa4b2;position:sticky;top:0}.long{color:#26a69a;font-weight:700}.short{color:#ef5350;font-weight:700}.ok{color:#26a69a}.bad{color:#ef5350}.ylw{color:#f0b90b}.neu{color:#9aa4b2}.kv{color:#f0b90b}.scroll{overflow-x:auto}</style></head><body>
+<!DOCTYPE html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Trend Rider</title><style>*{box-sizing:border-box;margin:0;padding:0}body{background:#0b0e11;color:#e6edf3;font:15px/1.5 -apple-system,Segoe UI,Roboto,sans-serif;padding:10px}header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:10px}h1{font-size:18px}.stat{color:#f0b90b;font-size:13px}.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}.tab{padding:8px 12px;background:#1c2128;border:1px solid #2a2e35;border-radius:8px;cursor:pointer;font-size:14px}.tab.on{background:#f0b90b;color:#000;font-weight:700}.sec{display:none}.sec.on{display:block}.card{background:#11161d;border:1px solid #2a2e35;border-radius:12px;padding:14px;margin-bottom:12px}.h2{font-size:16px;margin-bottom:8px}.p{color:#9aa4b2;font-size:13px;margin-bottom:8px}.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:8px 0}label{font-size:13px;color:#9aa4b2}input,select{padding:7px 9px;background:#0b0e11;border:1px solid #2a2e35;border-radius:8px;color:#e6edf3;font-size:14px}button{padding:8px 14px;background:#f0b90b;color:#000;border:0;border-radius:8px;font-weight:700;cursor:pointer;font-size:14px}table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}th,td{padding:7px 8px;border-bottom:1px solid #1c2128;text-align:left}.th{background:#161b22;color:#9aa4b2;position:sticky;top:0}.long{color:#26a69a;font-weight:700}.short{color:#ef5350;font-weight:700}.ok{color:#26a69a}.bad{color:#ef5350}.ylw{color:#f0b90b}.neu{color:#9aa4b2}.kv{color:#f0b90b}.scroll{overflow-x:auto}
+/* ═══ SHARED NAV (injected) ═══ */
+.xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
+.xnav .b{font-weight:800;font-size:15px;background:linear-gradient(90deg,#3fb950,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px}
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+.xnav .manual{margin-left:auto;background:#1b2230;border:1px solid #30363d;color:#8b949e;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+.xnav .manual:hover{color:#e6edf3}
+
+/* ═══ SHARED NAV (injected) ═══ */
+.xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
+.xnav .b{font-weight:800;font-size:15px;background:linear-gradient(90deg,#3fb950,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px}
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+.xnav .manual{margin-left:auto;background:#1b2230;border:1px solid #30363d;color:#8b949e;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+.xnav .manual:hover{color:#e6edf3}
+
+/* ═══ SHARED NAV (injected) ═══ */
+.xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
+.xnav .b{font-weight:800;font-size:15px;background:linear-gradient(90deg,#3fb950,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px}
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+.xnav .manual{margin-left:auto;background:#1b2230;border:1px solid #30363d;color:#8b949e;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+.xnav .manual:hover{color:#e6edf3}
+</style><link rel="stylesheet" href="./tooltip.css">
+</head><body>
+<nav class="xnav">
+  <span class="b">◈ CRYPTO TERMINAL</span>
+  <a href="../index.html">🏠 หน้าแรก</a>
+  <a href="../dipbuy.html">Dip-Buy</a>
+  <a href="../entry.html">Entry Planner</a>
+  <a href="../scan.html">Market Scan</a>
+  <a href="../trend.html">Trend Rider</a>
+  <a href="../top100.html">Top 100</a>
+  <a href="../fav.html">⭐ โปรด</a>
+  <a href="../liqwatch.html">Liquidation</a>
+  <a href="../radar.html">Radar</a>
+  <a href="../accum.html">Accum</a>
+  <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
+</nav>
+
+
+
+
+
 <header><h1>🌊 Trend Rider — ศูนย์รวมเทรดฟิวเจอร์ส Binance</h1><div class="stat" id="stat">กำลังโหลด…</div></header>
 <div class="tabs"><div class="tab on" data-t="dip">Dip-Buy</div><div class="tab" data-t="sub">เหรียญ&lt;$1+สะสม</div><div class="tab" data-t="stat">สถิติ</div><div class="tab" data-t="learn">เรียนรู้</div></div>
 <div class="sec on" id="dip"><div class="card"><div class="h2">🎯 กลยุทธ์ Dip-Buy Pullback</div><div class="p">รอราคาดิ่งไปหา EMA20 แล้วเด้ง (Bias 4h/1D เป็นขาขึ้น) — เข้า Long ตามแนวรับ</div><div class="row"><label>ทุน($)</label><input id="capital" value="100" style="width:90px"><label>Risk(%)</label><input id="risk" value="2" style="width:70px"><label>Lev สูงสุด</label><input id="maxlev" value="5" style="width:70px"><label>Timeframe</label><select id="tf"><option>15m</option><option>1h</option><option selected>4h</option><option>1d</option></select><button id="scanBtn">สแกน Dip-Buy</button></div><div class="scroll"><table id="dipTbl"><thead><tr class="th"><th>เหรียญ</th><th>ทิศ</th><th>Entry</th><th>SL</th><th>TP1</th><th>TP2</th><th>Size$</th><th>Lev</th><th>Liq</th><th>R:R</th><th>ลิงก์</th></tr></thead><tbody><tr><td colspan="11" class="neu">กดสแกน</td></tr></tbody></table></div></div></div>
@@ -30,4 +77,5 @@ document.getElementById("fSl").onclick=function(){renderStat("sl");};
 document.getElementById("clr").onclick=function(){localStorage.removeItem("trider_stat");renderStat("all");};
 renderStat("all");
 document.getElementById("stat").textContent="พร้อมสแกน";
-</script></body></html>
+</script><script src="./tooltip.js"></script>
+</body></html>
