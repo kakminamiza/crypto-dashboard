@@ -1,1 +1,1 @@
-{"error":"bybit fetch failed"}
+[{"symbol":"ZECUSDT","price":506.6,"changePct":-1.1415,"rsi":39.38497930218822,"volRatio":0.9995309414985873,"score":-51,"trend":"flat","atr14":2.3697730357256304,"signal":{"signal":"SHORT","stars":3,"confidence":41,"entry":506.6,"sl":511.3395460714513,"tp1":499.49068089282315,"tp2":492.3813617856462,"invalidation":512.5244325893141,"reason":"โมเมนตัมรวม"}}]
