@@ -1,1 +1,1 @@
-{"error":"bybit fetch failed"}
+[{"symbol":"SKHYUSDT","price":156.03,"changePct":-0.0448,"rsi":33.05389221556878,"volRatio":0.7698951959048091,"score":-67,"trend":"flat","atr14":1.3696511953182515,"signal":{"signal":"SHORT","stars":4,"confidence":57,"entry":156.03,"sl":158.7693023906365,"tp1":151.92104641404524,"tp2":147.8120928280905,"invalidation":159.45412798829562,"reason":"โมเมนตัมรวม"}}]
