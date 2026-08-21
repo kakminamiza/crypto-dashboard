@@ -1,1 +1,1 @@
-[{"symbol":"ETHUSDT","price":2437.54,"changePct":5.2027,"rsi":61.56712445438073,"volRatio":0.5141425741226493,"score":56,"trend":"up","atr14":15.131530542224448,"signal":{"signal":"LONG","stars":3,"confidence":56,"entry":2437.54,"sl":2407.276938915551,"tp1":2482.9345916266734,"tp2":2528.329183253347,"invalidation":2399.711173644439,"reason":"4H ขาขึ้น"}}]
+{"error":"bybit fetch failed"}
