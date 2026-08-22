@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal Scanner - Dip-Buy Multi-Agent</title>
+<style>
+  :root{--bg:#0a0e14;--panel:#131a24;--panel2:#0f151e;--line:#1f2a38;--txt:#c9d1d9;--muted:#7d8590;
+        --ok:#3fb950;--warn:#d29922;--bad:#f85149;--accent:#58a6ff;--glow:rgba(88,166,255,.25)}
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 600px at 70% -10%,#10203033,transparent),var(--bg);
+        color:var(--txt);font:14px/1.5 -apple-system,Segoe UI,Roboto,sans-serif}
+  header{padding:16px 20px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  h1{font-size:16px;margin:0;color:var(--accent);font-weight:700;letter-spacing:.3px;
+        text-shadow:0 0 18px var(--glow)}
+  .sub{color:var(--muted);font-size:12px}
+  .tabs{display:flex;gap:8px;flex-wrap:wrap}
+  .tab{padding:6px 14px;cursor:pointer;border:1px solid var(--line);border-radius:8px;color:var(--muted);
+        font-size:13px;transition:.15s;background:var(--panel)}
+  .tab:hover{border-color:var(--accent)}
+  .tab.on{color:#fff;border-color:var(--accent);background:linear-gradient(180deg,#1b2b3f,#13202f);
+        box-shadow:0 0 14px var(--glow)}
+  .controls{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  input,select,button{background:var(--panel2);color:var(--txt);border:1px solid var(--line);
+        border-radius:8px;padding:7px 11px;font-size:13px}
+  button{cursor:pointer;color:var(--accent);transition:.15s}
+  button:hover{border-color:var(--accent);box-shadow:0 0 10px var(--glow)}
+  .btn-primary{background:linear-gradient(180deg,#1b3a5c,#13283f);color:#fff;border-color:var(--accent)}
+  main{padding:18px;display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(310px,1fr))}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:15px;
+        transition:.2s;animation:fade .25s ease}
+  .card:hover{transform:translateY(-2px);border-color:#2c3e52;box-shadow:0 6px 22px #0006}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .sym{font-weight:700;font-size:15px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+  .b-buy{background:rgba(63,185,80,.16);color:var(--ok);border:1px solid var(--ok);animation:pulse 1.6s infinite}
+  .b-watch{background:rgba(210,153,34,.12);color:var(--warn);border:1px solid var(--warn)}
+  .b-no{background:rgba(248,81,73,.10);color:var(--bad);border:1px solid var(--bad)}
+  @keyframes pulse{0%,100%{box-shadow:0 0 0 rgba(63,185,80,0)}50%{box-shadow:0 0 12px rgba(63,185,80,.5)}}
+  .row{display:flex;justify-content:space-between;margin:5px 0;font-size:12px}
+  .row span:first-child{color:var(--muted)}
+  .stars{color:var(--accent);font-size:14px;letter-spacing:2px}
+  .thesis{margin-top:9px;font-size:11px;color:var(--muted);white-space:pre-wrap;
+        border-top:1px dashed var(--line);padding-top:9px;display:none}
+  .card.open .thesis{display:block}
+  .err{color:var(--bad);font-size:11px}
+  .pos{margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+  .help{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin:16px;
+        font-size:13px;line-height:1.7;color:var(--txt)}
+  .help h3{color:var(--accent);margin:0 0 8px;font-size:14px}
+  .help code{background:#0c121a;padding:1px 6px;border-radius:5px;color:var(--ok);font-size:12px}
+  .help ul{margin:6px 0;padding-left:18px}
+  .help .tag{display:inline-block;padding:1px 8px;border-radius:6px;font-size:11px;margin-right:4px}
+  .tag.b{background:rgba(63,185,80,.15);color:var(--ok)} .tag.w{background:rgba(210,153,34,.12);color:var(--warn)}
+  .tag.n{background:rgba(248,81,73,.1);color:var(--bad)}
+  footer{padding:12px 20px;color:var(--muted);font-size:11px;border-top:1px solid var(--line)}
+  .filterbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 18px;border-bottom:1px solid var(--line)}
+  .filterbar select, .filterbar input{font-size:12px;padding:5px 8px}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>🚀 Signal Scanner</h1>
+    <div class="sub">Dip-Buy Multi-Agent · Binance Futures · real-time · anti-ban</div>
+  </div>
+  <div class="tabs">
+    <span class="tab on" id="tab-scan" onclick="switchTab('scan')">Scan</span>
+    <span class="tab" id="tab-pos" onclick="switchTab('pos')">Position Watch</span>
+    <span class="tab" id="tab-score" onclick="switchTab('score')">Score Trade</span>
+    <span class="tab" id="tab-help" onclick="switchTab('help')">สอนใช้</span>
+  </div>
+</header>
+
+<section id="scan-pane">
+  <div class="controls" style="padding:12px 18px">
+    <input id="sym" value="BTCUSDT,ETHUSDT,ETHFIUSDC,CRVUSDT,BEATUSDT" size="36">
+    <select id="tf"><option>5m</option><option>15m</option><option selected>1h</option><option>4h</option><option>1d</option></select>
+    <label style="font-size:12px;color:var(--muted)"><input type="checkbox" id="usellm"> LLM thesis</label>
+    <select id="model"><option value="qwen2.5:3b">qwen2.5:3b</option><option value="qwen2.5:7b">qwen2.5:7b</option><option value="qwen2.5vl:7b">qwen2.5vl:7b</option><option value="granite3.3:latest">granite3.3</option></select>
+    <button class="btn-primary" onclick="scan()">Scan</button>
+    <button class="btn-primary" onclick="scanAll()">Scan All USDT</button>
+    <button id="autoBtn" onclick="toggleAuto()">▶ Auto</button>
+  </div>
+  <div class="filterbar">
+    <span style="font-size:12px;color:var(--muted)">ตัวกรอง:</span>
+    <select id="fSignal">
+      <option value="ALL">ทุกสัญญาณ</option>
+      <option value="DIP-BUY">เฉพาะ DIP-BUY</option>
+      <option value="WATCH">เฉพาะ WATCH</option>
+      <option value="NONO">ไม่เอา NO-SIGNAL</option>
+    </select>
+    <span style="font-size:12px;color:var(--muted)">คะแนนขั้นต่ำ</span>
+    <select id="fMin"><option>0</option><option>1</option><option></select>
+    <select id="fMin2"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option></select>
+    <span style="font-size:11px;color:var(--muted)">⚡ เสียงแจ้งเตือน DIP-BUY เปิดอยู่</span>
+  </div>
+  <main id="grid"></main>
+</section>
+
+<section id="pos-pane" style="display:none">
+  <div class="help" style="margin:16px">
+    <h3>📡 Position Watch — ไว้ทำอะไร?</h3>
+    <p>เช็คว่าตำแหน่งที่พี่กั๊กเปิดค้างไว้ <b>ยังอยู่เหนือ support ที่เทรดอาศัยหรือไม่</b> แบบเรียลไทม์ (ไม่ต้อง API key ดึงราคาจาก Binance สาธารณะ)</p>
+    <ul>
+      <li><b>Support</b> = ระดับที่พี่กั๊กเข้า dip-buy (เช่น EMA20 / SuperTrend) ถ้าราคาลงหลุด =
+        <span class="tag n">โครงสร้างพัง</span> ควรระวัง/ออก</li>
+      <li><b>SL</b> = จุดตัดขาดทุน ถ้าหลุด = <span class="tag n">🛑 ควรปิด</span></li>
+      <li>ถ้า RSI ทะลุ <b>70</b> = <span class="tag w">🔥 overbought</span> เตรียมระวัง pullback</li>
+    </ul>
+    <p style="color:var(--muted)">ระบบนี้เหมือน WATCHDOG ในโพสต์ multi-AI agent — คอยเฝ้าดูว่าตลาดเป็นไปตามที่คาดไหม</p>
+  </div>
+  <div class="controls" style="padding:0 18px 12px">
+    <input id="psym" placeholder="BTCUSDT" size="12">
+    <select id="ptf"><option>5m</option><option>15m</option><option selected>1h</option><option>4h</option></select>
+    <input id="psup" placeholder="support" size="10">
+    <input id="psl" placeholder="SL" size="10">
+    <button class="btn-primary" onclick="addPos()">Add Watch</button>
+    <button onclick="checkPos()">Check Now</button>
+  </div>
+  <div id="poslist" style="padding:0 18px"></div>
+</section>
+
+<section id="score-pane" style="display:none">
+  <div class="help" style="margin:16px">
+    <h3>📊 Score Trade — ไว้ทำอะไร?</h3>
+    <p>ประเมิน<b>คุณภาพการเทรดหลังปิดไพร่</b> ตามสไตล์ multi-agent: ให้คะแนน 6 ปัจจัย (1-5 ดาว) แล้วระบบคำนวณ</p>
+    <ul>
+      <li>คะแนนฐาน = ผลรวม 6 ปัจจัย (เต็ม 30)</li>
+      <li><b>โบนัสขาดทุน +50%</b> = ถ้า PnL ติดลบ จะคูณ 1.5 เพื่อให้น้ำหนักเรียนรู้จากเทรดพังมากขึ้น (เหมือนในโพสต์)</li>
+      <li>เก็บประวัติในเครื่อง (localStorage) ดูสถิติชนะ/แพ้ + น้ำหนักเฉลี่ยได้</li>
+    </ul>
+  </div>
+  <div style="padding:0 18px;max-width:520px">
+    <div class="controls" style="margin-bottom:10px">
+      <input id="ssym" placeholder="BTCUSDT" size="10">
+      <select id="stf"><option>5m</option><option>15m</option><option selected>1h</option><option>4h</option></select>
+      <input id="spnl" placeholder="PNL %" size="8">
+    </div>
+    <div id="factors"></div>
+    <button class="btn-primary" onclick="saveScore()" style="margin-top:10px">Save Score</button>
+    <div id="scoreresult" style="margin-top:10px;color:var(--muted);font-size:12px"></div>
+    <div id="scorehistory" style="margin-top:14px"></div>
+  </div>
+</section>
+
+<section id="help-pane" style="display:none">
+  <div class="help">
+    <h3>🚀 วิธีใช้ Signal Scanner</h3>
+    <p><b>Scan</b> = หาสัญญาณ dip-buy จากอินดิเคเตอร์ (RSI/ADX/EMA/SuperTrend)</p>
+    <ul>
+      <li><span class="tag b">DIP-BUY</span> ครบเงื่อนไข (ADX&gt;25 + RSI ไม่ extreme + ราคาย่อลง back หา support) → ลุ้นเข้า</li>
+      <li><span class="tag w">WATCH</span> ใกล้เคียง (คะแนน 3-4/5) → รอ Confirmation</li>
+      <li><span class="tag n">NO-SIGNAL</span> ไม่เข้าเงื่อนไข</li>
+    </ul>
+    <p><b>ดาว ⭐</b> = คะแนนความเข้ากรเงื่อนไข (เต็ม 5 ดาว = score 5/5)</p>
+    <p><b>Scan All USDT</b> = สแกนเหรียญ USDT ทุกตัวแบบเรียลไทม์ (หน่วงเพื่อกันแบน IP)</p>
+    <p><b>ตัวกรอง</b> = เลือกเฉพาะ DIP-BUY หรือกำหนดคะแนนขั้นต่ำ เพื่อไม่ให้รายการยาวเกิน</p>
+    <p><b>LLM thesis</b> = ติ๊กแล้วเลือกโมเดล (qwen2.5:3b เร็ว/เบา ฯลฯ) ให้เขียนคำอธิบายเหตุผลเป็นภาษา (รันบน Ollama ในเครื่อง ฟรี)</p>
+    <p><b>เสียง🔊</b> = เมื่อเจอ DIP-BUY จะมีเสียงแจ้งเตือน (เปิดอัตโนมัติ)</p>
+    <p style="color:var(--muted)">หมายเหตุ: ระบบนี้ช่วยหาสัญญาณ ไม่ใช่คำแนะนำลงทุน — พี่กั๊กตัดสินใจเองเสมอ</p>
+  </div>
+</section>
+
+<footer id="foot">Idle.</footer>
+<script src="scanner_logic.js"></script>
+</body>
+</html>

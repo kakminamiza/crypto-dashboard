@@ -61,8 +61,8 @@ function supertrend(h,l,c,p=10,m=3){const ae=atr(h,l,c,p);const hl2=h.map((x,i)=
     lastST=st[i];lastDir=dir[i];}
   return {st,dir};}
 
-function analyze(sym,tf){
-  return klines(sym,tf).then(d=>{
+async function analyze(sym,tf){
+  const d=await klines(sym,tf);
     const o=d.map(x=>x[0]),h=d.map(x=>x[1]),l=d.map(x=>x[2]),c=d.map(x=>x[3]);
     const close=c[c.length-1],lo=l[l.length-1];
     const e20=ema(c,20)[c.length-1],e50=ema(c,50)[c.length-1],e200=ema(c,200)[c.length-1];
@@ -72,13 +72,18 @@ function analyze(sym,tf){
     const dip=(lo<=e20*1.005&&close>=e20*0.997)||(close>=sv*0.985&&close<=sv*1.02);
     const score=[trend_ok,rsi_ok,above,stu,dip].filter(Boolean).length;
     let sig=(trend_ok&&rsi_ok&&above&&stu&&dip)?'DIP-BUY':(score>=3?'WATCH':'NO-SIGNAL');
-    return {sym,tf,close,e20,e50,e200,r,a,sv,score,sig,stu};
-  });
+    // pump guard: 24h change too high = already ran, don't chase
+    let chg24=null;
+    try{ const t=await fetch(`${FUT}/ticker/24hr?symbol=${sym}`,{headers:{'User-Agent':UA}});
+         const j=await t.json(); chg24=parseFloat(j.priceChangePercent); }catch(e){}
+    const pumped = chg24!==null && chg24>5.0;
+    if(pumped && sig==='DIP-BUY') sig='PUMPED';
+    return {sym,tf,close,e20,e50,e200,r,a,sv,score,sig,stu,chg24,pumped};
 }
 
 async function llmThesis(sig,model){
   const prompt=`You are a crypto dip-buy analyst. Write SHORT thesis (max 4 lines) for ${sig.sig} signal.
-${sig.sym}@${sig.tf} Close ${sig.close} RSI ${sig.r?.toFixed(1)} ADX ${sig.a?.toFixed(1)} EMA50 ${sig.e50?.toFixed(4)} ST ${sig.sv?.toFixed(4)}.
+${sig.sym}@${sig.tf} Close ${sig.close} RSI ${sig.r?.toFixed(1)} ADX ${sig.a?.toFixed(1)} EMA50 ${sig.e50?.toFixed(4)} EMA100 ${sig.e100?.toFixed(4)} ST ${sig.sv?.toFixed(4)}.
 Explain WHY valid dip-buy and plan (entry, SL, target). Concise.`;
   try{
     const r=await fetch('http://localhost:11434/api/generate',{method:'POST',
@@ -96,9 +101,10 @@ function cardHTML(d, thesisTxt, idx){
     <div style="border-top:1px dashed var(--line);margin:8px 0"></div>
     <div class="row"><span>ราคา</span><span>${d.close}</span></div>
     <div class="row"><span>⭐ คะแนน</span><span class="stars">${stars(d.score)}</span></div>
-    <div class="row"><span>RSI(14)</span><span style="color:${d.rsi_ok?'var(--ok)':'var(--bad)'}">${d.r?.toFixed(1)}</span></div>
+    <div class="row"><span>RSI(16)</span><span style="color:${d.rsi_ok?'var(--ok)':'var(--bad)'}">${d.r?.toFixed(1)}</span></div>
     <div class="row"><span>ADX(14)</span><span style="color:${d.trend_ok?'var(--ok)':'var(--muted)'}">${d.a?.toFixed(1)}</span></div>
     <div class="row"><span>EMA50</span><span>${d.e50?.toFixed(4)}</span></div>
+    <div class="row"><span>EMA100</span><span>${d.e100?.toFixed(4)}</span></div>
     <div class="row"><span>SuperTrend</span><span>${d.sv?.toFixed(4)}</span></div>
     <div class="row"><span>Dir</span><span>${d.stu?'UP ✅':'DOWN ❌'}</span></div>
     <div style="border-top:1px dashed var(--line);margin:8px 0"></div>
@@ -107,11 +113,11 @@ function cardHTML(d, thesisTxt, idx){
 function thesisTemplate(d){
   const distE20=d.close-d.e20, distSV=d.close-d.sv;
   const near=(Math.abs(distE20)/d.e20<0.01)||(Math.abs(distSV)/d.sv<0.01);
-  const where = near ? 'ลูลเข้าใกล้ EMA20/ST (dip zone)' :
+  const where = near ? 'ย่อลงเข้าใกล้ EMA20/ST (dip zone)' :
     (distE20>0&&distSV>0 ? 'อยู่เหนือ EMA20/ST ยังไม่มี pullback' : 'อยู่ใต้ support แล้ว');
   const risk = near ? 'รอเด้งยืนยันแล้วเข้าไม่ไล่ราคา (no chasing)' :
-    'ยังไม่เข้าเงื่อนไข dip — รอราคาลูล back หา EMA20/ST';
-  return `[THESIS] ${d.sym}@${d.tf}\n  Trend ADX ${d.a?.toFixed(1)} ${d.trend_ok?'OK':'side'} | EMA50 ${d.e50?.toFixed(4)} ${d.close>d.e50?'>':'<'}\n  RSI ${d.r?.toFixed(1)} ${d.rsi_ok?'(30-70) OK':'CUT'} | ST ${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}\n  Setup ${where}\n  Plan ${risk}; SL < ${Math.min(d.e20,d.sv)?.toFixed(4)}; target EMA200 ${d.e200?.toFixed(4)}`;
+    'ยังไม่เข้าเงื่อนไข dip — รอราคาย่อลง back หา EMA20/ST';
+  return `[THESIS] ${d.sym}@${d.tf}\n  Trend ADX ${d.a?.toFixed(1)} ${d.trend_ok?'OK':'side'} | EMA50 ${d.e50?.toFixed(4)} ${d.close>d.e50?'>':'<'} | EMA100 ${d.e100?.toFixed(4)} ${d.close>d.e100?'>':'<'}\n  RSI ${d.r?.toFixed(1)} ${d.rsi_ok?'(30-70) OK':'CUT'} | ST ${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}\n  Setup ${where}\n  Plan ${risk}; SL < ${Math.min(d.e20,d.sv)?.toFixed(4)}; target EMA200 ${d.e200?.toFixed(4)}`;
 }
 
 async function scan(){
