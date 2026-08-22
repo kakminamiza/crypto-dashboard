@@ -100,7 +100,13 @@ function cardHTML(d, thesisTxt){
     <div class="thesis">${thesisTxt}</div>`;
 }
 function thesisTemplate(d){
-  return `[THESIS] ${d.sym}@${d.tf}\n  Trend ADX ${d.a?.toFixed(1)} ${d.trend_ok?'OK':'side'} | EMA50 ${d.e50?.toFixed(4)} below\n  RSI ${d.r?.toFixed(1)} ${d.rsi_ok?'(30-70) OK':'CUT'} | ST ${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}\n  Setup dip into EMA20/ST -> no chasing\n  Plan long on pullback; SL < ${Math.min(d.e20,d.sv)?.toFixed(4)}; target EMA200 ${d.e200?.toFixed(4)}`;
+  const distE20=d.close-d.e20, distSV=d.close-d.sv;
+  const near=(Math.abs(distE20)/d.e20<0.01)||(Math.abs(distSV)/d.sv<0.01);
+  const where = near ? 'ลูลเข้าใกล้ EMA20/ST (dip zone)' :
+    (distE20>0&&distSV>0 ? 'อยู่เหนือ EMA20/ST ยังไม่มี pullback' : 'อยู่ใต้ support แล้ว');
+  const risk = near ? 'รอเด้งยืนยันแล้วเข้าไม่ไล่ราคา (no chasing)' :
+    'ยังไม่เข้าเงื่อนไข dip — รอราคาลูล back หา EMA20/ST';
+  return `[THESIS] ${d.sym}@${d.tf}\n  Trend ADX ${d.a?.toFixed(1)} ${d.trend_ok?'OK':'side'} | EMA50 ${d.e50?.toFixed(4)} ${d.close>d.e50?'>':'<'}\n  RSI ${d.r?.toFixed(1)} ${d.rsi_ok?'(30-70) OK':'CUT'} | ST ${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}\n  Setup ${where}\n  Plan ${risk}; SL < ${Math.min(d.e20,d.sv)?.toFixed(4)}; target EMA200 ${d.e200?.toFixed(4)}`;
 }
 
 async function scan(){
