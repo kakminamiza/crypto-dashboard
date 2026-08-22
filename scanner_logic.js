@@ -65,7 +65,7 @@ async function analyze(sym,tf){
   const d=await klines(sym,tf);
     const o=d.map(x=>x[0]),h=d.map(x=>x[1]),l=d.map(x=>x[2]),c=d.map(x=>x[3]);
     const close=c[c.length-1],lo=l[l.length-1];
-    const e20=ema(c,20)[c.length-1],e50=ema(c,50)[c.length-1],e200=ema(c,200)[c.length-1];
+    const e20=ema(c,20)[c.length-1],e50=ema(c,50)[c.length-1],e100=ema(c,100)[c.length-1],e200=ema(c,200)[c.length-1];
     const r=rsi(c)[rsi(c).length-1];const a=adx(h,l,c)[adx(h,l,c).length-1];
     const st=supertrend(h,l,c);const sv=st.st[st.st.length-1];const sup=st.dir[st.dir.length-1]===1;
     const trend_ok=a>25,rsi_ok=(r>30&&r<70),above=e50&&close>e50,stu=sup;
@@ -78,7 +78,7 @@ async function analyze(sym,tf){
          const j=await t.json(); chg24=parseFloat(j.priceChangePercent); }catch(e){}
     const pumped = chg24!==null && chg24>5.0;
     if(pumped && sig==='DIP-BUY') sig='PUMPED';
-    return {sym,tf,close,e20,e50,e200,r,a,sv,score,sig,stu,chg24,pumped};
+    return {sym,tf,close,e20,e50,e100,e200,r,a,sv,score,sig,stu,chg24,pumped};
 }
 
 async function llmThesis(sig,model){
