@@ -51,14 +51,15 @@ function adx(h,l,c,p=14){const TR=tr(h,l,c);let pdm=[],mdm=[];
   return ema(dx,p);}
 function supertrend(h,l,c,p=10,m=3){const ae=atr(h,l,c,p);const hl2=h.map((x,i)=>(x+l[i])/2);
   let up=hl2.map((x,i)=>x+m*ae[i]);let lo=hl2.map((x,i)=>x-m*ae[i]);let st=[],dir=[];
+  let lastST=NaN, lastDir=1;
   for(let i=0;i<h.length;i++){
-    if(ae[i]===undefined||ae[i]===null||isNaN(ae[i])){st.push(NaN);dir.push(i===0?1:dir[i-1]);continue;}
-    if(i===0){st.push(lo[0]);dir.push(1);continue;}
+    if(ae[i]===undefined||ae[i]===null||isNaN(ae[i])){st.push(lastST);dir.push(lastDir);continue;}
+    if(i===0){st.push(lo[0]);dir.push(1);lastST=lo[0];lastDir=1;continue;}
     if(c[i]>up[i-1])dir.push(1);else if(c[i]<lo[i-1])dir.push(-1);else dir.push(dir[i-1]);
-    if(dir[i]===1){lo[i]=Math.max(lo[i],lo[i-1]);st.push(lo[i]);}else{up[i]=Math.min(up[i],up[i-1]);st.push(up[i]);}}
-  // drop leading NaN, forward-fill last valid
-  let last=NaN; for(let i=st.length-1;i>=0;i--){if(!isNaN(st[i])){last=st[i];break;}}
-  return {st:st.map(v=>isNaN(v)?last:v),dir};}
+    if(dir[i]===1){const cand=Math.max(lo[i],(isNaN(lo[i-1])?-Infinity:lo[i-1]));st.push(cand);lo[i]=cand;}
+    else{const cand=Math.min(up[i],(isNaN(up[i-1])?Infinity:up[i-1]));st.push(cand);up[i]=cand;}
+    lastST=st[i];lastDir=dir[i];}
+  return {st,dir};}
 
 function analyze(sym,tf){
   return klines(sym,tf).then(d=>{
