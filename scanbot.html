@@ -46,6 +46,7 @@
   <div class="controls">
     <span class="tab on" id="tab-scan" onclick="switchTab('scan')">Scan</span>
     <span class="tab" id="tab-pos" onclick="switchTab('pos')">Position Watch</span>
+    <span class="tab" id="tab-score" onclick="switchTab('score')">Score Trade</span>
   </div>
 </header>
 
@@ -71,6 +72,19 @@
     <button onclick="checkPos()">Check Now</button>
   </div>
   <div id="poslist"></div>
+</section>
+
+<section id="score-pane" style="display:none;padding:16px;max-width:520px">
+  <h3 style="font-size:14px;margin-top:0">Post-Trade Score Sheet</h3>
+  <div class="controls" style="margin-bottom:10px">
+    <input id="ssym" placeholder="BTCUSDT" size="10">
+    <select id="stf"><option>5m</option><option>15m</option><option selected>1h</option><option>4h</option></select>
+    <input id="spnl" placeholder="PNL %" size="8">
+  </div>
+  <div id="factors"></div>
+  <button onclick="saveScore()" style="margin-top:10px">Save Score</button>
+  <div id="scoreresult" style="margin-top:10px;color:var(--muted);font-size:12px"></div>
+  <div id="scorehistory" style="margin-top:14px"></div>
 </section>
 
 <footer id="foot">Idle.</footer>

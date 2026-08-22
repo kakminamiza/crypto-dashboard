@@ -122,7 +122,44 @@ function renderPos(){
 }
 function switchTab(t){document.getElementById('tab-scan').classList.toggle('on',t==='scan');
   document.getElementById('tab-pos').classList.toggle('on',t==='pos');
+  document.getElementById('tab-score').classList.toggle('on',t==='score');
   document.getElementById('scan-pane').style.display=t==='scan'?'block':'none';
   document.getElementById('pos-pane').style.display=t==='pos'?'block':'none';
-  if(t==='pos')renderPos();}
+  document.getElementById('score-pane').style.display=t==='score'?'block':'none';
+  if(t==='pos')renderPos(); if(t==='score')renderScore();}
 scan();
+
+// ---- score sheet (B) client-side ----
+const FACTORS=['novelty','pnl_impact','regime_consistency','thesis_accuracy','execution_quality','risk_management'];
+const FLABEL={novelty:'ความใหม่',pnl_impact:'ผลต่อ PnL',regime_consistency:'สอดคล้องสภาวะตลาด',
+  thesis_accuracy:'คาดการณ์ถูก',execution_quality:'คุณภาพการเข้า',risk_management:'บริหารความเสี่ยง'};
+function renderScore(){
+  const f=document.getElementById('factors');
+  f.innerHTML=FACTORS.map(k=>`<div class="row"><span>${FLABEL[k]}</span>
+    <select id="f_${k}"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div>`).join('');
+  renderScoreHist();
+}
+function saveScore(){
+  const sym=document.getElementById('ssym').value.toUpperCase();
+  const tf=document.getElementById('stf').value;
+  const pnl=parseFloat(document.getElementById('spnl').value)||0;
+  if(!sym){alert('ใส่ symbol');return;}
+  const scores={};FACTORS.forEach(k=>scores[k]=+document.getElementById('f_'+k).value);
+  const base=FACTORS.reduce((s,k)=>s+scores[k],0);
+  const bonus=pnl<0?0.5:0;const weighted=base*(1+bonus);
+  const rec={sym,tf,pnl,scores,base,bonus,weighted,ts:Date.now()};
+  const mem=JSON.parse(localStorage.getItem('tradescore')||'[]');mem.push(rec);
+  localStorage.setItem('tradescore',JSON.stringify(mem));
+  document.getElementById('scoreresult').textContent=
+    `บันทึก ${sym} PnL ${pnl}% | คะแนนฐาน ${base}/30 | โบนัสขาดทุน ${bonus*100}% | น้ำหนัก ${weighted.toFixed(1)}`;
+  renderScoreHist();
+}
+function renderScoreHist(){
+  const mem=JSON.parse(localStorage.getItem('tradescore')||'[]');
+  const h=document.getElementById('scorehistory');
+  if(!mem.length){h.innerHTML='';return;}
+  const wins=mem.filter(m=>m.pnl>0).length;
+  const avg=mem.reduce((s,m)=>s+m.weighted,0)/mem.length;
+  h.innerHTML=`<div style="font-size:12px;margin-bottom:6px">รวม ${mem.length} เทรด | ชนะ ${wins} | น้ำหนักเฉลี่ย ${avg.toFixed(1)}</div>`+
+    mem.slice().reverse().map(m=>`<div class="row"><span>${m.sym}@${m.tf}</span><span>PNL ${m.pnl}% · ${m.weighted.toFixed(1)}${m.bonus?' (ขาดทุน+)':''}</span></div>`).join('');
+}
