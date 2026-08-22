@@ -88,16 +88,21 @@ Explain WHY valid dip-buy and plan (entry, SL, target). Concise.`;
   }catch(e){ return '[LLM off/err] '+e.message; }
 }
 
-function cardHTML(d, thesisTxt){
+function cardHTML(d, thesisTxt, idx){
   const cls=d.sig==='DIP-BUY'?'b-buy':d.sig==='WATCH'?'b-watch':'b-no';
-  return `<div class="sym">${d.sym} <span class="badge ${cls}">${d.sig} ${d.score}/5</span></div>
-    <div class="row"><span>คะแนน</span><span class="stars">${stars(d.score)}</span></div>
-    <div class="row"><span>Close</span><span>${d.close}</span></div>
-    <div class="row"><span>EMA20/50</span><span>${d.e20?.toFixed(4)} / ${d.e50?.toFixed(4)}</span></div>
+  const head = d.sig==='DIP-BUY' ? `🔔 DIP-BUY` : (d.sig==='WATCH'?'⏳ WATCH':'⛔ NO-SIGNAL');
+  const seq = idx!==undefined ? `<span style="color:var(--muted);font-size:11px">#${idx}</span> ` : '';
+  return `<div class="sym">${seq}${d.sym} @${d.tf} <span class="badge ${cls}">${head} ${d.score}/5</span></div>
+    <div style="border-top:1px dashed var(--line);margin:8px 0"></div>
+    <div class="row"><span>ราคา</span><span>${d.close}</span></div>
+    <div class="row"><span>⭐ คะแนน</span><span class="stars">${stars(d.score)}</span></div>
     <div class="row"><span>RSI(14)</span><span style="color:${d.rsi_ok?'var(--ok)':'var(--bad)'}">${d.r?.toFixed(1)}</span></div>
     <div class="row"><span>ADX(14)</span><span style="color:${d.trend_ok?'var(--ok)':'var(--muted)'}">${d.a?.toFixed(1)}</span></div>
-    <div class="row"><span>SuperTrend</span><span>${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}</span></div>
-    <div class="thesis">${thesisTxt}</div>`;
+    <div class="row"><span>EMA50</span><span>${d.e50?.toFixed(4)}</span></div>
+    <div class="row"><span>SuperTrend</span><span>${d.sv?.toFixed(4)}</span></div>
+    <div class="row"><span>Dir</span><span>${d.stu?'UP ✅':'DOWN ❌'}</span></div>
+    <div style="border-top:1px dashed var(--line);margin:8px 0"></div>
+    <div class="thesis" style="display:block">${thesisTxt}</div>`;
 }
 function thesisTemplate(d){
   const distE20=d.close-d.e20, distSV=d.close-d.sv;
@@ -116,6 +121,7 @@ async function scan(){
   const minS=+document.getElementById('fMin2').value, fS=document.getElementById('fSignal').value;
   const grid=document.getElementById('grid'); grid.innerHTML='';
   document.getElementById('foot').textContent='Scanning '+syms.length+'...';
+  let n=0;
   for(const s of syms){
     const el=document.createElement('div');el.className='card';
     el.innerHTML='<div class="sym">'+s+' <span class="badge b-watch">…</span></div>';grid.appendChild(el);
@@ -123,9 +129,11 @@ async function scan(){
       const d=await analyze(s,tf);
       if(fS!=='ALL'&&d.sig!==fS&&!(fS==='NONO'&&d.sig==='NO-SIGNAL')){el.remove();continue;}
       if(d.score<minS&&d.sig!=='DIP-BUY'){el.remove();continue;}
+      n++;
       let th=thesisTemplate(d); if(useLLM)th=await llmThesis(d,model);
       if(d.sig==='DIP-BUY')beep();
-      el.innerHTML=cardHTML(d,th); el.onclick=()=>el.classList.toggle('open');
+      el.innerHTML=cardHTML(d,th,n); el.onclick=()=>el.classList.toggle('open');
+      if(d.sig==='DIP-BUY'||d.sig==='WATCH')el.classList.add('open');
     }catch(e){ el.innerHTML='<div class="sym">'+s+' <span class="badge b-no">ERR</span></div><div class="err">'+e.message+'</div>'; }
   }
   document.getElementById('foot').textContent='Done '+new Date().toLocaleTimeString();
@@ -147,7 +155,7 @@ async function scanAll(){
   if(!syms){syms=document.getElementById('sym').value.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
     document.getElementById('foot').textContent='exchangeInfo ไม่ได้ ใช้รายชื่อเดิม';}
   else document.getElementById('foot').textContent='Scan ทุกเหรียญ USDT ('+syms.length+') real-time...';
-  let shown=0;
+  let shown=0, n=0;
   for(const s of syms){
     const el=document.createElement('div');el.className='card';
     el.innerHTML='<div class="sym">'+s+' <span class="badge b-watch">…</span></div>';grid.appendChild(el);
@@ -155,9 +163,12 @@ async function scanAll(){
       const d=await analyze(s,tf);
       if(fS!=='ALL'&&d.sig!==fS&&!(fS==='NONO'&&d.sig==='NO-SIGNAL')){el.remove();continue;}
       if(d.score<minS&&d.sig!=='DIP-BUY'){el.remove();continue;}
+      n++;
       let th=thesisTemplate(d); if(useLLM)th=await llmThesis(d,model);
       if(d.sig==='DIP-BUY')beep();
-      el.innerHTML=cardHTML(d,th); el.onclick=()=>el.classList.toggle('open'); shown++;
+      el.innerHTML=cardHTML(d,th,n); el.onclick=()=>el.classList.toggle('open');
+      if(d.sig==='DIP-BUY'||d.sig==='WATCH')el.classList.add('open');
+      shown++;
     }catch(e){ el.remove(); }
   }
   document.getElementById('foot').textContent=`Done. แสดง ${shown} รายการ จาก ${syms.length} (${new Date().toLocaleTimeString()})`;
