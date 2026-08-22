@@ -58,6 +58,46 @@ Explain WHY valid dip-buy and plan (entry, SL, target). Concise.`;
   }catch(e){ return '[LLM off/err] '+e.message; }
 }
 
+async function exchangeSymbols(){
+  try{
+    const r=await fetch(`${FUT}/exchangeInfo`,{headers:{'User-Agent':UA}});
+    const j=await r.json();
+    return j.symbols.filter(s=>s.quoteAsset==='USDT'&&s.contractType==='PERPETUAL'&&s.status==='TRADING').map(s=>s.symbol);
+  }catch(e){return null;}
+}
+
+async function scanAll(){
+  const tf=document.getElementById('tf').value;
+  const useLLM=document.getElementById('usellm').checked;
+  const model=document.getElementById('model').value;
+  const grid=document.getElementById('grid'); grid.innerHTML='';
+  let syms=await exchangeSymbols();
+  if(!syms){ syms=document.getElementById('sym').value.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+    document.getElementById('foot').textContent='exchangeInfo failed, fallback to manual list'; }
+  else document.getElementById('foot').textContent='Scanning ALL '+syms.length+' USDT perps (real-time)...';
+  let hits=0;
+  for(const s of syms){
+    const el=document.createElement('div');el.className='card';
+    el.innerHTML='<div class="sym">'+s+' <span class="badge b-watch">…</span></div>';grid.appendChild(el);
+    try{ await new Promise(r=>setTimeout(r,DELAY));
+      const d=await analyze(s,tf);
+      if(d.sig!=='NO-SIGNAL'){hits++;}
+      const cls=d.sig==='DIP-BUY'?'b-buy':d.sig==='WATCH'?'b-watch':'b-no';
+      let thesisTxt=`[THESIS] ${s}@${tf}\n  Trend ADX ${d.a?.toFixed(1)} ${d.trend_ok?'OK':'side'} | EMA50 ${d.e50?.toFixed(4)} below\n  RSI ${d.r?.toFixed(1)} ${d.rsi_ok?'(30-70) OK':'CUT'} | ST ${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}\n  Setup dip into EMA20/ST -> no chasing\n  Plan long on pullback; SL < ${Math.min(d.e20,d.sv)?.toFixed(4)}; target EMA200 ${d.e200?.toFixed(4)}`;
+      if(useLLM){ thesisTxt = await llmThesis(d, model); }
+      el.innerHTML=`<div class="sym">${s} <span class="badge ${cls}">${d.sig} ${d.score}/5</span></div>
+        <div class="row"><span>Close</span><span>${d.close}</span></div>
+        <div class="row"><span>EMA20/50</span><span>${d.e20?.toFixed(4)} / ${d.e50?.toFixed(4)}</span></div>
+        <div class="row"><span>RSI(14)</span><span style="color:${d.rsi_ok?'var(--ok)':'var(--bad)'}">${d.r?.toFixed(1)}</span></div>
+        <div class="row"><span>ADX(14)</span><span style="color:${d.trend_ok?'var(--ok)':'var(--muted)'}">${d.a?.toFixed(1)}</span></div>
+        <div class="row"><span>SuperTrend</span><span>${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}</span></div>
+        <div class="thesis">${thesisTxt}</div>`;
+      el.onclick=()=>el.classList.toggle('open');
+    }catch(e){ /* skip silently to keep scanning */ }
+  }
+  document.getElementById('foot').textContent=`Done. ${hits} non-NO-SIGNAL of ${syms.length} (${new Date().toLocaleTimeString()})`;
+  if(auto) timer=setTimeout(scanAll,120000);
+}
 async function scan(){
   const syms=document.getElementById('sym').value.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
   const tf=document.getElementById('tf').value;
