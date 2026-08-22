@@ -1,6 +1,31 @@
-// scanner_logic.js - client-side indicators, scan, LLM thesis (Ollama), position watch
+// scanner_logic.js - client-side indicators, scan, LLM thesis, filters, stars, sound, position watch, score
 const UA='Mozilla/5.0'; const DELAY=900; let auto=false, timer=null;
 const FUT='https://fapi.binance.com/fapi/v1';
+
+// ---- sound alert for DIP-BUY ----
+let audioCtx=null;
+function beep(){
+  try{
+    audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();
+    const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+    o.connect(g); g.connect(audioCtx.destination);
+    o.type='triangle'; o.frequency.value=880;
+    g.gain.setValueAtTime(0.001,audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.3,audioCtx.currentTime+0.02);
+    g.gain.exponentialRampToValueAtTime(0.001,audioCtx.currentTime+0.35);
+    o.start(); o.stop(audioCtx.currentTime+0.36);
+  }catch(e){}
+}
+
+function stars(n){n=Math.max(0,Math.min(5,n|0));return '⭐'.repeat(n)+'☆'.repeat(5-n);}
+function passFilter(sig){
+  const f=document.getElementById('fSignal').value;
+  if(f==='DIP-BUY'&&sig!=='DIP-BUY')return false;
+  if(f==='WATCH'&&sig!=='WATCH')return false;
+  if(f==='NONO'&&sig==='NO-SIGNAL')return false;
+  const min=+document.getElementById('fMin2').value;
+  return sig!=='NO-SIGNAL'||true; // score filter applied after compute
+}
 
 async function klines(sym,tf,limit=600){
   const r=await fetch(`${FUT}/klines?symbol=${sym}&interval=${tf}&limit=${limit}`,{headers:{'User-Agent':UA}});
@@ -58,51 +83,26 @@ Explain WHY valid dip-buy and plan (entry, SL, target). Concise.`;
   }catch(e){ return '[LLM off/err] '+e.message; }
 }
 
-async function exchangeSymbols(){
-  try{
-    const r=await fetch(`${FUT}/exchangeInfo`,{headers:{'User-Agent':UA}});
-    const j=await r.json();
-    return j.symbols.filter(s=>s.quoteAsset==='USDT'&&s.contractType==='PERPETUAL'&&s.status==='TRADING').map(s=>s.symbol);
-  }catch(e){return null;}
+function cardHTML(d, thesisTxt){
+  const cls=d.sig==='DIP-BUY'?'b-buy':d.sig==='WATCH'?'b-watch':'b-no';
+  return `<div class="sym">${d.sym} <span class="badge ${cls}">${d.sig} ${d.score}/5</span></div>
+    <div class="row"><span>คะแนน</span><span class="stars">${stars(d.score)}</span></div>
+    <div class="row"><span>Close</span><span>${d.close}</span></div>
+    <div class="row"><span>EMA20/50</span><span>${d.e20?.toFixed(4)} / ${d.e50?.toFixed(4)}</span></div>
+    <div class="row"><span>RSI(14)</span><span style="color:${d.rsi_ok?'var(--ok)':'var(--bad)'}">${d.r?.toFixed(1)}</span></div>
+    <div class="row"><span>ADX(14)</span><span style="color:${d.trend_ok?'var(--ok)':'var(--muted)'}">${d.a?.toFixed(1)}</span></div>
+    <div class="row"><span>SuperTrend</span><span>${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}</span></div>
+    <div class="thesis">${thesisTxt}</div>`;
+}
+function thesisTemplate(d){
+  return `[THESIS] ${d.sym}@${d.tf}\n  Trend ADX ${d.a?.toFixed(1)} ${d.trend_ok?'OK':'side'} | EMA50 ${d.e50?.toFixed(4)} below\n  RSI ${d.r?.toFixed(1)} ${d.rsi_ok?'(30-70) OK':'CUT'} | ST ${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}\n  Setup dip into EMA20/ST -> no chasing\n  Plan long on pullback; SL < ${Math.min(d.e20,d.sv)?.toFixed(4)}; target EMA200 ${d.e200?.toFixed(4)}`;
 }
 
-async function scanAll(){
-  const tf=document.getElementById('tf').value;
-  const useLLM=document.getElementById('usellm').checked;
-  const model=document.getElementById('model').value;
-  const grid=document.getElementById('grid'); grid.innerHTML='';
-  let syms=await exchangeSymbols();
-  if(!syms){ syms=document.getElementById('sym').value.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
-    document.getElementById('foot').textContent='exchangeInfo failed, fallback to manual list'; }
-  else document.getElementById('foot').textContent='Scanning ALL '+syms.length+' USDT perps (real-time)...';
-  let hits=0;
-  for(const s of syms){
-    const el=document.createElement('div');el.className='card';
-    el.innerHTML='<div class="sym">'+s+' <span class="badge b-watch">…</span></div>';grid.appendChild(el);
-    try{ await new Promise(r=>setTimeout(r,DELAY));
-      const d=await analyze(s,tf);
-      if(d.sig!=='NO-SIGNAL'){hits++;}
-      const cls=d.sig==='DIP-BUY'?'b-buy':d.sig==='WATCH'?'b-watch':'b-no';
-      let thesisTxt=`[THESIS] ${s}@${tf}\n  Trend ADX ${d.a?.toFixed(1)} ${d.trend_ok?'OK':'side'} | EMA50 ${d.e50?.toFixed(4)} below\n  RSI ${d.r?.toFixed(1)} ${d.rsi_ok?'(30-70) OK':'CUT'} | ST ${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}\n  Setup dip into EMA20/ST -> no chasing\n  Plan long on pullback; SL < ${Math.min(d.e20,d.sv)?.toFixed(4)}; target EMA200 ${d.e200?.toFixed(4)}`;
-      if(useLLM){ thesisTxt = await llmThesis(d, model); }
-      el.innerHTML=`<div class="sym">${s} <span class="badge ${cls}">${d.sig} ${d.score}/5</span></div>
-        <div class="row"><span>Close</span><span>${d.close}</span></div>
-        <div class="row"><span>EMA20/50</span><span>${d.e20?.toFixed(4)} / ${d.e50?.toFixed(4)}</span></div>
-        <div class="row"><span>RSI(14)</span><span style="color:${d.rsi_ok?'var(--ok)':'var(--bad)'}">${d.r?.toFixed(1)}</span></div>
-        <div class="row"><span>ADX(14)</span><span style="color:${d.trend_ok?'var(--ok)':'var(--muted)'}">${d.a?.toFixed(1)}</span></div>
-        <div class="row"><span>SuperTrend</span><span>${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}</span></div>
-        <div class="thesis">${thesisTxt}</div>`;
-      el.onclick=()=>el.classList.toggle('open');
-    }catch(e){ /* skip silently to keep scanning */ }
-  }
-  document.getElementById('foot').textContent=`Done. ${hits} non-NO-SIGNAL of ${syms.length} (${new Date().toLocaleTimeString()})`;
-  if(auto) timer=setTimeout(scanAll,120000);
-}
 async function scan(){
   const syms=document.getElementById('sym').value.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
   const tf=document.getElementById('tf').value;
-  const useLLM=document.getElementById('usellm').checked;
-  const model=document.getElementById('model').value;
+  const useLLM=document.getElementById('usellm').checked, model=document.getElementById('model').value;
+  const minS=+document.getElementById('fMin2').value, fS=document.getElementById('fSignal').value;
   const grid=document.getElementById('grid'); grid.innerHTML='';
   document.getElementById('foot').textContent='Scanning '+syms.length+'...';
   for(const s of syms){
@@ -110,25 +110,51 @@ async function scan(){
     el.innerHTML='<div class="sym">'+s+' <span class="badge b-watch">…</span></div>';grid.appendChild(el);
     try{ await new Promise(r=>setTimeout(r,DELAY));
       const d=await analyze(s,tf);
-      const cls=d.sig==='DIP-BUY'?'b-buy':d.sig==='WATCH'?'b-watch':'b-no';
-      let thesisTxt=`[THESIS] ${s}@${tf}\n  Trend ADX ${d.a?.toFixed(1)} ${d.trend_ok?'OK':'side'} | EMA50 ${d.e50?.toFixed(4)} below\n  RSI ${d.r?.toFixed(1)} ${d.rsi_ok?'(30-70) OK':'CUT'} | ST ${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}\n  Setup dip into EMA20/ST -> no chasing\n  Plan long on pullback; SL < ${Math.min(d.e20,d.sv)?.toFixed(4)}; target EMA200 ${d.e200?.toFixed(4)}`;
-      if(useLLM){ thesisTxt = await llmThesis(d, model); }
-      el.innerHTML=`<div class="sym">${s} <span class="badge ${cls}">${d.sig} ${d.score}/5</span></div>
-        <div class="row"><span>Close</span><span>${d.close}</span></div>
-        <div class="row"><span>EMA20/50</span><span>${d.e20?.toFixed(4)} / ${d.e50?.toFixed(4)}</span></div>
-        <div class="row"><span>RSI(14)</span><span style="color:${d.rsi_ok?'var(--ok)':'var(--bad)'}">${d.r?.toFixed(1)}</span></div>
-        <div class="row"><span>ADX(14)</span><span style="color:${d.trend_ok?'var(--ok)':'var(--muted)'}">${d.a?.toFixed(1)}</span></div>
-        <div class="row"><span>SuperTrend</span><span>${d.sv?.toFixed(4)} ${d.stu?'UP':'DOWN'}</span></div>
-        <div class="thesis">${thesisTxt}</div>`;
-      el.onclick=()=>el.classList.toggle('open');
+      if(fS!=='ALL'&&d.sig!==fS&&!(fS==='NONO'&&d.sig==='NO-SIGNAL')){el.remove();continue;}
+      if(d.score<minS&&d.sig!=='DIP-BUY'){el.remove();continue;}
+      let th=thesisTemplate(d); if(useLLM)th=await llmThesis(d,model);
+      if(d.sig==='DIP-BUY')beep();
+      el.innerHTML=cardHTML(d,th); el.onclick=()=>el.classList.toggle('open');
     }catch(e){ el.innerHTML='<div class="sym">'+s+' <span class="badge b-no">ERR</span></div><div class="err">'+e.message+'</div>'; }
   }
   document.getElementById('foot').textContent='Done '+new Date().toLocaleTimeString();
   if(auto) timer=setTimeout(scan,60000);
 }
-function toggleAuto(){auto=!auto;document.getElementById('autoBtn').textContent=auto?'⏸ Auto':'▶ Auto';if(auto)scan();}
 
-// ---- position watch (client-side, uses localStorage) ----
+async function exchangeSymbols(){
+  try{const r=await fetch(`${FUT}/exchangeInfo`,{headers:{'User-Agent':UA}});
+    const j=await r.json();
+    return j.symbols.filter(s=>s.quoteAsset==='USDT'&&s.contractType==='PERPETUAL'&&s.status==='TRADING').map(s=>s.symbol);
+  }catch(e){return null;}
+}
+async function scanAll(){
+  const tf=document.getElementById('tf').value;
+  const useLLM=document.getElementById('usellm').checked, model=document.getElementById('model').value;
+  const minS=+document.getElementById('fMin2').value, fS=document.getElementById('fSignal').value;
+  const grid=document.getElementById('grid'); grid.innerHTML='';
+  let syms=await exchangeSymbols();
+  if(!syms){syms=document.getElementById('sym').value.split(',').map(s=>s.trim().toUpperCase()).filter(Boolean);
+    document.getElementById('foot').textContent='exchangeInfo ไม่ได้ ใช้รายชื่อเดิม';}
+  else document.getElementById('foot').textContent='Scan ทุกเหรียญ USDT ('+syms.length+') real-time...';
+  let shown=0;
+  for(const s of syms){
+    const el=document.createElement('div');el.className='card';
+    el.innerHTML='<div class="sym">'+s+' <span class="badge b-watch">…</span></div>';grid.appendChild(el);
+    try{ await new Promise(r=>setTimeout(r,DELAY));
+      const d=await analyze(s,tf);
+      if(fS!=='ALL'&&d.sig!==fS&&!(fS==='NONO'&&d.sig==='NO-SIGNAL')){el.remove();continue;}
+      if(d.score<minS&&d.sig!=='DIP-BUY'){el.remove();continue;}
+      let th=thesisTemplate(d); if(useLLM)th=await llmThesis(d,model);
+      if(d.sig==='DIP-BUY')beep();
+      el.innerHTML=cardHTML(d,th); el.onclick=()=>el.classList.toggle('open'); shown++;
+    }catch(e){ el.remove(); }
+  }
+  document.getElementById('foot').textContent=`Done. แสดง ${shown} รายการ จาก ${syms.length} (${new Date().toLocaleTimeString()})`;
+  if(auto) timer=setTimeout(scanAll,120000);
+}
+function toggleAuto(){auto=!auto;document.getElementById('autoBtn').textContent=auto?'⏸ Auto':'▶ Auto';if(auto)scanAll();}
+
+// ---- position watch ----
 function loadPos(){return JSON.parse(localStorage.getItem('poswatch')||'[]');}
 function savePos(p){localStorage.setItem('poswatch',JSON.stringify(p));}
 function addPos(){
@@ -143,8 +169,7 @@ async function checkPos(){
   for(const pos of p){
     try{ await new Promise(r=>setTimeout(r,DELAY));
       const d=await klines(pos.sym,pos.tf);const c=d.map(x=>x[3]),l=d.map(x=>x[2]);
-      const price=c[c.length-1],lo=l[l.length-1];
-      const rs=rsi(c);const r=rs[rs.length-1];
+      const price=c[c.length-1],lo=l[l.length-1]; const rs=rsi(c);const r=rs[rs.length-1];
       let msg=`${pos.sym}@${pos.tf} price ${price.toFixed(4)} RSI ${r.toFixed(1)}`;
       if(lo<=pos.support)msg+=' ⚠️ หลุด support '+pos.support;
       if(lo<=pos.sl)msg+=' 🛑 หลุด SL '+pos.sl;
@@ -160,16 +185,8 @@ function renderPos(){
   list.innerHTML='<h3 style="font-size:13px">Watched ('+p.length+')</h3>'+
     p.map(x=>`<div class="row"><span>${x.sym}@${x.tf}</span><span>sup ${x.support} / sl ${x.sl}</span></div>`).join('');
 }
-function switchTab(t){document.getElementById('tab-scan').classList.toggle('on',t==='scan');
-  document.getElementById('tab-pos').classList.toggle('on',t==='pos');
-  document.getElementById('tab-score').classList.toggle('on',t==='score');
-  document.getElementById('scan-pane').style.display=t==='scan'?'block':'none';
-  document.getElementById('pos-pane').style.display=t==='pos'?'block':'none';
-  document.getElementById('score-pane').style.display=t==='score'?'block':'none';
-  if(t==='pos')renderPos(); if(t==='score')renderScore();}
-scan();
 
-// ---- score sheet (B) client-side ----
+// ---- score sheet ----
 const FACTORS=['novelty','pnl_impact','regime_consistency','thesis_accuracy','execution_quality','risk_management'];
 const FLABEL={novelty:'ความใหม่',pnl_impact:'ผลต่อ PnL',regime_consistency:'สอดคล้องสภาวะตลาด',
   thesis_accuracy:'คาดการณ์ถูก',execution_quality:'คุณภาพการเข้า',risk_management:'บริหารความเสี่ยง'};
@@ -181,8 +198,7 @@ function renderScore(){
 }
 function saveScore(){
   const sym=document.getElementById('ssym').value.toUpperCase();
-  const tf=document.getElementById('stf').value;
-  const pnl=parseFloat(document.getElementById('spnl').value)||0;
+  const tf=document.getElementById('stf').value; const pnl=parseFloat(document.getElementById('spnl').value)||0;
   if(!sym){alert('ใส่ symbol');return;}
   const scores={};FACTORS.forEach(k=>scores[k]=+document.getElementById('f_'+k).value);
   const base=FACTORS.reduce((s,k)=>s+scores[k],0);
@@ -191,15 +207,23 @@ function saveScore(){
   const mem=JSON.parse(localStorage.getItem('tradescore')||'[]');mem.push(rec);
   localStorage.setItem('tradescore',JSON.stringify(mem));
   document.getElementById('scoreresult').textContent=
-    `บันทึก ${sym} PnL ${pnl}% | คะแนนฐาน ${base}/30 | โบนัสขาดทุน ${bonus*100}% | น้ำหนัก ${weighted.toFixed(1)}`;
+    `บันทึก ${sym} PnL ${pnl}% | ฐาน ${base}/30 | โบนัสขาดทุน ${bonus*100}% | น้ำหนัก ${weighted.toFixed(1)}`;
   renderScoreHist();
 }
 function renderScoreHist(){
   const mem=JSON.parse(localStorage.getItem('tradescore')||'[]');
   const h=document.getElementById('scorehistory');
   if(!mem.length){h.innerHTML='';return;}
-  const wins=mem.filter(m=>m.pnl>0).length;
-  const avg=mem.reduce((s,m)=>s+m.weighted,0)/mem.length;
+  const wins=mem.filter(m=>m.pnl>0).length; const avg=mem.reduce((s,m)=>s+m.weighted,0)/mem.length;
   h.innerHTML=`<div style="font-size:12px;margin-bottom:6px">รวม ${mem.length} เทรด | ชนะ ${wins} | น้ำหนักเฉลี่ย ${avg.toFixed(1)}</div>`+
     mem.slice().reverse().map(m=>`<div class="row"><span>${m.sym}@${m.tf}</span><span>PNL ${m.pnl}% · ${m.weighted.toFixed(1)}${m.bonus?' (ขาดทุน+)':''}</span></div>`).join('');
 }
+
+function switchTab(t){
+  ['scan','pos','score','help'].forEach(x=>{
+    document.getElementById('tab-'+x).classList.toggle('on',x===t);
+    document.getElementById(x+'-pane').style.display=x===t?'block':'none';
+  });
+  if(t==='pos')renderPos(); if(t==='score')renderScore();
+}
+scan();
