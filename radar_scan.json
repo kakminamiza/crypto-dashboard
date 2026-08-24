@@ -1,1 +1,233 @@
-{"error":"bybit fetch failed"}
+[
+  {
+    "symbol": "LITUSDT",
+    "price": 3.675,
+    "changePct": 17.9454,
+    "rsi": 68.33333333333333,
+    "volRatio": 8.50115796117431,
+    "score": 76,
+    "trend": "up",
+    "atr14": 0.1139271798294221,
+    "signal": {
+      "signal": "LONG",
+      "stars": 4,
+      "confidence": 86,
+      "entry": 3.675,
+      "sl": 3.4471456403411556,
+      "tp1": 4.016781539488266,
+      "tp2": 4.358563078976532,
+      "invalidation": 3.3901820504264446,
+      "reason": "MACD + · 4H ขาขึ้น · Vol เพิ่ม"
+    }
+  },
+  {
+    "symbol": "COWUSDT",
+    "price": 0.12338,
+    "changePct": 6.490500000000001,
+    "rsi": 67.25571725571722,
+    "volRatio": 4.877447774973682,
+    "score": 72,
+    "trend": "flat",
+    "atr14": 0.0010904624250145704,
+    "signal": {
+      "signal": "LONG",
+      "stars": 4,
+      "confidence": 72,
+      "entry": 0.12338,
+      "sl": 0.12119907514997086,
+      "tp1": 0.12665138727504371,
+      "tp2": 0.12992277455008744,
+      "invalidation": 0.12065384393746358,
+      "reason": "MACD + · Vol เพิ่ม"
+    }
+  },
+  {
+    "symbol": "PDDUSDT",
+    "price": 88.46,
+    "changePct": -1.3726,
+    "rsi": 35.24590163934407,
+    "volRatio": 3.153381350324858,
+    "score": -65,
+    "trend": "flat",
+    "atr14": 0.48062394773941114,
+    "signal": {
+      "signal": "SHORT",
+      "stars": 4,
+      "confidence": 65,
+      "entry": 88.46,
+      "sl": 89.42124789547881,
+      "tp1": 87.01812815678176,
+      "tp2": 85.57625631356353,
+      "invalidation": 89.66155986934852,
+      "reason": "MACD - · Vol เพิ่ม"
+    }
+  },
+  {
+    "symbol": "EGLDUSDT",
+    "price": 3.454,
+    "changePct": 4.9529,
+    "rsi": 30.31496062992136,
+    "volRatio": 0.5596423066187481,
+    "score": -66,
+    "trend": "up",
+    "atr14": 0.03480812009074647,
+    "signal": {
+      "signal": "SHORT",
+      "stars": 4,
+      "confidence": 56,
+      "entry": 3.454,
+      "sl": 3.523616240181493,
+      "tp1": 3.3495756397277607,
+      "tp2": 3.2451512794555213,
+      "invalidation": 3.5410203002268665,
+      "reason": "MACD -"
+    }
+  },
+  {
+    "symbol": "XAUTUSDT",
+    "price": 4618.2,
+    "changePct": 0.8582,
+    "rsi": 60.62884483937082,
+    "volRatio": 0.601149943655036,
+    "score": 57,
+    "trend": "up",
+    "atr14": 11.282888068939116,
+    "signal": {
+      "signal": "LONG",
+      "stars": 3,
+      "confidence": 57,
+      "entry": 4618.2,
+      "sl": 4595.634223862122,
+      "tp1": 4652.048664206817,
+      "tp2": 4685.897328413635,
+      "invalidation": 4589.992779827652,
+      "reason": "MACD + · 4H ขาขึ้น"
+    }
+  },
+  {
+    "symbol": "XAUUSDT",
+    "price": 4644.82,
+    "changePct": 0.7738,
+    "rsi": 60.445880452342465,
+    "volRatio": 0.6169293746333215,
+    "score": 55,
+    "trend": "up",
+    "atr14": 12.21559449299572,
+    "signal": {
+      "signal": "LONG",
+      "stars": 3,
+      "confidence": 55,
+      "entry": 4644.82,
+      "sl": 4620.388811014008,
+      "tp1": 4681.466783478987,
+      "tp2": 4718.113566957974,
+      "invalidation": 4614.281013767511,
+      "reason": "MACD + · 4H ขาขึ้น"
+    }
+  },
+  {
+    "symbol": "EULUSDT",
+    "price": 1.3688,
+    "changePct": 1.2725,
+    "rsi": 63.48920863309348,
+    "volRatio": 0.979282126217389,
+    "score": 51,
+    "trend": "up",
+    "atr14": 0.017795075846216975,
+    "signal": {
+      "signal": "LONG",
+      "stars": 3,
+      "confidence": 51,
+      "entry": 1.3688,
+      "sl": 1.333209848307566,
+      "tp1": 1.4221852275386508,
+      "tp2": 1.475570455077302,
+      "invalidation": 1.3243123103844576,
+      "reason": "MACD + · 4H ขาขึ้น"
+    }
+  },
+  {
+    "symbol": "TRUMPUSDT",
+    "price": 2.55,
+    "changePct": 11.0627,
+    "rsi": 30.254777070063653,
+    "volRatio": 0.6548647287044911,
+    "score": -58,
+    "trend": "up",
+    "atr14": 0.05608431411690833,
+    "signal": {
+      "signal": "SHORT",
+      "stars": 3,
+      "confidence": 48,
+      "entry": 2.55,
+      "sl": 2.6621686282338164,
+      "tp1": 2.381747057649275,
+      "tp2": 2.2134941152985497,
+      "invalidation": 2.6902107852922708,
+      "reason": "MACD -"
+    }
+  },
+  {
+    "symbol": "ETCUSDT",
+    "price": 7.754,
+    "changePct": -1.059,
+    "rsi": 33.146067415730215,
+    "volRatio": 0.5464923243777939,
+    "score": -58,
+    "trend": "up",
+    "atr14": 0.064176019032458,
+    "signal": {
+      "signal": "SHORT",
+      "stars": 3,
+      "confidence": 48,
+      "entry": 7.754,
+      "sl": 7.882352038064916,
+      "tp1": 7.561471942902625,
+      "tp2": 7.368943885805251,
+      "invalidation": 7.914440047581144,
+      "reason": "MACD -"
+    }
+  },
+  {
+    "symbol": "KORUUSDT",
+    "price": 20.49,
+    "changePct": 0.5397,
+    "rsi": 35.77235772357723,
+    "volRatio": 0.6081897354907885,
+    "score": -57,
+    "trend": "up",
+    "atr14": 0.23411890611753694,
+    "signal": {
+      "signal": "SHORT",
+      "stars": 3,
+      "confidence": 47,
+      "entry": 20.49,
+      "sl": 20.958237812235073,
+      "tp1": 19.787643281647387,
+      "tp2": 19.085286563294776,
+      "invalidation": 21.07529726529384,
+      "reason": "MACD -"
+    }
+  },
+  {
+    "symbol": "CRCLUSDT",
+    "price": 87.82,
+    "changePct": -0.4308,
+    "rsi": 38.383838383838366,
+    "volRatio": 0.9470437247008646,
+    "score": -50,
+    "trend": "up",
+    "atr14": 0.41881619025434946,
+    "signal": {
+      "signal": "SHORT",
+      "stars": 3,
+      "confidence": 40,
+      "entry": 87.82,
+      "sl": 88.65763238050869,
+      "tp1": 86.56355142923694,
+      "tp2": 85.3071028584739,
+      "invalidation": 88.86704047563586,
+      "reason": "MACD -"
+    }
+  }
+]

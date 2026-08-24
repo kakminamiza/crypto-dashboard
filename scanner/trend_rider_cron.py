@@ -8,6 +8,7 @@ so we try several regional futures hosts and fall back on failure.
 """
 import os
 import time
+import json
 import datetime
 import requests
 
@@ -255,6 +256,12 @@ def main():
     with open(out, "w", encoding="utf-8") as f:
         f.write(build_html(results, vmap))
     print(f"Wrote {out} with {len(results)} signals")
+    # Signals JSON for Telegram notify (shape: sym, dir, price, sl, tp1, tp2, adx)
+    js = [{"sym": r["sym"], "dir": r["dir"], "price": r["price"], "sl": r["sl"],
+           "tp1": r["tp1"], "tp2": r["tp2"], "adx": r["adx"]} for r in results]
+    js_path = os.environ.get("OUT_JSON", os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "trend_rider_live_cron_signals.json"))
+    with open(js_path, "w", encoding="utf-8") as f:
+        json.dump(js, f, ensure_ascii=False, indent=2)
 
 
 if __name__ == "__main__":
