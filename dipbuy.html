@@ -179,6 +179,10 @@ footer{text-align:center;color:var(--muted);font-size:11px;padding:20px}
       <svg id="chart" viewBox="0 0 1000 420"></svg>
       <div id="tip"></div>
     </div>
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:6px 0 4px">
+      <button id="toggleRings" class="pri" style="background:linear-gradient(135deg,#3b82f6,#38bdf8);color:#04101f;border:none;padding:6px 14px;border-radius:8px;font-weight:700;cursor:pointer;font-size:13px">🔴 วงแดง: เปิด</button>
+      <span style="font-size:12px;color:var(--muted)">คลิกเพื่อซ่อน/แสดงวงแดง SPIKE · LIQ</span>
+    </div>
     <div class="legend">
       <span><i class="dot" style="background:#fff"></i>แท่งเทียน</span>
       <span><i class="dot" style="background:var(--blue)"></i>EMA20</span>
@@ -463,17 +467,17 @@ async function renderChart(sym,tf){
     s+=`<line x1="${xc}" y1="${yh}" x2="${xc}" y2="${yl}" stroke="${col}"/>`;
     const top=Math.min(yo,yc),bot=Math.max(yo,yc);
     s+=`<rect x="${xc-bw/2}" y="${top}" width="${bw}" height="${Math.max(1,bot-top)}" fill="${col}"/>`;}
-  // volume spike markers (red ring on big-liquidation bars) — enhanced, more visible
+  // volume spike markers (red ring on big-liquidation bars) — enhanced, more visible, muted red
   spikeIdx.forEach(i=>{
     const yc=Y(c[i]);
     const rad=bw*1.4+5;
     // outer glow ring
-    s+=`<circle cx="${X(i)}" cy="${yc}" r="${rad}" fill="none" stroke="#ef4444" stroke-width="2.2" opacity="0.35"/>`;
-    // solid red ring (the hand-drawn style marker)
-    s+=`<circle cx="${X(i)}" cy="${yc}" r="${rad*0.7}" fill="none" stroke="#ef4444" stroke-width="1.8" opacity="0.95"/>`;
-    s+=`<circle cx="${X(i)}" cy="${yc}" r="2.4" fill="#ef4444"/>`;
+    s+=`<circle class="ring" cx="${X(i)}" cy="${yc}" r="${rad}" fill="none" stroke="#f0888a" stroke-width="2.2" opacity="0.30"/>`;
+    // solid muted-red ring (the hand-drawn style marker)
+    s+=`<circle class="ring" cx="${X(i)}" cy="${yc}" r="${rad*0.7}" fill="none" stroke="#f0888a" stroke-width="1.8" opacity="0.92"/>`;
+    s+=`<circle class="ring" cx="${X(i)}" cy="${yc}" r="2.4" fill="#f0888a"/>`;
     // label
-    s+=`<text x="${X(i)}" y="${yc-rad-3}" fill="#ef4444" font-size="9" font-weight="700" text-anchor="middle">SPIKE</text>`;
+    s+=`<text class="ring" x="${X(i)}" y="${yc-rad-3}" fill="#f0888a" font-size="9" font-weight="700" text-anchor="middle">SPIKE</text>`;
   });
   const line=(arr,col)=>{let p="";arr.forEach((v,i)=>{p+=(i?"L":"M")+X(i)+" "+Y(v)+" ";});
     return `<path d="${p}" fill="none" stroke="${col}" stroke-width="1.4" opacity=".9"/>`;};
@@ -496,11 +500,11 @@ async function renderChart(sym,tf){
       const yy=Y(fl.price);
       const c = fl.longLiq>=fl.shortLiq ? "#fb923c" : "#67e8f9";
       s+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="${c}" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>`;
-      // red ring marker on the liquidation cluster (hand-drawn style, like the composer screenshot)
+      // muted-red ring marker on the liquidation cluster (hand-drawn style, like the composer screenshot)
       const rr=10;
-      s+=`<circle cx="${W-padR-rr-2}" cy="${yy}" r="${rr}" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.9"/>`;
-      s+=`<circle cx="${W-padR-rr-2}" cy="${yy}" r="2.4" fill="#ef4444"/>`;
-      s+=`<text x="${W-padR-rr-2}" y="${yy-rr-3}" fill="#ef4444" font-size="9" font-weight="700" text-anchor="middle">LIQ</text>`;
+      s+=`<circle class="ring" cx="${W-padR-rr-2}" cy="${yy}" r="${rr}" fill="none" stroke="#f0888a" stroke-width="2" opacity="0.9"/>`;
+      s+=`<circle class="ring" cx="${W-padR-rr-2}" cy="${yy}" r="2.4" fill="#f0888a"/>`;
+      s+=`<text class="ring" x="${W-padR-rr-2}" y="${yy-rr-3}" fill="#f0888a" font-size="9" font-weight="700" text-anchor="middle">LIQ</text>`;
     });
   }
   // OI accumulation badge (top-left)
@@ -621,6 +625,19 @@ function renderChips(){
     box.appendChild(c);
   });
 }
+
+/* ---------- ring toggle (hide/show SPIKE + LIQ markers) ---------- */
+let RINGS_ON=true;
+function toggleRings(){
+  RINGS_ON=!RINGS_ON;
+  const svg=document.getElementById("chart");
+  if(svg) svg.querySelectorAll(".ring").forEach(el=>el.style.display=RINGS_ON?"":"none");
+  const btn=document.getElementById("toggleRings");
+  if(btn) btn.textContent = RINGS_ON ? "🔴 วงแดง: เปิด" : "⚪ วงแดง: ปิด";
+  try{ localStorage.setItem("dipbuy_rings", RINGS_ON?"1":"0"); }catch(e){}
+}
+document.getElementById("toggleRings").onclick=toggleRings;
+try{ if(localStorage.getItem("dipbuy_rings")==="0"){ RINGS_ON=false; const b=document.getElementById("toggleRings"); if(b)b.textContent="⚪ วงแดง: ปิด"; } }catch(e){}
 
 /* ---------- tabs ---------- */
 document.querySelectorAll(".tab").forEach(tb=>tb.onclick=()=>{
