@@ -467,9 +467,10 @@ const SCAN_ALL_MARKET = true;
 const SCAN_MIN_STARS = 3;          // คัดเฉพาะ >= 3 ดาว (พี่กั๊ก: ดาวต้องขึ้น)
 const SCAN_BATCH = 18;             // สแกนพร้อมกันทีละกลุ่ม (กัน rate-limit)
 const SCAN_GAP_MS = 70;            // หน่วงระหว่างกลุ่ม
-const SCAN_MAX_SYMBOLS = 400;      // จำกัดจำนวนคู่สูงสุด (เรียงตามวอลุ่ม) เพื่อไม่ให้เบราเซอร์ค้าง
+const SCAN_MAX_SYMBOLS = 150;      // ลดเหลือ 150 คู่ (เร็วขึ้นบนมือถือ; เรียงตามวอลุ่ม)
 const SCAN_MIN_TURNOVER = 500000;  // กรองหุ้น/stock-token ที่เทรดบาง (turnover 24h ต่ำ)
 const SCAN_MIN_VOL_RATIO = 0.5;    // ตัดตัวที่วอลุ่มแห้งจัด (<0.5 เท่านั้น) — ช่วงตลาดนิ่งวอลุ่มมัก ~0.3-0.8 ไม่ควรตัด
+const SCAN_FUNDING_MIN = 0.02;     // กรองเหรียญที่ funding 8h < 2% (หรือ > -2%) ออกจากสแกนทั้งกระดาน
 const POLL_MS = 60000;            // รีเฟรชผลจาก Worker ทุก 60 วิ (Worker proxy Bybit ให้ หน้าเว็บไม่เรียก Bybit ตรงเลย → ไม่โดน IP แบน)
 const KEY = 'futures_radar_15m_v2';
 const SETTINGS_KEY = 'futures_radar_settings_v2';
@@ -1096,12 +1097,39 @@ async function fetchBybitTickers(){
 // scan one symbol end-to-end → {sym, stars, score, price, dir, sl, tp1, tp2, ...}
 async function scanOneSymbol(symbol){
   try{
+    // ดึง funding rate (Bybit → fallback Binance); กรอง < fundingMinFilter (default 0.02 = 2%/8h)
+    let funding = await fetchFundingRate(symbol);
+    if(Math.abs(funding) < SCAN_FUNDING_MIN) return null;   // กรองหุ้นที่ไม่มีกระแสเงินใหญ่
     const ticker24h = { [symbol]: { priceChangePercent:0, quoteVolume:0, lastPrice:0 } };
     const d = await computeSymbol(symbol, ticker24h);
     if(!d) return null;
     return { symbol:d.symbol, dir:d.signal?.dir||'long', price:d.price, score:d.score, stars:d.stars||0,
-             rsi:d.rsi, sl:d.sl, tp1:d.tp1, tp2:d.tp2, vRatio:d.volRatio, trend:d.trend };
+             rsi:d.rsi, sl:d.sl, tp1:d.tp1, tp2:d.tp2, vRatio:d.volRatio, trend:d.trend, funding };
   }catch(e){ return null; }
+}
+
+// fetch funding rate: Bybit (primary) → Binance (fallback) — ค่าเป็นแบบ normalized (เป็น % ต่อ 8h บน Bybit; /100 บน Binance)
+let fundingCache = {};   // cache 1 session ลด request ซ้ำ
+async function fetchFundingRate(symbol){
+  if(fundingCache[symbol] != null) return fundingCache[symbol];
+  try{
+    const res = await fetch(`${FUTURES_BASE_BYBIT}/v5/market/funding/interval?symbol=${symbol}`, {signal:AbortSignal.timeout(8000)});
+    const j = await res.json();
+    if(j.retCode===0 && j.result?.list?.length){
+      const f = parseFloat(j.result.list[0].fundingRate);   // Bybit ให้แบบทศนิยก เช่น 0.0001 = 0.01%/8h
+      fundingCache[symbol] = f; return f;
+    }
+  }catch(e){ console.warn('funding Bybit fail for', symbol, e.message); }
+  // ถ้า Bybit แบน → ใช้ Binance (funding เป็น % จริง: 0.01 = 1%/8h → หาร 100)
+  try{
+    const bres = await fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}&limit=1`, {signal:AbortSignal.timeout(8000)});
+    const bj = await bres.json();
+    if(Array.isArray(bj) && bj[0]){
+      const f = parseFloat(bj[0].fundingRate)/100;   // 1% → 0.01
+      fundingCache[symbol] = f; return f;
+    }
+  }catch(e){ console.warn('funding Binance fail for', symbol, e.message); }
+  fundingCache[symbol] = 0; return 0;  // ไม่มีข้อมูล → ให้ผ่านฟิลเตอร์ (0 < 0.02)
 }
 
 async function fetchAllTicker24h(){
