@@ -463,12 +463,17 @@ async function renderChart(sym,tf){
     s+=`<line x1="${xc}" y1="${yh}" x2="${xc}" y2="${yl}" stroke="${col}"/>`;
     const top=Math.min(yo,yc),bot=Math.max(yo,yc);
     s+=`<rect x="${xc-bw/2}" y="${top}" width="${bw}" height="${Math.max(1,bot-top)}" fill="${col}"/>`;}
-  // volume spike markers (red ring on big-liquidation bars)
+  // volume spike markers (red ring on big-liquidation bars) — enhanced, more visible
   spikeIdx.forEach(i=>{
-    const yc=Y(c[i]), col=c[i]>=o[i]?"#fca5a5":"#fecaca";
-    const rad=bw*0.9+2;
-    s+=`<circle cx="${X(i)}" cy="${yc}" r="${rad}" fill="none" stroke="#ef4444" stroke-width="1.6" opacity="0.9"/>`;
-    s+=`<circle cx="${X(i)}" cy="${yc}" r="2.2" fill="#ef4444"/>`;
+    const yc=Y(c[i]);
+    const rad=bw*1.4+5;
+    // outer glow ring
+    s+=`<circle cx="${X(i)}" cy="${yc}" r="${rad}" fill="none" stroke="#ef4444" stroke-width="2.2" opacity="0.35"/>`;
+    // solid red ring (the hand-drawn style marker)
+    s+=`<circle cx="${X(i)}" cy="${yc}" r="${rad*0.7}" fill="none" stroke="#ef4444" stroke-width="1.8" opacity="0.95"/>`;
+    s+=`<circle cx="${X(i)}" cy="${yc}" r="2.4" fill="#ef4444"/>`;
+    // label
+    s+=`<text x="${X(i)}" y="${yc-rad-3}" fill="#ef4444" font-size="9" font-weight="700" text-anchor="middle">SPIKE</text>`;
   });
   const line=(arr,col)=>{let p="";arr.forEach((v,i)=>{p+=(i?"L":"M")+X(i)+" "+Y(v)+" ";});
     return `<path d="${p}" fill="none" stroke="${col}" stroke-width="1.4" opacity=".9"/>`;};
@@ -485,12 +490,17 @@ async function renderChart(sym,tf){
     s+=`<line x1="${padL}" y1="${ly-3}" x2="${W-padR}" y2="${ly-3}" stroke="${liqCol}" stroke-width="6" opacity="0.12"/>`;
     s+=`<text x="${padL+4}" y="${ly-6}" fill="${liqCol}" font-size="11" font-weight="700">${liqLabel} ${fmt(liqZoneY)}</text>`;
   }
-  // recent real force-liquidation clusters (up to 5) as faint dashed lines
+  // recent real force-liquidation clusters (up to 5) — dashed line + red ring marker
   if(liq && liq.forceLevels && liq.forceLevels.length){
     liq.forceLevels.slice(0,5).forEach((fl,i)=>{
       const yy=Y(fl.price);
       const c = fl.longLiq>=fl.shortLiq ? "#fb923c" : "#67e8f9";
       s+=`<line x1="${padL}" y1="${yy}" x2="${W-padR}" y2="${yy}" stroke="${c}" stroke-width="1" stroke-dasharray="3,3" opacity="0.5"/>`;
+      // red ring marker on the liquidation cluster (hand-drawn style, like the composer screenshot)
+      const rr=10;
+      s+=`<circle cx="${W-padR-rr-2}" cy="${yy}" r="${rr}" fill="none" stroke="#ef4444" stroke-width="2" opacity="0.9"/>`;
+      s+=`<circle cx="${W-padR-rr-2}" cy="${yy}" r="2.4" fill="#ef4444"/>`;
+      s+=`<text x="${W-padR-rr-2}" y="${yy-rr-3}" fill="#ef4444" font-size="9" font-weight="700" text-anchor="middle">LIQ</text>`;
     });
   }
   // OI accumulation badge (top-left)
