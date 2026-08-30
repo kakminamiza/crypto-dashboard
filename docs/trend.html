@@ -37,10 +37,11 @@ tr:hover td{background:#161d2b}
 .sym{font-weight:700;font-size:14px}.q{color:#5b6478;font-size:9px;margin-left:2px}
 .num{font-variant-numeric:tabular-nums;text-align:right;font-weight:600}
 .sl{color:#f0888a}.tp{color:#4ade80}
-.fl{opacity:.85;font-weight:700}
-.f-long{color:#4ade80} /* green diamond = strong long setup */
-.f-short{color:#f0888a} /* muted-red diamond = strong short setup */
-.f-weak{visibility:hidden} /* no diamond when no signal */
+.ring{display:inline-flex;align-items:center;justify-content:center;width:10px;height:12px;font-size:10px;line-height:1;margin-right:3px;border-radius:1px}
+.d-long{color:#4ade80} /* green diamond = strong long setup */
+.d-short{color:#f0888a} /* muted-red diamond = strong short setup */
+.pill-strong{display:inline-block;margin-left:4px;border:1px solid #22c55e33;border-radius:10px;padding:0 5px;font-size:10px;color:#22c55e;font-weight:700}
+.pill-valid{display:inline-block;margin-left:4px;border:1px solid #4aa8ff33;border-radius:10px;padding:0 5px;font-size:10px;color:#4aa8ff;font-weight:700}
 .rr{display:block;font-size:9px;color:#5b6478;font-weight:400}
 .adx{color:#fbbf24;text-align:center}
 .vol{color:#8b93a7;text-align:right;font-size:12px}
@@ -429,8 +430,8 @@ function render(list){
     if(isNew) newSigs.push(r);
     rows+=`<tr class='${rc} ${isNew?(r.dir==="long"?"alert-long":"alert-short"):""}'><td class='rank'>${i+1}</td><td>${fundMark}${badge} ${fresh}</td>
       <td><a href='https://www.binance.com/en/futures/${symRaw}USDT' target='_blank' rel='noopener' style='color:#e6e6e6;text-decoration:none' class='sym'>${symRaw}<span class='q'>USDT</span></a></td>
-      <td class='num'>${fmt(r.price)}</td><td class='num sl'>${r.adx>=25?`<span class="fl ${r.dir==='long'?'f-long':'f-short'}">${String.fromCharCode(9672)}</span>`:`<span class="fl f-weak"></span>`}${fmt(r.sl)}</td>
-      <td class='num tp'>${r.adx>=25?`<span class="fl ${r.dir==='long'?'f-long':'f-short'}">${String.fromCharCode(9672)}</span>`:`<span class="fl f-weak"></span>`}${fmt(r.tp1)}<span class='rr'>1.5R</span></td>
+      <td class='num'>${fmt(r.price)}</td><td class='num sl'>${r.adx>=25?`<span class='ring d-${r.dir==='long'?'long':'short'}'>◆</span>`:''}${fmt(r.sl)}${r.adx>=25?`<span class='pill-strong'>⚡</span>`:''}</td>
+      <td class='num tp'>${r.adx>=25?`<span class='ring d-${r.dir==='long'?'long':'short'}'>◆</span>`:''}${fmt(r.tp1)}<span class='rr'>1.5R</span>${r.dir?`<span class='pill-valid'>✓</span>`:''}</td>
       <td class='num tp'>${fmt(r.tp2)}<span class='rr'>3R</span></td>
       <td class='num adx' style='color:${r.adx>25?"#22c55e":"#fbbf24"}'>${r.adx.toFixed(1)}</td>
       <td class='num' style='color:${rsiColor}'>${r.rsi.toFixed(1)}</td>
