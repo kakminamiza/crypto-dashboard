@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probability Lab — Futures Odds Calculator</title>
+<script src="tooltip.js"></script>
+<link rel="stylesheet" href="tooltip.css">
+<style>
+  :root{ --bg:#0A0C10; --panel:#12151C; --panel2:#181E26; --line:#23304D;
+        --fg:#E6E9EF; --mut:#8B98AD; --grn:#26d07c; --red:#ff5b5b;
+        --blu:#4AA8FF; --yel:#ffce4a; --bd:#23304D; --chip:#1C2740; }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(1200px 600px at 70% -10%,#16213C 0%,var(--bg) 55%);color:var(--fg);
+    font-family:"Noto Sans Thai","JetBrains Mono",monospace;min-height:100vh;padding:18px 16px 80px}
+  .wrap{max-width:1180px;margin:0 auto}
+  header{margin-bottom:4px}
+  h1{font-size:20px;font-weight:700}
+  .sub{color:var(--mut);font-size:12.5px;margin-top:4px}
+  .card{background:var(--panel);border:1px solid var(--bd);border-radius:14px;padding:16px 18px;margin:12px 0}
+  .grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+  input,select{background:#0F141D;border:1px solid var(--bd);color:var(--fg);padding:9px 11px;border-radius:9px;font-size:14px;outline:none;width:100%}
+  label{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:4px}
+  button{background:linear-gradient(180deg,#2A7FFF,#1F6AE0);color:#fff;border:0;padding:10px 18px;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer}
+  button.ghost{background:var(--panel2);border:1px solid var(--bd);color:var(--fg)}
+  .pill{display:inline-block;padding:2px 8px;border-radius:8px;font-size:11.5px;font-weight:700}
+  .pill-long{background:rgba(38,208,124,.15);color:var(--grn)}
+  .pill-short{background:rgba(255,91,91,.15);color:var(--red)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{color:var(--mut);text-align:right;padding:8px;font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+  th.l{text-align:left}
+  td{padding:8px;border-bottom:1px solid var(--bd)}
+  td.l{text-align:left}
+  td.num{font-variant-numeric:tabular-nums;font-weight:600}
+  .note{color:var(--mut);font-size:12px;padding:8px 0;border-top:1px solid var(--bd)}
+  .formula{background:#0F141D;border-radius:9px;padding:12px;margin:8px 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:1.6}
+  .xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0a0e15;border-bottom:1px solid #26303f;flex-wrap:wrap}
+  .xnav .b{font-weight:800;letter-spacing:.4px;color:#38bdf8;margin-right:12px;font-size:14px}
+  .xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;font-size:12.5px}
+  .xnav a:hover{background:#1a2130;color:#e8eef7}
+  .xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
+  .xnav .manual{margin-left:auto}
+  .xnav .manual{background:transparent;color:#7d889c;border:1px solid #2a3340;padding:5px 11px;border-radius:8px;font-size:11.5px}
+</style>
+</head>
+<body>
+<div class="xnav">
+  <span class="b">CRYPTO TERMINAL</span>
+  <a href="index.html">หน้าแรก</a>
+  <a href="dipbuy.html">Dip-Buy</a>
+  <a href="scan.html">Market Scan</a>
+  <a href="trend.html">Trend Rider</a>
+  <a href="radar.html">Radar</a>
+  <a href="probability.html" class="cur">Probability Lab</a>
+  <a href="top100.html">Top 100</a>
+  <a href="liqwatch.html">Liquidation</a>
+  <span class="manual">ℹ️ คู่มือ</span>
+</div>
+<div class="wrap">
+  <header>
+    <h1>📐 Probability Lab</h1>
+    <div class="sub">คำนวณ odds/เป確率เข้า TP/TP2/SL จากราคาปัจจุบัน + ระดับ E/TP/SL (ATR-based)</div>
+  </header>
+
+  <div class="card">
+    <div class="grid3">
+      <div><label>Symbol</label><input id="sym" placeholder="เช่น BTCUSDT" value="BTCUSDT"></div>
+      <div><label>ราคาปัจจุบัน</label><input id="price" placeholder="auto-fetch หากว่าง"></div>
+      <div><label>ATR(14) 4h</label><input id="atr" placeholder="0.00 หรือให้ระบบหา"></div>
+      <div><label>Target (Price to Beat)</label><input id="target" placeholder="77754.70"></div>
+      <div><label>SL</label><input id="sl" placeholder="แตกต่าง Target"></div>
+      <div><label>TP1</label><input id="tp1" placeholder="1.5R"></div>
+      <div><label>TP2</label><input id="tp2" placeholder="3R"></div>
+      <div style="display:flex;align-items:end"><button id="calcBtn">คำนวณ Probability</button></div>
+    </div>
+    <div class="note">สูตร: <span class="pill-long">P(hit TP)</span>  =  (Target - Current) / (ATR×1.5),  clamp 0-100% · SL น้อยกว่า Current = ความเสี่ยงสูงสุด</div>
+  </div>
+
+  <div class="card">
+    <div class="formula">
+      📐 <b>Probability(hit TP before SL)</b> =  MAX(0, MIN(1, (Target − Current) / (ATR×1.5))) <br>
+      📉 <b>P(hit SL first)</b> = 1 − P(hit TP)<br>
+      💰 <b>R:R คาดหวัง</b> = P(hit TP)×(Reward) − P(hit SL)×(Risk)
+    </div>
+    <div id="result" style="min-height:120px">กดคำนวณเพื่อดูผลลัพธ์</div>
+  </div>
+</div>
+
+<script>
+// ---- fetch current price + ATR 4h จาก Bybit (primary), fallback Binance ----
+const BYBIT='https://api.bybit.com';
+const BIN='https://fapi.binance.com';
+async function fapi(url){const r=await fetch(url,{signal:AbortSignal.timeout(10000)});if(!r.ok)throw new Error('http '+r.status);return r;}
+async function fetchPrice(symbol){
+  try{
+    const j=await (await fapi(`${BYBIT}/v5/market/tickers?category=linear&symbol=${symbol}`)).json();
+    if(j.retCode===0) return parseFloat(j.result.list[0].lastPrice);
+  }catch(e){}
+  try{
+    const j=await (await fapi(`${BIN}/fapi/v1/ticker/price?symbol=${symbol}`)).json();
+    return parseFloat(j.price);
+  }catch(e){ console.error('price fail',e); return 0; }
+}
+async function fetchAtr(symbol){
+  try{
+    const j=await (await fapi(`${BYBIT}/v5/market/kline?category=linear&symbol=${symbol}&interval=D&limit=20`)).json();
+    const arr=j.result.list.slice().reverse();
+    const closes=arr.map(k=>parseFloat(k[4]));
+    const highs=arr.map(k=>parseFloat(k[2]));
+    const lows=arr.map(k=>parseFloat(k[3]));
+    let tr=[0]; for(let i=1;i<arr.length;i++){tr.push(Math.max(highs[i]-lows[i],Math.abs(highs[i]-closes[i-1]),Math.abs(lows[i]-closes[i-1])));};
+    let sum=tr.slice(0,14).reduce((a,b)=>a+b,0); let atr=sum/14;
+    return atr;
+  }catch(e){ return fetchAtrBinance(symbol); }
+}
+async function fetchAtrBinance(symbol){
+  try{
+    const j=await (await fapi(`${BIN}/fapi/v1/klines?symbol=${symbol}&interval=1h&limit=60`)).json();
+    const arr=j; let tr=[0];
+    for(let i=1;i<arr.length;i++){const o=arr[i-1],c=arr[i];tr.push(Math.max(parseFloat(c[2])-parseFloat(c[3]),Math.abs(parseFloat(c[2])-parseFloat(o[4])),Math.abs(parseFloat(c[3])-parseFloat(o[4]))));}
+    return tr.slice(0,14).reduce((a,b)=>a+b,0)/14;
+  }catch(e){ console.error('atr fail',e); return 0; }
+}
+
+// ---- calc ----
+function clamp(v,min=0,max=1){return Math.max(min,Math.min(max,v));}
+function computeProb(cur, target, atr){
+  const diffTarget = Math.abs(target-cur);
+  const denom = atr*1.5;
+  return denom>0 ? clamp((diffTarget/denom)) : (target===cur?0.5:0);
+}
+document.getElementById('calcBtn').onclick=async()=>{
+  const sym=document.getElementById('sym').value.trim().toUpperCase();
+  let cur=+document.getElementById('price').value.trim();
+  const target=+document.getElementById('target').value.trim();
+  let atr=+document.getElementById('atr').value.trim();
+  const sl=+document.getElementById('sl').value.trim();
+  const tp1=+document.getElementById('tp1').value.trim();
+  const tp2=+document.getElementById('tp2').value.trim();
+  if(!cur) cur=await fetchPrice(sym)||0;
+  if(!atr) atr=await fetchAtr(sym)||0;
+  const probTP = target ? computeProb(cur,target,atr) : 0;
+  const probSL = sl ? clamp(1-computeProb(cur,sl,atr)) : 0;
+  const rewardTP = tp2?Math.abs(tp2-cur):0;
+  const riskSL = sl?Math.abs(cur-sl):0;
+  document.getElementById('result').innerHTML=`
+    <div class="grid3">
+      <div><div style="color:var(--mut);font-size:12px">Current (${sym})</div><div class="num" style="font-size:20px">${cur.toFixed(cur<1?6:2)}</div></div>
+      <div><div style="color:var(--mut);font-size:12px">ATR(14)</div><div class="num" style="font-size:20px">${atr.toFixed(atr<1?4:2)}</div></div>
+      <div><div style="color:var(--mut);font-size:12px">Target</div><div class="num" style="font-size:20px;color:var(--yel)">${target.toFixed(target<1?4:2)}</div></div>
+    </div>
+    <div style="margin-top:12px">
+      ${target?`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)">
+        <span>P(hit Target ก่อน SL)</span>
+        <span class="pill ${probTP>=0.5?'pill-long':'pill-short'}">${(probTP*100).toFixed(0)}%</span>
+      </div>`:''}
+      ${sl?`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)">
+        <span>P(hit SL first)</span>
+        <span class="pill pill-short">${(probSL*100).toFixed(0)}%</span>
+      </div>`:''}
+      ${rewardTP&&riskSL?
+      `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0">
+        <span>R:R คาดหวัง</span><span style="font-weight:700;color:${rewardTP/riskSL>=1.5?'var(--grn)':'var(--red)'}">1:${(riskSL/rewardTP).toFixed(2)}</span>
+      </div>`:''}
+    </div>`;
+};
+document.getElementById('sym').addEventListener('keypress',e=>{if(e.key==='Enter')document.getElementById('calcBtn').click();});
+['price','target','sl','tp1','tp2','atr'].forEach(id=>document.getElementById(id).addEventListener('keypress',e=>{if(e.key==='Enter')document.getElementById('calcBtn').click();}));
+</script>
+</body>
+</html>
