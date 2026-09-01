@@ -33,7 +33,10 @@ const TOOL_DATA = {
 };
 
 function tipInit(){
-  const box=document.createElement("div"); box.id="tipBox"; document.body.appendChild(box);
+  if (!document.getElementById('tipBox')) {
+    const box=document.createElement("div"); box.id="tipBox"; document.body.appendChild(box);
+  }
+  const box=document.getElementById('tipBox');
   let hideT=null;
   function show(key,x,y){
     const d=TOOL_DATA[key]; if(!d)return;
@@ -66,6 +69,7 @@ function tipInit(){
 }
 
 function manualInit(){
+  if (document.getElementById("manualPanel")) return;
   const p=document.createElement("div"); p.id="manualPanel";
   const cards=Object.entries(TOOL_DATA).map(([k,d])=>`
     <div class="card"><h3>${d.t}<span class="badge">${k.toUpperCase()}</span></h3>

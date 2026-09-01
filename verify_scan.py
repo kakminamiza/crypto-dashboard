@@ -95,11 +95,21 @@ def st_fixed(h,l,c,len_=10,mult=3):
         else: lastDir.append(1 if st[i-1]>=up[i-1] else -1)
     return lastDir[-1]
 
-print("=== REAL BINANCE DATA: RSI/ST bug vs fix ===")
-for sym in ["BTCUSDT","ETHUSDT","XAUUSDT"]:
-    k=get_klines(sym,"1h",300)
-    rb=rsi_buggy(k["c"]); rf=rsi_fixed(k["c"])
-    sb=st_buggy(k["h"],k["l"],k["c"]); sf=st_fixed(k["h"],k["l"],k["c"])
-    print(f"\n{sym}  close={k['c'][-1]:.2f}")
-    print(f"  RSI  buggy={rb[-1]:.1f}   fixed={rf[-1]:.1f}")
-    print(f"  ST   buggy={'BULL ▲' if sb==1 else 'BEAR ▼'}   fixed={'BULL ▲' if sf==1 else 'BEAR ▼'}")
+
+def _trend_label(flag):
+    return "BULL" if flag == 1 else "BEAR"
+
+
+def main():
+    print("=== REAL BINANCE DATA: RSI/ST bug vs fix ===")
+    for sym in ["BTCUSDT","ETHUSDT","XAUUSDT"]:
+        k=get_klines(sym,"1h",300)
+        rb=rsi_buggy(k["c"]); rf=rsi_fixed(k["c"])
+        sb=st_buggy(k["h"],k["l"],k["c"]); sf=st_fixed(k["h"],k["l"],k["c"])
+        print(f"\n{sym}  close={k['c'][-1]:.2f}")
+        print(f"  RSI  buggy={rb[-1]:.1f}   fixed={rf[-1]:.1f}")
+        print(f"  ST   buggy={_trend_label(sb)}   fixed={_trend_label(sf)}")
+
+
+if __name__ == "__main__":
+    main()

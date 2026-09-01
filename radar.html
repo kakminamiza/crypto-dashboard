@@ -290,7 +290,7 @@
   <div class="head-stats">
     <div class="conn" id="connStatus"><span class="led"></span><span>เชื่อมต่อ...</span></div>
     <div class="head-stat">USDT/THB<b id="thbRate">—</b></div>
-    <div class="head-stat">สแกนทั้งกระดาน<b id="signalCount" class="mono">0</b></div>
+    <div class="head-stat">สัญญาณ<b id="signalCount" class="mono">0</b></div>
     <div class="head-stat">อัปเดตล่าสุด<b id="lastUpdate" class="mono">—</b></div>
     <div class="head-stat">รีเฟรชใน<b id="countdown" class="mono">—</b></div>
   </div>
@@ -398,6 +398,11 @@
       <input type="text" id="lineBotTarget" placeholder="Uxxxxxxxx หรือ Cxxxxxxxx">
     </div>
 
+    <div style="margin-top:12px;">
+      <label>Cloudflare Worker URL</label>
+      <input type="text" id="workerUrl" placeholder="https://futures-radar-worker.<subdomain>.workers.dev">
+    </div>
+
     <button class="save-btn" id="saveSettings">💾 บันทึกการตั้งค่า</button>
   </div>
 </div>
@@ -452,30 +457,61 @@
 
 <script>
 // ใช้ Bybit (เปิด CORS ให้ GitHub Pages) แทน Binance เพราะ Binance โดนบล็อกในไทย
-// Bybit (เปิด CORS ให้ browser client-side ได้) — primary source.
-// Fallback ไป Binance Futures หาก Bybit โดน IP-block / rate-limit (retCode 429/10073 หรือ HTTP 429/418).
-const FUTURES_BASE_BYBIT = 'https://api.bybit.com';
-const FUTURES_BASE_BINANCE = 'https://fapi.binance.com';
-let FUTURES_BASE = FUTURES_BASE_BYBIT;          // สลับ runtime ตามสถานะแรกเมือเริ่มสแกน
-const FUTURES_KLINE = () => `${_base()}/v5/market/kline?category=linear`;
-const _base = () => (FUTURES_BASE === FUTURES_BASE_BYBIT ? FUTURES_KLINE : `${FUTURES_BASE_BINANCE}/fapi/v1/klines`);
-const FUTURES_TICKER = `${FUTURES_BASE_BYBIT}/v5/market/tickers?category=linear&limit=1000`;
+const FUTURES_BASE = 'https://api.bybit.com';
+const FUTURES_KLINE = `${FUTURES_BASE}/v5/market/kline?category=linear`;
+const FUTURES_TICKER = `${FUTURES_BASE}/v5/market/tickers?category=linear&limit=1000`;
 const WS_BASE = 'wss://stream.bybit.com/v5/public/linear';
 const DEFAULT_WATCHLIST = ['BTCUSDT','ETHUSDT','SOLUSDT','BNBUSDT','XRPUSDT','DOGEUSDT','ADAUSDT','AVAXUSDT','LINKUSDT','SUIUSDT','OPUSDT','ARBUSDT','PEPEUSDT','SHIBUSDT','WIFUSDT'];
-// สแกนทั้งกระดาน: เปิดโหมดนี้เพื่อหาสัญญาณจาก USDT perp ทุกคู่ (ไม่พึ่ง watchlist เดี่ยว)
-const SCAN_ALL_MARKET = true;
-const SCAN_MIN_STARS = 3;          // คัดเฉพาะ >= 3 ดาว (พี่กั๊ก: ดาวต้องขึ้น)
-const SCAN_BATCH = 18;             // สแกนพร้อมกันทีละกลุ่ม (กัน rate-limit)
-const SCAN_GAP_MS = 70;            // หน่วงระหว่างกลุ่ม
-const SCAN_MAX_SYMBOLS = 150;      // ลดเหลือ 150 คู่ (เร็วขึ้นบนมือถือ; เรียงตามวอลุ่ม)
-const SCAN_MIN_TURNOVER = 500000;  // กรองหุ้น/stock-token ที่เทรดบาง (turnover 24h ต่ำ)
-const SCAN_MIN_VOL_RATIO = 0.5;    // ตัดตัวที่วอลุ่มแห้งจัด (<0.5 เท่านั้น) — ช่วงตลาดนิ่งวอลุ่มมัก ~0.3-0.8 ไม่ควรตัด
-const SCAN_FUNDING_MIN = 0.02;     // กรองเหรียญที่ funding 8h < 2% (หรือ > -2%) ออกจากสแกนทั้งกระดาน
-const POLL_MS = 60000;            // รีเฟรชผลจาก Worker ทุก 60 วิ (Worker proxy Bybit ให้ หน้าเว็บไม่เรียก Bybit ตรงเลย → ไม่โดน IP แบน)
+const POLL_MS = 30000;
 const KEY = 'futures_radar_15m_v2';
 const SETTINGS_KEY = 'futures_radar_settings_v2';
 const ALERTED_KEY = 'futures_radar_alerted_v1';
 const SIGNAL_LOG_KEY = 'futures_radar_signal_log_v1';
+const WORKER_URL_KEY = 'radar_worker_url_v1';
+
+function getWorkerUrl(){
+  const raw = localStorage.getItem(WORKER_URL_KEY) || 'https://futures-radar-worker.futures-radar-worker.workers.dev';
+  return raw.trim().replace(/\/+$/, '');
+}
+
+async function loadWorkerSignals(){
+  const workerUrl = getWorkerUrl();
+  if(!workerUrl) return null;
+  try{
+    const res = await fetch(`${workerUrl}/api/top10?ts=${Date.now()}`, { cache: 'no-store' });
+    if(!res.ok) throw new Error('Worker unreachable');
+    const payload = await res.json();
+    if(!payload || !Array.isArray(payload.top10)) return null;
+    const map = {};
+    payload.top10.forEach(item => {
+      if(!item || !item.symbol) return;
+      map[item.symbol] = {
+        symbol: item.symbol,
+        price: Number(item.price ?? item.entry ?? 0),
+        changePct: Number(item.change24h ?? 0),
+        trend: item.trend || 'flat',
+        volRatio: Number(item.volRatio ?? 1.2),
+        signal: {
+          signal: item.signal || 'WAIT',
+          stars: Number(item.stars ?? 0),
+          confidence: Number(item.confidence ?? 0),
+          entry: Number(item.entry ?? item.price ?? 0),
+          sl: Number(item.sl ?? 0),
+          tp1: Number(item.tp1 ?? 0),
+          tp2: Number(item.tp2 ?? 0),
+          invalidation: Number(item.invalidation ?? item.sl ?? 0),
+          reason: item.reason || 'Cloudflare Worker signal'
+        }
+      };
+    });
+    if(!Object.keys(map).length) return null;
+    state.data = { ...state.data, ...map };
+    return true;
+  }catch(e){
+    console.warn('Worker signal load failed:', e.message);
+    return null;
+  }
+}
 
 // ---------- Signal Log (localStorage) ----------
 function loadSignalLog(){
@@ -624,6 +660,15 @@ async function renderValidator(){
   }
 }
 
+const RADAR_TOOL_DATA = {
+  confidence: { t:"Confidence % — ความมั่นใจ", use:"ระดับความน่าเชื่อถือ", ben:"≥70% น่าสนใจ, ≥85% แรงมาก", d:"รวม RSI + MACD + BB + Vol + แนวโน้ม 4H" },
+  entry: { t:"Entry — ราคาเข้า", use:"จุดสั่งซื้อ/ขาย", d:"ราคาปัจจุบันตามสัญญาณ" },
+  sl: { t:"SL — Stop Loss (ATR×2)", use:"ตัดขาดทุน", d:"เคาะ = โมเมนตัมกลับทาง" },
+  tp1: { t:"TP1 — Take Profit (1.5R)", use:"กำไรเป้าหมายแรก", d:"Risk × 1.5" },
+  tp2: { t:"TP2 — Take Profit (3R)", use:"กำไรสูงสุด", d:"Risk × 3" },
+  invalidation: { t:"Invalidation — จุดเพ้", use:"ทำลายสัญญาณ", d:"ทะลุ = โมเดลพัง" },
+};
+
 let state = {
   tab: 'signals',
   watchlist: [...DEFAULT_WATCHLIST],
@@ -631,7 +676,7 @@ let state = {
   data: {},
   thbRate: null,
   ws: null,
-  secondsLeft: 60,   // โหลดผลสแกนใหม่ทุก 60 วิ (POLL_MS)
+  secondsLeft: 30,
   prevSignals: {},
 };
 
@@ -849,10 +894,8 @@ function swingTrend(closes4h){
 
 // ---------- Compute Signal ----------
 function computeScore(d){
-  const rsiVal = (d.rsi !== undefined) ? d.rsi : d.rsiVal;
-  if(rsiVal === undefined || !isFinite(rsiVal)) return 0;
   let s = 0;
-  s += (rsiVal-50) * 1.3;
+  s += (d.rsi-50) * 1.3;
   s += Math.max(-25, Math.min(25, d.macdHist * 4000));
   const bbRange = (d.bb.upper - d.bb.lower);
   const bbPos = bbRange > 0 ? (d.price - d.bb.lower) / bbRange : 0.5;
@@ -867,20 +910,13 @@ function scoreToStars(score){
   if(abs >= 65) return 4;
   if(abs >= 50) return 3;
   if(abs >= 35) return 2;
-  if(abs >= 20) return 1;
-  return 0;
+  return 1;
 }
 
 function computeSignal(d){
-  // กฎของพี่กั๊ก: ตัดโซน extreme — ไม่ไล่ของแพง (overbought) และไม่จับมีดตก (oversold)
-  if(d.rsi >= 70 || d.rsi <= 30){
-    return { signal:'WAIT', stars:0, confidence:0, entry:null, sl:null, tp1:null, tp2:null, invalidation:null,
-             reason: d.rsi>=70 ? 'RSI overbought (≥70) — ไม่ไล่ของแพง' : 'RSI oversold (≤30) — ไม่จับมีดตก', rr1:0, rr2:0 };
-  }
-  // ต้องการโมเมนตัมชัดเจน (ลดจาก 35 → 25) + alignment 2 timeframe (ดูด้านล่าง)
-  const dir = d.score >= 50 ? 'LONG' : d.score <= -50 ? 'SHORT' :
-              d.score >= 25 ? 'LONG' : d.score <= -25 ? 'SHORT' : 'WAIT';
-
+  const dir = d.score >= 50 ? 'LONG' : d.score <= -50 ? 'SHORT' : 
+              d.score >= 35 ? 'LONG' : d.score <= -35 ? 'SHORT' : 'WAIT';
+  
   if(dir === 'WAIT'){
     return { signal:'WAIT', stars:scoreToStars(d.score), confidence:Math.abs(d.score), 
              entry:null, sl:null, tp1:null, tp2:null, invalidation:null, 
@@ -952,186 +988,20 @@ function computeSignal(d){
 
 // ---------- Fetch (Bybit) ----------
 async function fetchKlines(symbol, interval, limit){
-  return bybitOrBinance(symbol, interval, limit);
-}
-
-// ดาวน์โหลด kline — ลอง Bybit ก่อน, ถ้า HTTP 429/418/10073 หรือ retCode ต่างๆ ให้สลับไป Binance พร้อม retry/backoff (หลีกเลี่ยง IP-ban)
-const BMAP = {'1m':'1','5m':'5','15m':'15','30m':'30','1h':'60','4h':'240','1d':'D'};
-let bybitBanned = false;
-async function bybitOrBinance(symbol, interval, limit){
-  const iv = BMAP[interval] || interval;
-  const tries = [{base:'bybit',url:`https://api.bybit.com/v5/market/kline?category=linear&symbol=${symbol}&interval=${iv}&limit=${limit}`},
-                 {base:'binance',url:`https://fapi.binance.com/fapi/v1/klines?symbol=${symbol}&interval=${iv}&limit=${limit}`}];
-  for(const t of tries){
-    if(t.base==='binance' && bybitBanned) ; // ข้าม bybit ถ้าเคยแบนแล้ว
-    for(let attempt=0;attempt<3;attempt++){
-      try{
-        const res = await fetch(t.url,{signal:AbortSignal.timeout(12000)});
-        if(!res.ok){ if(res.status==429||res.status==418){ if(t.base==='bybit') bybitBanned=true; continue; } throw new Error(t.base+' klines http '+res.status); }
-        const j = await res.json();
-        // Bybit retCode 429/10073 (rate-limit/ip-ban) → ลอง Binance
-        if(j.retCode && (j.retCode==429||j.retCode==10073)){ if(t.base==='bybit'){ bybitBanned=true; break; } }
-        if(j.retCode && j.retCode!=0) throw new Error(t.base+' klines retCode '+j.retCode);
-        // parse Bybit vs Binance shape
-        if(t.base==='bybit'){ const raw=j.result.list.slice().reverse(); return {closes:raw.map(k=>parseFloat(k[4])),highs:raw.map(k=>parseFloat(k[2])),lows:raw.map(k=>parseFloat(k[3])),volumes:raw.map(k=>parseFloat(k[5]))}; }
-        // Binance: [t,o,h,l,c,v,...]
-        const raw=j.slice().reverse(); return {closes:raw.map(k=>parseFloat(k[4])),highs:raw.map(k=>parseFloat(k[2])),lows:raw.map(k=>parseFloat(k[3])),volumes:raw.map(k=>parseFloat(k[5]))};
-      }catch(e){
-        if(attempt<2){ await sleep(60*(attempt+1)); continue; }
-      }
-    }
-  }
-  return {closes:[],highs:[],lows:[],volumes:[]}; // ล้มเหลวหมด → คืนว่าง
-}
-// ---------- Scan All Market (batched, rate-limit safe) ----------
-// โหลดผลสแกนจากไฟล์ static บน GitHub Pages (อัปเดตโดย GitHub Actions ทุก 10 นาที)
-// → หน้าเว็บไม่เรียก Bybit/Worker ตรง → ไม่โดน IP แบน + โหลดเร็ว
-const SCAN_JSON_URL = './radar_scan.json';   // เส้นทางสัมพันธ์กับ radar.html (root repo)
-async function workerGet(path){
-  const res = await fetch(SCAN_JSON_URL + '?t=' + Date.now());
-  if(!res.ok) throw new Error('scan json ' + res.status);
+  // Bybit kline: [ts, open, high, low, close, volume, turnover] — ใหม่สุดอยู่หน้า → reverse
+  const url = `${FUTURES_KLINE}&symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('klines fail');
   const j = await res.json();
-  return Array.isArray(j) ? j : (j && Array.isArray(j.data) ? j.data : []);
+  if(j.retCode !== 0) throw new Error('klines retCode ' + j.retCode);
+  const raw = j.result.list.slice().reverse();
+  return {
+    closes: raw.map(k=>parseFloat(k[4])),
+    highs: raw.map(k=>parseFloat(k[2])),
+    lows: raw.map(k=>parseFloat(k[3])),
+    volumes: raw.map(k=>parseFloat(k[5])),
+  };
 }
-
-async function fetchKlineOnce(symbol, interval, limit){
-  return { closes:[], highs:[], lows:[], volumes:[] };
-}
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
-
-// หาสัญญาณจากแท่ง 15m 200 แท่ง (ครอบคลุม 5m/15m/30m) — ใช้คัดกรองรวดเร็ว
-// คืนค่า { pass, score, rsi, vRatio, d15 } หรือ null
-function prescreen15(symbol, k15, ticker24h){
-  try{
-    const {closes, volumes} = k15;
-    if(closes.length < 100) return null;
-    const score5  = computeScore({ rsiVal: rsi(closes.slice(-20),14), macdHist: macd(closes.slice(-20)).hist, price: closes[closes.length-1], bb: bollinger(closes.slice(-20),20,2), vRatio: volRatio(volumes.slice(-20),20) });
-    const score15 = computeScore({ rsiVal: rsi(closes,14), macdHist: macd(closes).hist, price: closes[closes.length-1], bb: bollinger(closes,20,2), vRatio: volRatio(volumes,20) });
-    // 30m proxy: ตัดแท่งสุดท้ายออก (ให้ช่วงย้อนหลังกว้างขึ้นเล็กน้อย)
-    const c30 = closes.slice(0, -1);
-    const v30 = volumes.slice(0, -1);
-    const score30 = computeScore({ rsiVal: rsi(c30,14), macdHist: macd(c30).hist, price: closes[closes.length-1], bb: bollinger(c30,20,2), vRatio: volRatio(v30,20) });
-    const score = Math.round(score5*0.25 + score15*0.5 + score30*0.25);
-    const stars = scoreToStars(score);
-    const rsiVal = rsi(closes,14);
-    const vR = volRatio(volumes,20);
-    if(stars < SCAN_MIN_STARS) return null;
-    if(vR < SCAN_MIN_VOL_RATIO) return null;   // ตัดวอลุ่มแห้ง
-    return { pass:true, score, stars, rsi:rsiVal, vRatio:vR };
-  }catch(e){ return null; }
-}
-
-// สแกนทั้งกระดาน client-side: ดึง tickers Bybit ทั้งหมด → คัดเฉพาะ USDT perp → สแกนแบบ batched พร้อม rate-limit safety
-async function scanAllMarket(){
-  const t0 = Date.now();
-  const allTickers = await fetchBybitTickers();
-  let symbols = allTickers.filter(t => t.symbol.endsWith('USDT') && !t.symbol.includes('DOWN') && !t.symbol.includes('UP') && !t.symbol.includes('BULL') && !t.symbol.includes('BEAR'))
-                          .sort((a,b)=> (parseFloat(b.turnover24h)||0) - (parseFloat(a.turnover24h)||0))   // เรียงตาม volume
-                          .slice(0, SCAN_MAX_SYMBOLS).map(t=>t.symbol);
-  const out = [];
-  for(let i=0;i<symbols.length;i+=SCAN_BATCH){
-    const batch = symbols.slice(i,i+SCAN_BATCH);
-    const rs = await Promise.allSettled(batch.map(s=>scanOneSymbol(s)));
-    rs.forEach(r=>{ if(r.status==='fulfilled' && r.value) out.push(r.value); });
-    if(i+SCAN_BATCH < symbols.length) await sleep(SCAN_GAP_MS);
-  }
-  state.scanMs = Date.now()-t0;
-  return out.sort((a,b)=>b.stars - a.stars); // เรียงดาวลง
-}
-
-// computeSymbol รุ่นรับ kline ที่ดึงมาแล้ว (ไม่ดึงซ้ำ) — ใช้กับสแกนทั้งกระดาน
-async function computeSymbolFull(symbol, k15, h4, ticker24h){
-  const m5 = { closes:k15.closes.slice(-20), highs:k15.highs.slice(-20), lows:k15.lows.slice(-20), volumes:k15.volumes.slice(-20) };
-  const m15 = k15;
-  const m30 = { closes:k15.closes.slice(0, k15.closes.length-1), highs:k15.highs.slice(0,-1), lows:k15.lows.slice(0,-1), volumes:k15.volumes.slice(0,-1) };
-  const [score5, score15, score30] = [computeScore({rsiVal:rsi(m5.closes,14),macdHist:macd(m5.closes).hist,price:m5.closes[m5.closes.length-1],bb:bollinger(m5.closes,20,2),vRatio:volRatio(m5.volumes,20)}),
-    computeScore({rsiVal:rsi(m15.closes,14),macdHist:macd(m15.closes).hist,price:m15.closes[m15.closes.length-1],bb:bollinger(m15.closes,20,2),vRatio:volRatio(m15.volumes,20)}),
-    computeScore({rsiVal:rsi(m30.closes,14),macdHist:macd(m30.closes).hist,price:m30.closes[m30.closes.length-1],bb:bollinger(m30.closes,20,2),vRatio:volRatio(m30.volumes,20)})];
-  const score = Math.round(score5*0.25 + score15*0.5 + score30*0.25);
-  const rsiVal = rsi(m15.closes,14);
-  const macdRes = macd(m15.closes);
-  const bb = bollinger(m15.closes,20,2);
-  const vR = volRatio(m15.volumes,20);
-  const atr = atr14(m15.highs, m15.lows, m15.closes);
-  const price = m15.closes[m15.closes.length-1];
-  const trend = swingTrend(h4.closes);
-  const t = ticker24h ? ticker24h[symbol] : null;
-  const bbRange = (bb.upper - bb.lower);
-  const bbPos = bbRange > 0 ? (price-bb.lower)/bbRange : 0.5;
-  const d = { symbol, price, changePct: t?parseFloat(t.priceChangePercent):0, rsi:rsiVal, macdHist:macdRes.hist, bb, bbPos, volRatio:vR, score, trend, atr14:atr, scores:{m5:score5,m15:score15,m30:score30} };
-  d.signal = computeSignal(d);
-  return d;
-}
-
-// fetch ALL Bybit tickers (primary), fallback Binance 24h ticker if Bybit banned
-let tickersCache = null;
-async function fetchBybitTickers(){
-  if(tickersCache) return tickersCache;
-  try{
-    const res = await fetch(FUTURES_TICKER, {signal: AbortSignal.timeout(15000)});
-    const j = await res.json();
-    if(j.retCode===0){
-      tickersCache = j.result.list.map(t=>({
-        symbol: t.symbol,
-        turnover24h: parseFloat(t.turnover24h)||0,
-        priceChangePercent: (parseFloat(t.price24hPcnt)*100).toFixed(2),
-        quoteVolume: parseFloat(t.turnover24h)||0,
-        lastPrice: t.lastPrice
-      }));
-      return tickersCache;
-    }
-  }catch(e){ console.warn('Bybit ticker fetch fail, trying Binance fallback:', e.message); }
-  // ถ้า Bybit แบน → ใช้ Binance แทน (ไทยเข้าถึงได้ผ่าน public API)
-  const bres = await fetch('https://fapi.binance.com/fapi/v1/ticker/24hr', {signal: AbortSignal.timeout(15000)});
-  const j = bres.ok ? await bres.json().catch(()=>[]) : [];
-  tickersCache = (Array.isArray(j)?j:[]).filter(t=>t.symbol&&t.symbol.endsWith('USDT')).map(t=>({
-    symbol: t.symbol.replace('USDT','USDT'),
-    turnover24h: parseFloat(t.quoteVolume)||0,
-    priceChangePercent: t.priceChangePercent,
-    quoteVolume: parseFloat(t.quoteVolume)||0,
-    lastPrice: parseFloat(t.lastPrice)||0
-  }));
-  return tickersCache;
-}
-
-// scan one symbol end-to-end → {sym, stars, score, price, dir, sl, tp1, tp2, ...}
-async function scanOneSymbol(symbol){
-  try{
-    // ดึง funding rate (Bybit → fallback Binance); กรอง < fundingMinFilter (default 0.02 = 2%/8h)
-    let funding = await fetchFundingRate(symbol);
-    if(Math.abs(funding) < SCAN_FUNDING_MIN) return null;   // กรองหุ้นที่ไม่มีกระแสเงินใหญ่
-    const ticker24h = { [symbol]: { priceChangePercent:0, quoteVolume:0, lastPrice:0 } };
-    const d = await computeSymbol(symbol, ticker24h);
-    if(!d) return null;
-    return { symbol:d.symbol, dir:d.signal?.dir||'long', price:d.price, score:d.score, stars:d.stars||0,
-             rsi:d.rsi, sl:d.sl, tp1:d.tp1, tp2:d.tp2, vRatio:d.volRatio, trend:d.trend, funding };
-  }catch(e){ return null; }
-}
-
-// fetch funding rate: Bybit (primary) → Binance (fallback) — ค่าเป็นแบบ normalized (เป็น % ต่อ 8h บน Bybit; /100 บน Binance)
-let fundingCache = {};   // cache 1 session ลด request ซ้ำ
-async function fetchFundingRate(symbol){
-  if(fundingCache[symbol] != null) return fundingCache[symbol];
-  try{
-    const res = await fetch(`${FUTURES_BASE_BYBIT}/v5/market/funding/interval?symbol=${symbol}`, {signal:AbortSignal.timeout(8000)});
-    const j = await res.json();
-    if(j.retCode===0 && j.result?.list?.length){
-      const f = parseFloat(j.result.list[0].fundingRate);   // Bybit ให้แบบทศนิยก เช่น 0.0001 = 0.01%/8h
-      fundingCache[symbol] = f; return f;
-    }
-  }catch(e){ console.warn('funding Bybit fail for', symbol, e.message); }
-  // ถ้า Bybit แบน → ใช้ Binance (funding เป็น % จริง: 0.01 = 1%/8h → หาร 100)
-  try{
-    const bres = await fetch(`https://fapi.binance.com/fapi/v1/fundingRate?symbol=${symbol}&limit=1`, {signal:AbortSignal.timeout(8000)});
-    const bj = await bres.json();
-    if(Array.isArray(bj) && bj[0]){
-      const f = parseFloat(bj[0].fundingRate)/100;   // 1% → 0.01
-      fundingCache[symbol] = f; return f;
-    }
-  }catch(e){ console.warn('funding Binance fail for', symbol, e.message); }
-  fundingCache[symbol] = 0; return 0;  // ไม่มีข้อมูล → ให้ผ่านฟิลเตอร์ (0 < 0.02)
-}
-
 async function fetchAllTicker24h(){
   const res = await fetch(FUTURES_TICKER);
   if(!res.ok) throw new Error('ticker fail');
@@ -1320,15 +1190,13 @@ function renderGrid(){
   // Filter for signals tab
   let displayList = list;
   if(state.tab === 'signals'){
-    // สแกนทั้งกระดาน: แสดงทุกตัวที่มีสัญญาณ (ดาว >= SCAN_MIN_STARS แล้วใน scanAllMarket)
     displayList = list.filter(sym=>{
       const d = state.data[sym];
-      return d && d.signal && d.signal.signal !== 'WAIT';
+      return d && d.signal && d.signal.stars >= 3;
     });
     // Sort by stars desc, then confidence desc
     displayList.sort((a,b)=>{
       const da = state.data[a], db = state.data[b];
-      if(!da || !db || !da.signal || !db.signal) return 0;
       if(db.signal.stars !== da.signal.stars) return db.signal.stars - da.signal.stars;
       return db.signal.confidence - da.signal.confidence;
     });
@@ -1356,22 +1224,46 @@ function renderGrid(){
   });
 }
 
-// ---------- Refresh (Scan All Market) ----------
+// ---------- Refresh ----------
 async function refreshAll(){
-  document.getElementById('refreshBtn').textContent = '↻ กำลังสแกนทั้งกระดาน...';
+  document.getElementById('refreshBtn').textContent = '↻ กำลังโหลด...';
   try{
+    const workerOk = await loadWorkerSignals();
+    if(workerOk){
+      await fetchThbRate();
+      renderGrid();
+      checkNewSignals();
+      updateSignalOutcomes();
+      if(state.tab === 'validator') renderValidator();
+      document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('th-TH',{hour12:false});
+      setConn(true);
+      document.getElementById('refreshBtn').textContent = '↻ รีเฟรช';
+      resetCountdown();
+      return;
+    }
+
+    const ticker24h = {};
+    const all = await fetchAllTicker24h();
+    all.forEach(t=> ticker24h[t.symbol]=t);
+
+    if(state.tab==='volume' || !state.volumeTop.length){
+      const usdtPerp = all.filter(t=>t.symbol.endsWith('USDT') && !t.symbol.includes('_'));
+      usdtPerp.sort((a,b)=> parseFloat(b.quoteVolume)-parseFloat(a.quoteVolume));
+      state.volumeTop = usdtPerp.slice(0,15).map(t=>t.symbol);
+    }
+
+    const activeList = getCurrentList();
+    // สแกนจาก client โดยตรง (Binance Futures API) — ไม่ผ่าน Worker
+    const results = await Promise.allSettled(activeList.map(sym=> computeSymbol(sym, ticker24h)));
+    results.forEach((r)=>{
+      if(r.status==='fulfilled' && r.value) state.data[r.value.symbol]=r.value;
+    });
     await fetchThbRate();
-    const results = await scanAllMarket();   // เรียงดาวลงแล้ว
-    const allSyms = new Set();
-    results.forEach(d=>{ state.data[d.symbol]=d; allSyms.add(d.symbol); });
-    state.allSymbols = [...allSyms];
-    state.scanCount = results.length;
     renderGrid();
     checkNewSignals();
     updateSignalOutcomes();
     if(state.tab === 'validator') renderValidator();
     document.getElementById('lastUpdate').textContent = new Date().toLocaleTimeString('th-TH',{hour12:false});
-    document.getElementById('signalCount').textContent = results.length;
     setConn(true);
   }catch(e){
     console.error(e);
@@ -1379,14 +1271,6 @@ async function refreshAll(){
   }
   document.getElementById('refreshBtn').textContent = '↻ รีเฟรช';
   resetCountdown();
-}
-
-// getCurrentList: สำหรับสแกนทั้งกระดาน ให้คืนรายการที่สแกนได้ (เพื่อ WS + grid)
-function getCurrentList(){
-  if(state.tab === 'watch') return state.watchlist;
-  if(state.tab === 'volume') return state.volumeTop.length ? state.volumeTop : (state.allSymbols||[]);
-  // signals tab: คืน everything scanned (all market) + watchlist เดิม
-  return [...new Set([...(state.allSymbols||[]), ...state.watchlist])];
 }
 
 function resetCountdown(){
@@ -1450,6 +1334,7 @@ function initSettings(){
   document.getElementById('webhookUrl').value = localStorage.getItem('webhook_url') || '';
   document.getElementById('lineBotToken').value = localStorage.getItem('line_bot_token') || '';
   document.getElementById('lineBotTarget').value = localStorage.getItem('line_bot_target') || '';
+  document.getElementById('workerUrl').value = getWorkerUrl();
   
   // Update toggle UI
   document.querySelectorAll('#settingsPanel .toggle').forEach(t=>{
@@ -1480,7 +1365,9 @@ function initSettings(){
     localStorage.setItem('webhook_url', document.getElementById('webhookUrl').value);
     localStorage.setItem('line_bot_token', document.getElementById('lineBotToken').value);
     localStorage.setItem('line_bot_target', document.getElementById('lineBotTarget').value);
+    localStorage.setItem(WORKER_URL_KEY, document.getElementById('workerUrl').value.trim());
     saveSettings();
+    refreshAll();
     
     // Request notification permission
     if(state.settings.notif_browser && 'Notification' in window && Notification.permission === 'default'){
@@ -1502,31 +1389,40 @@ function initSettings(){
 
 // ---------- Manual Panel ----------
 function manualInit(){
-  const p=document.createElement("div"); p.id="manualPanel";
-  const cards=Object.entries(TOOL_DATA).map(([k,d])=>`
+  const p = document.getElementById('manualPanel');
+  if (!p) return;
+
+  const cards = Object.entries(RADAR_TOOL_DATA).map(([k,d]) => `
     <div class="card"><h3>${d.t}<span class="badge">${k.toUpperCase()}</span></h3>
       <p><b>ทำอะไร:</b> ${d.use}</p>
       <p><b>ประโยชน์:</b> ${d.ben}</p>
       <p>${d.d}</p></div>`).join("");
-  p.innerHTML=`<div class="box">
-    <button class="close" onclick="document.getElementById('manualPanel').classList.remove('show')">✕ ปิด</button>
+
+  p.innerHTML = `<div class="box">
+    <button class="close" id="closeManual">✕ ปิด</button>
     <h2>📖 คู่มือ</h2>
     <div class="sub">Futures Radar 15M</div>
     <div class="grid2">${cards}</div>
   </div>`;
-  document.body.appendChild(p);
-  document.addEventListener("click",e=>{
-    const b=e.target.closest(".manual"); if(b){ p.classList.add("show"); }
+
+  const closeBtn = document.getElementById('closeManual');
+  if (closeBtn) closeBtn.addEventListener('click', () => p.classList.remove('show'));
+
+  document.addEventListener("click", e => {
+    const b = e.target.closest(".manual");
+    if (b) p.classList.add("show");
   });
-  document.getElementById('closeManual').addEventListener('click', ()=> p.classList.remove('show'));
 }
 
 // ---------- Tooltip ----------
 function tipInit(){
-  const box=document.createElement("div"); box.id="tipBox"; document.body.appendChild(box);
+  if (!document.getElementById('tipBox')) {
+    const box=document.createElement("div"); box.id="tipBox"; document.body.appendChild(box);
+  }
+  const box=document.getElementById('tipBox');
   let hideT=null;
   function show(key,x,y){
-    const d=TOOL_DATA[key]; if(!d)return;
+    const d=RADAR_TOOL_DATA[key]; if(!d)return;
     box.innerHTML=`<h4>${d.t}</h4><span class="tag use">ใช้: ${d.use}</span> <span class="tag ben">ประโยชน์: ${d.ben}</span><p>${d.d}</p>`;
     box.classList.add("show");
     const r=box.getBoundingClientRect();
