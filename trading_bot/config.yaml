@@ -1,0 +1,35 @@
+app:
+  mode: scan
+  quote_asset: USDT
+  top_n_symbols: 15
+  timeframes: ["15m", "4h"]
+
+strategy:
+  rsi_period: 16
+  ema_fast: 20
+  ema_slow: 50
+  macd_fast: 12
+  macd_slow: 26
+  macd_signal: 9
+  volume_ma: 20
+  min_history: 120
+
+signals:
+  a_plus_min_score: 80
+  watch_min_score: 60
+
+risk:
+  max_daily_risk_pct: 2.0
+  max_risk_per_trade_pct: 0.75
+  max_leverage: 5
+  default_leverage: 3
+  min_rr: 2.0
+
+margin:
+  enabled: true
+  isolated_only: true
+  borrow_asset: USDT
+
+report:
+  output_path: output/daily_report.txt
+  json_path: output/daily_report.json
