@@ -868,6 +868,15 @@ tr.alert-short{animation:sigGlow 1.1s ease-out 3;background:rgba(239,68,68,.10)!
 .xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
 .xnav .manual{margin-left:auto;background:#1b2230;border:1px solid #30363d;color:#8b949e;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
 .xnav .manual:hover{color:#e6edf3}
+
+/* ═══ SHARED NAV (injected) ═══ */
+.xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
+.xnav .b{font-weight:800;font-size:15px;background:linear-gradient(90deg,#3fb950,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px}
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+.xnav .manual{margin-left:auto;background:#1b2230;border:1px solid #30363d;color:#8b949e;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+.xnav .manual:hover{color:#e6edf3}
 </style>
 
 <link rel="stylesheet" href="./tooltip.css">
@@ -887,6 +896,8 @@ tr.alert-short{animation:sigGlow 1.1s ease-out 3;background:rgba(239,68,68,.10)!
   <a href="../accum.html">Accum</a>
   <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
 </nav>
+
+
 
 
 
