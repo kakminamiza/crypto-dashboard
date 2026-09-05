@@ -53,9 +53,34 @@ tr:hover td{background:#161d2b}
 .empty{text-align:center;color:#5b6478;padding:30px}
 .foot{color:#5b6478;font-size:11px;margin-top:14px;text-align:center}
 .ban{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#fca5a5;padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:13px;font-weight:600}
+
+/* ═══ SHARED NAV (injected) ═══ */
+.xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
+.xnav .b{font-weight:800;font-size:15px;background:linear-gradient(90deg,#3fb950,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px}
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+.xnav .manual{margin-left:auto;background:#1b2230;border:1px solid #30363d;color:#8b949e;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+.xnav .manual:hover{color:#e6edf3}
 </style>
+<link rel="stylesheet" href="./tooltip.css">
 </head>
-<body><div class="wrap">
+<body>
+<nav class="xnav">
+  <span class="b">◈ CRYPTO TERMINAL</span>
+  <a href="./index.html">🏠 หน้าแรก</a>
+  <a href="./dipbuy.html">Dip-Buy</a>
+  <a href="./entry.html">Entry Planner</a>
+  <a href="./scan.html">Market Scan</a>
+  <a href="./trend.html">Trend Rider</a>
+  <a href="./top100.html">Top 100</a>
+  <a href="./fav.html">⭐ โปรด</a>
+  <a href="./liqwatch.html">Liquidation</a>
+  <a href="./radar.html">Radar</a>
+  <a href="./accum.html">Accum</a>
+  <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
+</nav>
+<div class="wrap">
 <div class="head">
   <div><h1>🟢 Trend Rider Live <span style="font-size:13px;color:#22c55e">· Safe</span></h1>
   <div class="sub">EMA 20/50/200 · ADX(14) · MTF 5m/15m/1h/4h/1D · SL=ATR×2 · TP 1.5R/3R · ดึงสดจาก Binance USD-M · กัน IP-ban</div></div>
@@ -318,4 +343,5 @@ $("rfbtn").onclick=()=>{
 $("interval").onchange=()=>{if(running){clearInterval(timer);let sec=+$("interval").value;if(sec>0)timer=setInterval(scan,sec*1000)}};
 scan();
 </script>
+<script src="./tooltip.js"></script>
 </body></html>
