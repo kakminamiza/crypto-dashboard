@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en-US">
 <head>
+    <link rel="stylesheet" href="./nav.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="profile" href="https://gmpg.org/xfn/11">
@@ -22,6 +23,15 @@ gtag('config', 'G-2QHSY1S7XV');
 <style id="wp-img-auto-sizes-contain-inline-css">
 img:is([sizes=auto i],[sizes^="auto," i]){contain-intrinsic-size:3000px 1500px}
 /*# sourceURL=wp-img-auto-sizes-contain-inline-css */
+
+/* ═══ SHARED NAV (injected) ═══ */
+
+
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+
+
 
 /* ═══ SHARED NAV (injected) ═══ */
 .xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
@@ -317,7 +327,7 @@ document.head.appendChild(script);
   <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
 </nav>
 
-<div class="uicore-animation-bg"></div><!-- Custom HTML - Page Options --><!-- 1.1 uicore_before_body_content -->	<div class="uicore-body-content">
+<div id="navbar-root"></div><div class="uicore-animation-bg"></div><!-- Custom HTML - Page Options --><!-- 1.1 uicore_before_body_content -->	<div class="uicore-body-content">
 <!-- 1.2 uicore_before_page_content -->		<div id="uicore-page">
 <div data-uils="header" data-uils-title="Header" id="wrapper-navbar" itemscope itemtype="http://schema.org/WebSite" class="uicore uicore-navbar uicore-section uicore-box uicore-h-classic uicore-sticky ui-smart-sticky "><div class="uicore-header-wrapper">
 <nav class="uicore uicore-container">
@@ -797,5 +807,6 @@ jQuery(forminatorFront.forminator_selector).find('.forminator-pagination-footer'
 });
 </script>
 <script src="./tooltip.js"></script>
-</body>
+
+    <script src="./nav.js"></script></body>
 </html><!-- WP Fastest Cache file was created in 1.336 seconds, on July 16, 2026 @ 1:01 am -->

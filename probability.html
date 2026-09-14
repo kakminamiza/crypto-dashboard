@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <link rel="stylesheet" href="./nav.css">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Probability Lab — Futures Odds Calculator</title>
@@ -34,13 +35,22 @@
   td.num{font-variant-numeric:tabular-nums;font-weight:600}
   .note{color:var(--mut);font-size:12px;padding:8px 0;border-top:1px solid var(--bd)}
   .formula{background:#0F141D;border-radius:9px;padding:12px;margin:8px 0;font-family:"JetBrains Mono",monospace;font-size:12.5px;line-height:1.6}
-  .xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0a0e15;border-bottom:1px solid #26303f;flex-wrap:wrap}
-  .xnav .b{font-weight:800;letter-spacing:.4px;color:#38bdf8;margin-right:12px;font-size:14px}
+  
+  
   .xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;font-size:12.5px}
   .xnav a:hover{background:#1a2130;color:#e8eef7}
   .xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
-  .xnav .manual{margin-left:auto}
-  .xnav .manual{background:transparent;color:#7d889c;border:1px solid #2a3340;padding:5px 11px;border-radius:8px;font-size:11.5px}
+  
+  
+
+/* ═══ SHARED NAV (injected) ═══ */
+
+
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+
+
 
 /* ═══ SHARED NAV (injected) ═══ */
 .xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
@@ -68,19 +78,7 @@
   <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
 </nav>
 
-<div class="xnav">
-  <span class="b">CRYPTO TERMINAL</span>
-  <a href="index.html">หน้าแรก</a>
-  <a href="dipbuy.html">Dip-Buy</a>
-  <a href="scan.html">Market Scan</a>
-  <a href="trend.html">Trend Rider</a>
-  <a href="radar.html">Radar</a>
-  <a href="probability.html" class="cur">Probability Lab</a>
-  <a href="top100.html">Top 100</a>
-  <a href="liqwatch.html">Liquidation</a>
-  <span class="manual">ℹ️ คู่มือ</span>
-</div>
-<div class="wrap">
+<div id="navbar-root"></div><div id="navbar-root"></div><div class="wrap">
   <header>
     <h1>📐 Probability Lab</h1>
     <div class="sub">คำนวณ odds/เป確率เข้า TP/TP2/SL จากราคาปัจจุบัน + ระดับ E/TP/SL (ATR-based)</div>
@@ -193,5 +191,6 @@ document.getElementById('calcBtn').onclick=async()=>{
 document.getElementById('sym').addEventListener('keypress',e=>{if(e.key==='Enter')document.getElementById('calcBtn').click();});
 ['price','target','sl','tp1','tp2','atr'].forEach(id=>document.getElementById(id).addEventListener('keypress',e=>{if(e.key==='Enter')document.getElementById('calcBtn').click();}));
 </script>
-</body>
+
+    <script src="./nav.js"></script></body>
 </html>

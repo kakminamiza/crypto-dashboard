@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <link rel="stylesheet" href="./nav.css">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Binance Perp Scanner v2 — Live Dashboard</title>
@@ -32,6 +33,7 @@ h2{font-size:18px;color:#e6e6e6;margin-bottom:12px}
 </style>
 </head>
 <body>
+<div id="navbar-root"></div>
 <div class="wrap">
   <div class="head">
     <div><h1>🪙 Binance Perp Scanner v2</h1><div class="sub">BASE (accumulation) + Dip-Buy (pullback) · 4H TF · เทคนิคแท้ · อัปเดตอัตโนมัติทุก 1 นาที</div></div>
@@ -128,5 +130,6 @@ async function load(){
 load();
 setInterval(load, 30000);
 </script>
-</body>
+
+    <script src="./nav.js"></script></body>
 </html>

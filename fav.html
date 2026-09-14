@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <link rel="stylesheet" href="./nav.css">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>สแกนเร็วพร้อมสัญญาณ — เหรียญโปรด</title>
@@ -51,13 +52,20 @@
   footer{text-align:center;color:var(--mut);font-size:11.5px;padding:24px}
   a{color:var(--blu)}
   /* nav */
-  .xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;
-    border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;
-    font-family:"Segoe UI",Tahoma,sans-serif;font-size:13px}
-  .xnav .b{font-weight:800;letter-spacing:.5px;color:#38bdf8;margin-right:12px;font-size:15px}
+  
+  
   .xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;border:1px solid transparent}
   .xnav a:hover{background:#1a2130;color:#e8eef7}
   .xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
+
+/* ═══ SHARED NAV (injected) ═══ */
+
+
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+
+
 
 /* ═══ SHARED NAV (injected) ═══ */
 .xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
@@ -86,8 +94,7 @@
   <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
 </nav>
 
-
-<header>
+<div id="navbar-root"></div><header>
   <h1>⭐ สแกนเร็วพร้อมสัญญาณ</h1>
   <div class="sub">ตารางเทียบเหรียญที่คุณเลือก · EMA/ADX/ATR/RSI/SuperTrend/MACD + OI + Funding Rate · ทามเฟรม 5m 15m 30m 1h 4h · คลิกแถวเพื่อวิเคราะห์ลึก</div>
 </header>
@@ -313,5 +320,6 @@ document.getElementById("autoMin").addEventListener("change",function(){
 doScan();
 </script>
 <script src="./tooltip.js"></script>
-</body>
+
+    <script src="./nav.js"></script></body>
 </html>

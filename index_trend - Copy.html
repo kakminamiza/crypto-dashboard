@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <link rel="stylesheet" href="./nav.css">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Trend Rider Live Dashboard (Safe)</title>
@@ -55,7 +56,8 @@ tr:hover td{background:#161d2b}
 .ban{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#fca5a5;padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:13px;font-weight:600}
 </style>
 </head>
-<body><div class="wrap">
+<body>
+<div id="navbar-root"></div><div class="wrap">
 <div class="head">
   <div><h1>🟢 Trend Rider Live <span style="font-size:13px;color:#22c55e">· Safe</span></h1>
   <div class="sub">EMA 20/50/200 · ADX(14) · MTF 5m/15m/1h/4h/1D · SL=ATR×2 · TP 1.5R/3R · ดึงสดจาก Binance USD-M · กัน IP-ban</div></div>
@@ -323,4 +325,5 @@ $("rfbtn").onclick=()=>{
 $("interval").onchange=()=>{if(running){clearInterval(timer);let sec=+$(interval).value;if(sec>0)timer=setInterval(scan,sec*1000)}};
 startAuto();   // โหลดปุ๊บเริ่มเรียลทามเลย ไม่ต้องกดปุ่ม เริ่ม
 </script>
-</body></html>
+
+    <script src="./nav.js"></script></body></html>

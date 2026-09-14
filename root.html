@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <link rel="stylesheet" href="./nav.css">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Trend Rider Live Dashboard (Safe)</title>
@@ -55,6 +56,15 @@ tr:hover td{background:#161d2b}
 .ban{background:rgba(239,68,68,.12);border:1px solid #ef4444;color:#fca5a5;padding:10px 14px;border-radius:10px;margin-bottom:12px;font-size:13px;font-weight:600}
 
 /* ═══ SHARED NAV (injected) ═══ */
+
+
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+
+
+
+/* ═══ SHARED NAV (injected) ═══ */
 .xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
 .xnav .b{font-weight:800;font-size:15px;background:linear-gradient(90deg,#3fb950,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px}
 .xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
@@ -80,7 +90,8 @@ tr:hover td{background:#161d2b}
   <a href="./accum.html">Accum</a>
   <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
 </nav>
-<div class="wrap">
+
+<div id="navbar-root"></div><div class="wrap">
 <div class="head">
   <div><h1>🟢 Trend Rider Live <span style="font-size:13px;color:#22c55e">· Safe</span></h1>
   <div class="sub">EMA 20/50/200 · ADX(14) · MTF 5m/15m/1h/4h/1D · SL=ATR×2 · TP 1.5R/3R · ดึงสดจาก Binance USD-M · กัน IP-ban</div></div>
@@ -349,4 +360,5 @@ $("interval").onchange=()=>{if(running){clearInterval(timer);let sec=+$(interval
 startAuto();   // โหลดปุ๊บเริ่มเรียลทามเลย ไม่ต้องกดปุ่ม เริ่ม
 </script>
 <script src="./tooltip.js"></script>
-</body></html>
+
+    <script src="./nav.js"></script></body></html>

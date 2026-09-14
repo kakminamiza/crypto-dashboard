@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <link rel="stylesheet" href="./nav.css">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FUTURES RADAR 15M — สแกนเหรียซิ่ง + สัญญาณเรียลไทม์</title>
@@ -35,21 +36,15 @@
   .wordmark{font-family:'Space Grotesk',sans-serif;}
 
   /* shared nav */
-  .xnav{display:flex;align-items:center;gap:6px;padding:10px 18px;background:#0a0e15;
-    border-bottom:1px solid #26303f;flex-wrap:wrap;position:sticky;top:0;z-index:9999;
-    font-family:"Segoe UI",Tahoma,sans-serif;font-size:13px;margin:-18px -16px 18px}
-  .xnav .b{font-weight:800;letter-spacing:.5px;color:#38bdf8;margin-right:12px;font-size:15px}
+  
+  
   .xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;border:1px solid transparent}
   .xnav a:hover{background:#1a2130;color:#e8eef7}
   .xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
-  .xnav .manual{margin-left:8px;background:transparent;color:#7d889c;border:1px solid #2a3340;
-    padding:5px 11px;border-radius:7px;cursor:pointer;font-size:11.5px;font-weight:600;
-    transition:color .15s,border-color .15s}
-  .xnav .manual:hover{color:#cbd5e1;border-color:#3a4452}
-  .xnav .settings-btn{margin-left:auto;background:transparent;color:#7d889c;border:1px solid #2a3340;
-    padding:5px 11px;border-radius:7px;cursor:pointer;font-size:11.5px;font-weight:600;
-    transition:color .15s,border-color .15s}
-  .xnav .settings-btn:hover{color:#cbd5e1;border-color:#3a4452}
+  
+  
+  
+  
 
   header{
     max-width:1280px;margin:0 auto 18px;
@@ -263,23 +258,7 @@
 </head>
 <body>
 
-<nav class="xnav">
-  <span class="b">◈ CRYPTO TERMINAL</span>
-  <a href="./index.html">Accumulation</a>
-  <a href="./dipbuy.html">Dip-Buy</a>
-  <a href="./entry.html">Entry Planner</a>
-  <a href="./scan.html">Market Scan</a>
-  <a href="./trend.html">Trend Rider</a>
-  <a href="./top100.html">Top 100</a>
-  <a href="./fav.html">39 เหรียญโปรด</a>
-  <a href="./liqwatch.html">Liquidation Watch</a>
-  <a href="./radar.html" class="cur">Futures Radar 15M</a>
-  <a href="./accum.html">Accum (live)</a>
-  <button class="settings-btn" id="openSettings">⚙️ ตั้งค่า</button>
-  <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
-</nav>
-
-<header>
+<div id="navbar-root"></div><header>
   <div class="brand">
     <span class="dot"></span>
     <div>
@@ -1446,5 +1425,6 @@ document.getElementById('testBtn').addEventListener('click', ()=>{
 })();
 </script>
 <script src="./tooltip.js"></script>
-</body>
+
+    <script src="./nav.js"></script></body>
 </html>

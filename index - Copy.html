@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <link rel="stylesheet" href="./nav.css">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Accumulation Scanner Dashboard</title>
@@ -37,6 +38,7 @@
 </style>
 </head>
 <body>
+<div id="navbar-root"></div>
 <header>
   <h1>📊 Crypto Accumulation Scanner</h1>
   <div class="sub">เหรียญที่ผ่านเกณฑ์ 5 ข้อ (สะสมเงียบ / Vol&gt;1.5M / ทยอยซื้อ / Social / Breakout&gt;0.8) &middot; อัปเดต 2026-08-18 14:06</div>
@@ -74,5 +76,6 @@ DATA.forEach(r => {{
   grid.appendChild(card);
 }});
 </script>
-</body>
+
+    <script src="./nav.js"></script></body>
 </html>

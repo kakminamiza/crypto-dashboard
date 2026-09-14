@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <link rel="stylesheet" href="./nav.css">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Crypto Terminal — Single Dashboard</title>
@@ -24,6 +25,7 @@
 </style>
 </head>
 <body>
+<div id="navbar-root"></div>
 <div class="top">
   <span class="brand">◈ CRYPTO TERMINAL</span>
   <div class="tabs" id="tabs">
@@ -64,5 +66,6 @@ const q=new URLSearchParams(location.search);
 const want=q.get("tab");
 if(want){ const idx=[...tabs].findIndex(t=>t.dataset.page===want); if(idx>=0) switchTo(idx); }
 </script>
-</body>
+
+    <script src="./nav.js"></script></body>
 </html>

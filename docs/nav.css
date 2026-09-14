@@ -1,0 +1,62 @@
+/* ============================================================
+   CRYPTO TERMINAL — Shared Navbar
+   ใช้กับทุกหน้า: /_nav.html + nav.js (inject auto)
+   ธีมดาร์กมืดเขียวเหมือน index.html
+   ============================================================ */
+.navbar-root {
+    background: linear-gradient(180deg, #0b0e14 0%, #151920 100%);
+    border-bottom: 1px solid #2a3038;
+    padding: 0 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+.nav-container {
+    max-width: 1600px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    height: 60px;
+    gap: 8px;
+    overflow-x: auto;
+}
+.nav-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #00d084;
+    font-weight: 700;
+    font-size: 16px;
+    text-decoration: none;
+    margin-right: 16px;
+    white-space: nowrap;
+}
+.nav-brand::before {
+    content: "💎";
+    font-size: 18px;
+}
+.nav-link {
+    color: #9aa0a6;
+    text-decoration: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all 0.2s;
+    white-space: nowrap;
+}
+.nav-link:hover {
+    color: #e8eaed;
+    background-color: #1a1f26;
+}
+.nav-link.active {
+    color: #e8eaed;
+    background: linear-gradient(90deg, #00d084, #00a868);
+    color: #051125;
+    font-weight: 600;
+}
+@media (max-width: 768px) {
+    .nav-container { height: 54px; }
+    .nav-link { font-size: 12px; padding: 6px 10px; }
+    .nav-brand { font-size: 14px; }
+}

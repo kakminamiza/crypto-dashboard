@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
+    <link rel="stylesheet" href="./nav.css">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Liquidation Watch</title>
@@ -46,6 +47,15 @@ footer{padding:14px 22px;color:var(--mut);font-size:11px;border-top:1px solid va
 .hint{font-size:11px;color:var(--mut);padding:0 22px 10px}
 
 /* ═══ SHARED NAV (injected) ═══ */
+
+
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+
+
+
+/* ═══ SHARED NAV (injected) ═══ */
 .xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
 .xnav .b{font-weight:800;font-size:15px;background:linear-gradient(90deg,#3fb950,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px}
 .xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
@@ -72,8 +82,7 @@ footer{padding:14px 22px;color:var(--mut);font-size:11px;border-top:1px solid va
   <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
 </nav>
 
-
-<div id="banner"></div>
+<div id="navbar-root"></div><div id="banner"></div>
 <header>
   <h1>⚠️ Liquidation Watch</h1>
   <div class="sub">เฝ้าระวังล้างพอร์ต · กรอกโพซชัน → เครื่องมือเตือนเมื่อราคาเข้าใกล้จุดล้าง · ดึงราคาสด Binance · เก็บในเครื่อง</div>
@@ -201,5 +210,6 @@ update();
 if(document.getElementById("wAuto").checked) autoT=setInterval(update,15000);
 </script>
 <script src="./tooltip.js"></script>
-</body>
+
+    <script src="./nav.js"></script></body>
 </html>
