@@ -43,8 +43,6 @@ footer{padding:14px 22px;color:var(--mut);font-size:11px;border-top:1px solid va
 
 /* ═══ SHARED NAV (injected) ═══ */
 
-
-
 async function safeFetch(url){
   const r=await fetch(url);
   if(!r.ok) throw new Error("HTTP "+r.status);

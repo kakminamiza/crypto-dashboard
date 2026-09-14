@@ -99,16 +99,11 @@
 </style>
 <style id="xnav-css">
 
-
-.xnav a{padding:6px 12px;border-radius:8px;color:#93a1b5;text-decoration:none;border:1px solid transparent}
-.xnav a:hover{background:#1a2130;color:#e8eef7}
-.xnav a.cur{background:#3b82f6;color:#04101f;font-weight:700}
 </style>
 <link rel="stylesheet" href="./tooltip.css">
 </head>
 <body>
-<div id="navbar-root"></div><header>
-  <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
+<div id="navbar-root"></div><div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
     <div>
       <h1>📡 เครื่องมือสแกนเทรด <span style="color:var(--mut);font-weight:500;font-size:14px">Crypto Scan TH</span></h1>
       <div class="sub">สแกนเหรียญคริปโต USD-M Perpetuals จาก Binance · คำนวณ EMA/ADX/ATR/RSI/SuperTrend/MACD · เปิดลิงก์นี้ที่ไหนก็ใช้ได้</div>
@@ -119,7 +114,6 @@
       <button class="ghost" id="btnShare">🔗 แชร์ลิงก์</button>
     </div>
   </div>
-</header>
 <div class="wrap">
   <div class="banner" id="banner"></div>
   <div class="tabs">
@@ -641,7 +635,6 @@ document.getElementById("warAuto").addEventListener("change",function(){
   if(this.checked) warAuto=setInterval(()=>{ if(document.getElementById("panel-war").classList.contains("on")) warRefresh(); },60000);
 });
 renderWar();
-
 
 </script>
 <script src="./tooltip.js"></script>
