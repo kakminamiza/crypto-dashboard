@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>🔗 ลิงก์แนะนำ — CRYPTO TERMINAL</title>
+    <link rel="stylesheet" href="./nav.css">
+    <style>
+        :root {
+            --bg: #0b0e14;
+            --card: #111620;
+            --fg: #e6edf3;
+            --mut: #8b93a7;
+            --grn: #22c55e;
+            --red: #ef4444;
+            --blu: #38bdf8;
+            --bd: #26303f;
+            --gold: #f0b90b;
+            --pur: #a855ff;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--fg);
+            font-family: "Segoe UI", Tahoma, Roboto, sans-serif;
+        }
+        .page-header {
+            background: linear-gradient(135deg, #0b0e14 0%, #151920 50%, #0d1117 100%);
+            padding: 40px 20px 30px;
+            text-align: center;
+            border-bottom: 1px solid var(--bd);
+        }
+        .page-header h1 {
+            margin: 0;
+            font-size: 28px;
+            background: linear-gradient(90deg, #22c55e, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .page-header p {
+            color: var(--mut);
+            margin-top: 8px;
+            font-size: 14px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 20px 60px;
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--grn);
+            margin: 32px 0 16px;
+            padding-left: 12px;
+            border-left: 3px solid var(--grn);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title .icon { font-size: 22px; }
+        .section-title.blue { color: var(--blu); border-color: var(--blu); }
+        .section-title.gold { color: var(--gold); border-color: var(--gold); }
+        .section-title.purple { color: var(--pur); border-color: var(--pur); }
+        .section-title.red { color: var(--red); border-color: var(--red); }
+        .links-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 14px;
+        }
+        .link-card {
+            background: var(--card);
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            padding: 16px;
+            text-decoration: none;
+            color: var(--fg);
+            transition: all 0.25s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            position: relative;
+            overflow: hidden;
+        }
+        .link-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 4px; height: 100%;
+            background: var(--grn);
+            transform: scaleY(0);
+            transition: transform 0.3s ease;
+        }
+        .link-card:hover::before { transform: scaleY(1); }
+        .link-card:hover {
+            border-color: #3a4556;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+        }
+        .link-card.blue::before { background: var(--blu); }
+        .link-card.gold::before { background: var(--gold); }
+        .link-card.purple::before { background: var(--pur); }
+        .link-card.red::before { background: var(--red); }
+        .card-icon {
+            font-size: 28px;
+            flex-shrink: 0;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255,255,255,0.03);
+            border-radius: 10px;
+        }
+        .card-content { flex: 1; min-width: 0; }
+        .card-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin: 0 0 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .card-title .ext { font-size: 11px; color: var(--mut); font-weight: 400; }
+        .card-desc { font-size: 12px; color: var(--mut); line-height: 1.5; margin: 0; }
+        .card-tag {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 20px;
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--grn);
+            margin-top: 6px;
+            font-weight: 500;
+        }
+        .card-tag.blue { background: rgba(56, 189, 248, 0.1); color: var(--blu); }
+        .card-tag.gold { background: rgba(240, 185, 11, 0.1); color: var(--gold); }
+        .card-tag.purple { background: rgba(168, 85, 255, 0.1); color: var(--pur); }
+        .card-tag.red { background: rgba(239, 68, 68, 0.1); color: var(--red); }
+        .quick-note {
+            background: rgba(56, 189, 248, 0.05);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+            border-radius: 10px;
+            padding: 16px;
+            margin-top: 24px;
+            font-size: 13px;
+            color: var(--mut);
+            line-height: 1.6;
+        }
+        .quick-note strong { color: var(--blu); }
+        .page-footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--mut);
+            font-size: 11px;
+            border-top: 1px solid var(--bd);
+            margin-top: 40px;
+        }
+        @media (max-width: 600px) {
+            .page-header h1 { font-size: 22px; }
+            .links-grid { grid-template-columns: 1fr; }
+            .link-card { padding: 14px; }
+            .card-icon { font-size: 24px; width: 38px; height: 38px; }
+        }
+    </style>
+</head>
+<body>
+    <div id="navbar-root"></div>
+
+    <header class="page-header">
+        <h1>🔗 ลิงก์แนะนำ</h1>
+        <p>รวมลิงก์เว็บไซต์ เครื่องมือ และแหล่งเรียนรู้สำหรับเทรดเดอร์คริปโต</p>
+    </header>
+
+    <div class="container">
+        <div class="section-title">
+            <span class="icon">📚</span> เรียนรู้พื้นฐาน
+        </div>
+        <div class="links-grid">
+            <a href="https://www.binance.com/th/learn" target="_blank" class="link-card">
+                <div class="card-icon">📖</div>
+                <div class="card-content">
+                    <p class="card-title">Binance Academy <span class="ext">↗</span></p>
+                    <p class="card-desc">คอร์สเรียนรู้คริปโตฟรีจาก Binance ครบถ้วนทั้งพื้นฐานและขั้นสูง</p>
+                    <span class="card-tag">ฟรี</span>
+                </div>
+            </a>
+            <a href="https://www.investopedia.com/cryptocurrency-4427699" target="_blank" class="link-card blue">
+                <div class="card-icon">🎓</div>
+                <div class="card-content">
+                    <p class="card-title">Investopedia Crypto <span class="ext">↗</span></p>
+                    <p class="card-desc">บทเรียนคริปโตคอร์ร์เรียนจาก Investopedia ฉบับสมบูรณ์</p>
+                    <span class="card-tag blue">English</span>
+                </div>
+            </a>
+            <a href="https://www.coingecko.com/th/learn" target="_blank" class="link-card gold">
+                <div class="card-icon">🦎</div>
+                <div class="card-content">
+                    <p class="card-title">CoinGecko Learn <span class="ext">↗</span></p>
+                    <p class="card-desc">คู่มือเรียนรู้คริปโตจาก CoinGecko</p>
+                    <span class="card-tag gold">ฟรี</span>
+                </div>
+            </a>
+            <a href="https://www.coinmarketcap.com/th/alexandria/" target="_blank" class="link-card purple">
+                <div class="card-icon">📰</div>
+                <div class="card-content">
+                    <p class="card-title">CMC Alexandria <span class="ext">↗</span></p>
+                    <p class="card-desc">บทความเรียนรู้จาก CoinMarketCap</p>
+                    <span class="card-tag purple">ฟรี</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="section-title blue">
+            <span class="icon">📈</span> เทรดฟิวเจอร์ส
+        </div>
+        <div class="links-grid">
+            <a href="https://www.binance.com/th/futures" target="_blank" class="link-card blue">
+                <div class="card-icon">⚡</div>
+                <div class="card-content">
+                    <p class="card-title">Binance Futures <span class="ext">↗</span></p>
+                    <p class="card-desc">เว็บไซต์ Binance Futures อย่างเป็นทางการ</p>
+                    <span class="card-tag blue">Official</span>
+                </div>
+            </a>
+            <a href="https://www.binance.com/th/support/faq" target="_blank" class="link-card">
+                <div class="card-icon">❓</div>
+                <div class="card-content">
+                    <p class="card-title">Binance FAQ <span class="ext">↗</span></p>
+                    <p class="card-desc">คำถามที่พบบ่อยจาก Binance</p>
+                    <span class="card-tag">FAQ</span>
+                </div>
+            </a>
+            <a href="https://fapi.binance.com/fapi/v1/exchangeInfo" target="_blank" class="link-card gold">
+                <div class="card-icon">🔌</div>
+                <div class="card-content">
+                    <p class="card-title">Binance Futures API <span class="ext">↗</span></p>
+                    <p class="card-desc">API endpoint สำหรับดึงข้อมูล Futures</p>
+                    <span class="card-tag gold">API</span>
+                </div>
+            </a>
+            <a href="https://github.com/binance/binance-spot-api-docs" target="_blank" class="link-card purple">
+                <div class="card-icon">🐙</div>
+                <div class="card-content">
+                    <p class="card-title">Binance API Docs <span class="ext">↗</span></p>
+                    <p class="card-desc">เอกสาร API อย่างเป็นทางการจาก Binance</p>
+                    <span class="card-tag purple">GitHub</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="section-title gold">
+            <span class="icon">🛠️</span> เครื่องมือวิเคราะห์
+        </div>
+        <div class="links-grid">
+            <a href="https://www.tradingview.com/" target="_blank" class="link-card">
+                <div class="card-icon">📊</div>
+                <div class="card-content">
+                    <p class="card-title">TradingView <span class="ext">↗</span></p>
+                    <p class="card-desc">แพลตฟอร์มชาร์ตที่ใช้กันมากที่สุด</p>
+                    <span class="card-tag">ฟรี/Premium</span>
+                </div>
+            </a>
+            <a href="https://www.coingecko.com/th" target="_blank" class="link-card gold">
+                <div class="card-icon">🦎</div>
+                <div class="card-content">
+                    <p class="card-title">CoinGecko <span class="ext">↗</span></p>
+                    <p class="card-desc">ดูราคาและมูลค่าตลาดเหรียญคริปโต</p>
+                    <span class="card-tag gold">ฟรี</span>
+                </div>
+            </a>
+            <a href="https://coinmarketcap.com/th/" target="_blank" class="link-card blue">
+                <div class="card-icon">📈</div>
+                <div class="card-content">
+                    <p class="card-title">CoinMarketCap <span class="ext">↗</span></p>
+                    <p class="card-desc">ดูราคาคริปโตแบบเรียลไทม์</p>
+                    <span class="card-tag blue">ฟรี</span>
+                </div>
+            </a>
+            <a href="https://finance.yahoo.com/quote/BTC-USD/" target="_blank" class="link-card purple">
+                <div class="card-icon">🏛️</div>
+                <div class="card-content">
+                    <p class="card-title">Yahoo Finance <span class="ext">↗</span></p>
+                    <p class="card-desc">ดูราคา BTC/USD และสินทรัพย์อื่นๆ</p>
+                    <span class="card-tag purple">ฟรี</span>
+                </div>
+            </a>
+            <a href="https://www.coinglass.com/" target="_blank" class="link-card red">
+                <div class="card-icon">🧊</div>
+                <div class="card-content">
+                    <p class="card-title">CoinGlass <span class="ext">↗</span></p>
+                    <p class="card-desc">ข้อมูลกระจุกลิควิเดชั่นและ Open Interest</p>
+                    <span class="card-tag red">ฟรี</span>
+                </div>
+            </a>
+            <a href="https://alternative.me/crypto/fear-and-greed-index/" target="_blank" class="link-card">
+                <div class="card-icon">😱</div>
+                <div class="card-content">
+                    <p class="card-title">Fear & Greed Index <span class="ext">↗</span></p>
+                    <p class="card-desc">ดัชนีความกลัวและโลภของตลาด</p>
+                    <span class="card-tag">ฟรี</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="section-title purple">
+            <span class="icon">📉</span> วิเคราะห์ทางเทคนิค
+        </div>
+        <div class="links-grid">
+            <a href="https://www.tradingview.com/support/solutions/43000502348/" target="_blank" class="link-card purple">
+                <div class="card-icon">📐</div>
+                <div class="card-content">
+                    <p class="card-title">Pine Script Docs <span class="ext">↗</span></p>
+                    <p class="card-desc">เขียนสคริปต์วิเคราะห์บน TradingView</p>
+                    <span class="card-tag purple">Docs</span>
+                </div>
+            </a>
+            <a href="https://www.investopedia.com/trading/technical-analysis/" target="_blank" class="link-card blue">
+                <div class="card-icon">📏</div>
+                <div class="card-content">
+                    <p class="card-title">Technical Analysis Guide <span class="ext">↗</span></p>
+                    <p class="card-desc">คู่มือวิเคราะห์ทางเทคนิค</p>
+                    <span class="card-tag blue">Guide</span>
+                </div>
+            </a>
+            <a href="https://www.tradingview.com/ideas/" target="_blank" class="link-card">
+                <div class="card-icon">💡</div>
+                <div class="card-content">
+                    <p class="card-title">TradingView Ideas <span class="ext">↗</span></p>
+                    <p class="card-desc">ไอเดียเทรดจากเทรดเดอร์ทั่วโลก</p>
+                    <span class="card-tag">ชุมชน</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="section-title red">
+            <span class="icon">💧</span> ข้อมูลตลาด & กระจุกลิควิเดชั่น
+        </div>
+        <div class="links-grid">
+            <a href="https://www.coinglass.com/LiquidationData" target="_blank" class="link-card red">
+                <div class="card-icon">💥</div>
+                <div class="card-content">
+                    <p class="card-title">CoinGlass Liquidations <span class="ext">↗</span></p>
+                    <p class="card-desc">ข้อมูลกระจุกลิควิเดชั่นและขนาดใหญ่</p>
+                    <span class="card-tag red">Live</span>
+                </div>
+            </a>
+            <a href="https://www.coinglass.com/FundingRate" target="_blank" class="link-card gold">
+                <div class="card-icon">💰</div>
+                <div class="card-content">
+                    <p class="card-title">Funding Rate <span class="ext">↗</span></p>
+                    <p class="card-desc">ดู Funding Rate ปัจจุบันทุกเหรียญ</p>
+                    <span class="card-tag gold">Live</span>
+                </div>
+            </a>
+            <a href="https://defillama.com/" target="_blank" class="link-card blue">
+                <div class="card-icon">🦙</div>
+                <div class="card-content">
+                    <p class="card-title">DeFi Llama <span class="ext">↗</span></p>
+                    <p class="card-desc">ดู TVL โปรโตคอล DeFi ทุกเชน</p>
+                    <span class="card-tag blue">DeFi</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="section-title">
+            <span class="icon">🔒</span> ความปลอดภัย
+        </div>
+        <div class="links-grid">
+            <a href="https://www.binance.com/th/support/faq/360033166631" target="_blank" class="link-card">
+                <div class="card-icon">🔐</div>
+                <div class="card-content">
+                    <p class="card-title">Binance 2FA Guide <span class="ext">↗</span></p>
+                    <p class="card-desc">วิธีตั้งค่า 2FA บน Binance</p>
+                    <span class="card-tag">ด่วน</span>
+                </div>
+            </a>
+            <a href="https://haveibeenpwned.com/" target="_blank" class="link-card red">
+                <div class="card-icon">🛡️</div>
+                <div class="card-content">
+                    <p class="card-title">Have I Been Pwned <span class="ext">↗</span></p>
+                    <p class="card-desc">ตรวจสอบว่าอีเมลของคุณโดนเปิดเผยหรือเปล่า</p>
+                    <span class="card-tag red">ฟรี</span>
+                </div>
+            </a>
+        </div>
+
+        <div class="quick-note">
+            <strong>💡 หมายเหตุ:</strong> ลิงก์เหล่านี้เป็นเว็บไซต์ภายนอกที่เชื่อถือได้ การศึกษาข้อมูลจากแหล่งต่างๆ จะช่วยให้ตัดสินใจเทรดได้ดีขึ้น
+        </div>
+    </div>
+
+    <footer class="page-footer">
+        CRYPTO TERMINAL © 2026 — รวมลิงก์แนะนำสำหรับเทรดเดอร์คริปโต
+    </footer>
+
+    <script src="./nav.js"></script>
+</body>
+</html>
