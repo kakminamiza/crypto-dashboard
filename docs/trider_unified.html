@@ -322,6 +322,15 @@
 .xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
 .xnav .manual{margin-left:auto;background:#1b2230;border:1px solid #30363d;color:#8b949e;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
 .xnav .manual:hover{color:#e6edf3}
+
+/* ═══ SHARED NAV (injected) ═══ */
+.xnav{display:flex;gap:6px;align-items:center;padding:10px 16px;background:#0f141d;border-bottom:1px solid #30363d;flex-wrap:wrap}
+.xnav .b{font-weight:800;font-size:15px;background:linear-gradient(90deg,#3fb950,#58a6ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-right:8px}
+.xnav a{color:#8b949e;text-decoration:none;font-size:13px;padding:6px 12px;border-radius:8px;transition:.15s;font-weight:600}
+.xnav a:hover{background:#1b2230;color:#e6edf3}
+.xnav a.cur{color:#3fb950;background:rgba(63,185,80,.1)}
+.xnav .manual{margin-left:auto;background:#1b2230;border:1px solid #30363d;color:#8b949e;padding:6px 12px;border-radius:8px;font-size:12px;cursor:pointer}
+.xnav .manual:hover{color:#e6edf3}
 </style><link rel="stylesheet" href="./tooltip.css">
 </head><body>
 <nav class="xnav">
@@ -338,6 +347,8 @@
   <a href="../accum.html">Accum</a>
   <button class="manual" title="คู่มือ">ℹ️ คู่มือ</button>
 </nav>
+
+
 
 <div id="navbar-root"></div><div id="navbar-root"></div><h1>🌊 Trend Rider — ศูนย์รวมเทรดฟิวเจอร์ส Binance</h1><div class="stat" id="stat">กำลังโหลด…</div><div class="tabs"><div class="tab on" data-t="dip">Dip-Buy</div><div class="tab" data-t="sub">เหรียญ&lt;$1+สะสม</div><div class="tab" data-t="stat">สถิติ</div><div class="tab" data-t="learn">เรียนรู้</div></div>
 <div class="sec on" id="dip"><div class="card"><div class="h2">🎯 กลยุทธ์ Dip-Buy Pullback</div><div class="p">รอราคาดิ่งไปหา EMA20 แล้วเด้ง (Bias 4h/1D เป็นขาขึ้น) — เข้า Long ตามแนวรับ</div><div class="row"><label>ทุน($)</label><input id="capital" value="100" style="width:90px"><label>Risk(%)</label><input id="risk" value="2" style="width:70px"><label>Lev สูงสุด</label><input id="maxlev" value="5" style="width:70px"><label>Timeframe</label><select id="tf"><option>15m</option><option>1h</option><option selected>4h</option><option>1d</option></select><button id="scanBtn">สแกน Dip-Buy</button></div><div class="scroll"><table id="dipTbl"><thead><tr class="th"><th>เหรียญ</th><th>ทิศ</th><th>Entry</th><th>SL</th><th>TP1</th><th>TP2</th><th>Size$</th><th>Lev</th><th>Liq</th><th>R:R</th><th>ลิงก์</th></tr></thead><tbody><tr><td colspan="11" class="neu">กดสแกน</td></tr></tbody></table></div></div></div>
