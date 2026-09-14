@@ -645,92 +645,164 @@
 
     <script>
         // ============================================================
-        // ข้อมูลตัวอย่าง (แทนที่ด้วยข้อมูลจริงจาก API ของคุณ)
+        // Binance Futures API - ดึงข้อมูลจริง
         // ============================================================
-        let allCoins = [
-            {
-                symbol: "ENSOUSDT",
-                name: "ENSO",
-                price: 1.0150,
-                change14d: 10.4,
-                high14d: 0.9760,
-                adx: 19.1,
-                rsi: 13.6,
-                volume: 2100000,
-                score: 4,
-                maxScore: 5,
-                grade: "A+",
-                criteria: ["สะสมเงิน", "Vol>1.5M", "ทดสอบซื้อ", "Social", "Breakout>0.8"],
-                passed: [true, true, true, true, false],
-                sparkline: [0.92, 0.94, 0.93, 0.95, 0.96, 0.95, 0.97, 0.98, 0.99, 1.015]
-            },
-            {
-                symbol: "EPICUSDT",
-                name: "EPIC",
-                price: 0.9224,
-                change14d: 8.9,
-                high14d: 1.1627,
-                adx: 6.4,
-                rsi: 29.3,
-                volume: 1800000,
-                score: 4,
-                maxScore: 5,
-                grade: "A+",
-                criteria: ["สะสมเงิน", "Vol>1.5M", "ทดสอบซื้อ", "Social", "Breakout>0.8"],
-                passed: [true, true, true, true, false],
-                sparkline: [0.85, 0.87, 0.86, 0.88, 0.89, 0.90, 0.91, 0.915, 0.92, 0.9224]
-            },
-            {
-                symbol: "AXTIBUSDT",
-                name: "AXTIB",
-                price: 75.3500,
-                change14d: 7.8,
-                high14d: 79.4000,
-                adx: null,
-                rsi: null,
-                volume: 2500000,
-                score: 4,
-                maxScore: 5,
-                grade: "A+",
-                criteria: ["สะสมเงิน", "Vol>1.5M", "ทดสอบซื้อ", "Social", "Breakout>0.8"],
-                passed: [true, true, true, true, false],
-                sparkline: [70, 71, 70.5, 72, 73, 72.5, 74, 74.5, 75, 75.35]
-            },
-            {
-                symbol: "BNBUSDT",
-                name: "BNB",
-                price: 592.0000,
-                change14d: 4.8,
-                high14d: 605.5000,
-                adx: 13.6,
-                rsi: 51.9,
-                volume: 3200000,
-                score: 4,
-                maxScore: 5,
-                grade: "A",
-                criteria: ["สะสมเงิน", "Vol>1.5M", "ทดสอบซื้อ", "Social", "Breakout>0.8"],
-                passed: [true, true, true, false, false],
-                sparkline: [565, 570, 568, 575, 580, 578, 585, 588, 590, 592]
-            },
-            {
-                symbol: "NVDABUSDT",
-                name: "NVDAB",
-                price: 219.1500,
-                change14d: -0.6,
-                high14d: 222.3900,
-                adx: null,
-                rsi: null,
-                volume: 900000,
-                score: 3,
-                maxScore: 5,
-                grade: "Watch",
-                criteria: ["สะสมเงิน", "Vol>1.5M", "ทดสอบซื้อ", "Social", "Breakout>0.8"],
-                passed: [true, false, true, true, false],
-                sparkline: [220, 219.5, 219, 218.5, 219, 219.2, 218.8, 219.1, 219.3, 219.15]
-            }
-        ];
-
+        const BINANCE_API = 'https://fapi.binance.com';
+        let allCoins = [];
         let currentFilter = 'all';
+
+        // คำนวณ RSI จาก closes
+        function calcRSI(closes, period = 14) {
+            if (closes.length < period + 1) return null;
+            let gains = 0, losses = 0;
+            for (let i = closes.length - period; i < closes.length; i++) {
+                const diff = closes[i] - closes[i - 1];
+                if (diff > 0) gains += diff; else losses -= diff;
+            }
+            const avgGain = gains / period;
+            const avgLoss = losses / period;
+            if (avgLoss === 0) return 100;
+            return 100 - (100 / (1 + avgGain / avgLoss));
+        }
+
+        // คำนวณ ADX (simplified)
+        function calcADX(highs, lows, closes, period = 14) {
+            if (highs.length < period + 1) return null;
+            let trSum = 0, plusDMSum = 0, minusDMSum = 0;
+            const start = highs.length - period;
+            for (let i = start; i < highs.length; i++) {
+                const tr = Math.max(
+                    highs[i] - lows[i],
+                    Math.abs(highs[i] - closes[i - 1]),
+                    Math.abs(lows[i] - closes[i - 1])
+                );
+                const upMove = highs[i] - highs[i - 1];
+                const downMove = lows[i - 1] - lows[i];
+                plusDMSum += (upMove > downMove && upMove > 0) ? upMove : 0;
+                minusDMSum += (downMove > upMove && downMove > 0) ? downMove : 0;
+                trSum += tr;
+            }
+            if (trSum === 0) return null;
+            const plusDI = (plusDMSum / trSum) * 100;
+            const minusDI = (minusDMSum / trSum) * 100;
+            const sumDI = plusDI + minusDI;
+            if (sumDI === 0) return null;
+            const dx = Math.abs(plusDI - minusDI) / sumDI * 100;
+            return isNaN(dx) ? null : dx;
+        }
+
+        // ดึงข้อมูล ticker 24h ทั้งหมด
+        async function fetchTickers() {
+            const res = await fetch(`${BINANCE_API}/fapi/v1/ticker/24hr`);
+            if (!res.ok) throw new Error(`Ticker fetch failed: ${res.status}`);
+            const data = await res.json();
+            return data
+                .filter(s => s.symbol.endsWith('USDT') && parseFloat(s.quoteVolume) > 0)
+                .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
+                .slice(0, 40);
+        }
+
+        // ดึง klines ของเหรียญ
+        async function fetchKlines(symbol, interval, limit) {
+            const res = await fetch(`${BINANCE_API}/fapi/v1/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`);
+            if (!res.ok) return null;
+            return await res.json();
+        }
+
+        // โหลดข้อมูลทั้งหมด
+        async function loadData() {
+            const grid = document.getElementById('scannerGrid');
+            grid.innerHTML = '<div class="loading"><div class="loading-spinner"></div>กำลังดึงข้อมูลจาก Binance Futures...</div>';
+
+            try {
+                const tickers = await fetchTickers();
+                const coins = [];
+
+                for (const t of tickers) {
+                    try {
+                        const klines = await fetchKlines(t.symbol, '4h', 15);
+                        if (!klines || klines.length < 15) continue;
+
+                        const closes = klines.map(k => parseFloat(k[4]));
+                        const highs = klines.map(k => parseFloat(k[2]));
+                        const lows = klines.map(k => parseFloat(k[3]));
+
+                        const rsi = calcRSI(closes, 14);
+                        const adx = calcADX(highs, lows, closes, 14);
+
+                        const price = parseFloat(t.lastPrice);
+                        const change14d = parseFloat(t.priceChangePercent);
+                        const volume = parseFloat(t.quoteVolume);
+                        const high14d = parseFloat(t.highPrice);
+
+                        // คำนวณคะแนน 5 เงื่อนไข
+                        let score = 0;
+                        const passed = [];
+
+                        // 1. สะสมเงิน: ไม่ร่างหนัก ไม่พุ่งเกิน 50%
+                        const accum = change14d > -15 && change14d < 50;
+                        passed.push(accum);
+                        if (accum) score++;
+
+                        // 2. Vol > 1.5M USDT
+                        const volPass = volume > 1500000;
+                        passed.push(volPass);
+                        if (volPass) score++;
+
+                        // 3. ทดสอบซื้อ: RSI ไม่ overbought
+                        const buyTest = rsi !== null && rsi < 70;
+                        passed.push(buyTest);
+                        if (buyTest) score++;
+
+                        // 4. Social: ใช้ volume เป็น proxy (มีคนซื้อขาย)
+                        const social = volume > 500000;
+                        passed.push(social);
+                        if (social) score++;
+
+                        // 5. Breakout > 0.8: ราคาใกล้ high มากกว่า 80%
+                        const breakout = price / high14d;
+                        const breakoutPass = breakout > 0.8;
+                        passed.push(breakoutPass);
+                        if (breakoutPass) score++;
+
+                        // สร้าง sparkline จาก 10 แท่งล่าสุด
+                        const sparkline = closes.slice(-10);
+
+                        // กำหนดเกรด
+                        let grade;
+                        if (score >= 5) grade = 'A+';
+                        else if (score >= 4) grade = 'A';
+                        else if (score >= 3) grade = 'Watch';
+                        else grade = 'Skip';
+
+                        coins.push({
+                            symbol: t.symbol,
+                            name: t.symbol.replace('USDT', ''),
+                            price,
+                            change14d,
+                            high14d,
+                            adx,
+                            rsi,
+                            volume,
+                            score,
+                            maxScore: 5,
+                            grade,
+                            criteria: ['สะสมเงิน', 'Vol>1.5M', 'ทดสอบซื้อ', 'Social', 'Breakout>0.8'],
+                            passed,
+                            sparkline
+                        });
+                    } catch (e) {
+                        console.warn(`Skip ${t.symbol}:`, e.message);
+                    }
+                }
+
+                allCoins = coins;
+                applyFilterAndSort();
+            } catch (e) {
+                console.error('Load failed:', e);
+                grid.innerHTML = `<div class="empty-state"><h3>ไม่สามารถโหลดข้อมูลได้</h3><p>${e.message}</p><button class="btn btn-primary" onclick="loadData()" style="margin-top:12px">ลองใหม่</button></div>`;
+            }
+        }
 
         // ============================================================
         // ฟังก์ชันสร้าง Sparkline SVG
@@ -942,33 +1014,14 @@
         // ฟังก์ชันรีเฟรชข้อมูล
         // ============================================================
         function refreshData() {
-            const grid = document.getElementById('scannerGrid');
-            grid.innerHTML = `
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    กำลังโหลดข้อมูล...
-                </div>
-            `;
-            
-            // จำลองการโหลด 1 วินาที แล้วแสดงผล
-            setTimeout(() => {
-                applyFilterAndSort();
-            }, 1000);
-            
-            // ถ้าต่อ API จริง ให้ใช้ fetch ตรงนี้
-            // fetch('/api/scanner-data')
-            //     .then(r => r.json())
-            //     .then(data => {
-            //         allCoins = data;
-            //         applyFilterAndSort();
-            //     });
+            loadData();
         }
 
         // ============================================================
         // โหลดครั้งแรก
         // ============================================================
         document.addEventListener('DOMContentLoaded', () => {
-            applyFilterAndSort();
+            loadData();
         });
     </script>
 </body>
