@@ -21,7 +21,8 @@ LINKS = [("index.html", "🏠 หน้าแรก"), ("dipbuy.html", "Dip-Buy"
          ("entry.html", "Entry Planner"), ("scan.html", "Market Scan"),
          ("trend.html", "Trend Rider"), ("top100.html", "Top 100"),
          ("fav.html", "⭐ โปรด"), ("liqwatch.html", "Liquidation"),
-         ("radar.html", "Radar"), ("accum.html", "Accum")]
+         ("radar.html", "Radar"), ("session.html", "Session"),
+         ("accum.html", "Accum")]
 
 # Pages that are hubs / standalone shells with their OWN nav (iframe tabs,
 # experiment pages) and must NOT receive the shared xnav.
